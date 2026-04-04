@@ -106,18 +106,19 @@ class SurveyEngine {
       return await this.startNewSession(tenantId, channelId, fromPhone, keywordCampaign);
     }
 
-    // DEBUG: If not found, list what we checked
-    const allActiveForTenant = await prisma.surveyCampaign.findMany({
-      where: { tenantId, status: 'ACTIVE' },
-      select: { id: true, keyword: true, whatsappChannelId: true }
+    // DEBUG: If not found, list what we checked at INFO level to see in production
+    const allForTenant = await prisma.surveyCampaign.findMany({
+      where: { tenantId },
+      select: { id: true, name: true, status: true, keyword: true, whatsappChannelId: true }
     });
     
-    logger.debug({ 
+    logger.info({ 
       tenantId, 
       channelId, 
       receivedKeyword: cleanInput,
-      foundActiveCampaigns: allActiveForTenant 
-    }, '[SurveyEngine] 🔍 Matching Debug: No direct match found.');
+      tenantCampaignsCount: allForTenant.length,
+      allCampaigns: allForTenant 
+    }, '[SurveyEngine] 🔍 Matching Debug: No direct match found. Listing all tenant campaigns for diagnosis.');
 
     // 1.5 Global Cancel Keywords
     const exitKeywords = ['sair', 'cancelar', 'parar', 'stop', 'encerrar'];
