@@ -581,8 +581,8 @@ function Step1({
           </div>
         )}
 
-        {/* Media Upload (Marketing Only - Always HSM) */}
-        {data.type === 'marketing' && (
+        {/* Media Upload (Meta Only) */}
+        {!isBaileys && (
           <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 space-y-4 bg-zinc-50/50 dark:bg-zinc-900/20">
              <div className="flex items-center justify-between">
                 <h4 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide flex items-center gap-2">
