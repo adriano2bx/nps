@@ -146,19 +146,19 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
 
     const timeSeries = Object.entries(groups)
       .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([date, data]) => ({
+      .map(([date, data]: [string, any]) => ({
         date: new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
         score: data.total > 0 ? Math.round(((data.promoters - data.detractors) / data.total) * 100) : 0
       }));
 
     // --- PROCESS CAMPAIGN STATS ---
-    const byCampaign = campaigns.map(c => {
+    const byCampaign = campaigns.map((c: any) => {
       let cPromoters = 0;
       let cDetractors = 0;
       let cTotal = 0;
-      c.sessions.forEach(s => {
+      c.sessions.forEach((s: any) => {
         // Iterate over ALL responses in a session that have a numeric score
-        s.responses.forEach(r => {
+        s.responses.forEach((r: any) => {
           if (r.answerValue !== null) {
             cTotal++;
             const val = r.answerValue;
@@ -176,10 +176,10 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
 
     const result = {
       stats,
-      distribution: distribution.map((count, index) => ({ score: index, count })),
+      distribution: distribution.map((count: any, index: number) => ({ score: index, count })),
       timeSeries,
       byCampaign,
-      recent: (recentResponses as any[]).map(r => ({
+      recent: (recentResponses as any[]).map((r: any) => ({
         id: r.id,
         contactName: r.session?.contact?.name || 'Anônimo',
         campaignName: r.session?.campaign?.name,
@@ -273,7 +273,7 @@ router.get('/detailed', authMiddleware, async (req: AuthRequest, res: Response) 
     });
 
     const result = {
-      responses: (sessions as any[]).map(s => {
+      responses: (sessions as any[]).map((s: any) => {
         // For the list view, we still show the first NPS score found
         const npsResponse = s.responses.find((r: any) => r.answerValue !== null);
         const commentResponse = s.responses.find((r: any) => r.answerText !== null && r.answerText !== '');

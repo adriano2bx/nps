@@ -11,7 +11,7 @@ const router = Router();
  */
 const masterAdminOnly = async (req: AuthRequest, res: Response, next: any) => {
   try {
-    const user = await prisma.user.findUnique({
+    const user = await (prisma.user as any).findUnique({
       where: { id: req.userId }
     });
 
@@ -46,9 +46,9 @@ router.get('/', authMiddleware, masterAdminOnly, async (req: AuthRequest, res: R
     });
     
     // Transform to include active/inactive counts
-    const tenantsWithStats = tenants.map(tenant => {
-      const activeCampaigns = tenant.campaigns.filter(c => c.status === 'ACTIVE').length;
-      const inactiveCampaigns = tenant.campaigns.filter(c => c.status !== 'ACTIVE').length;
+    const tenantsWithStats = tenants.map((tenant: any) => {
+      const activeCampaigns = tenant.campaigns.filter((c: any) => c.status === 'ACTIVE').length;
+      const inactiveCampaigns = tenant.campaigns.filter((c: any) => c.status !== 'ACTIVE').length;
       
       const { campaigns, ...counts } = tenant._count;
       
@@ -82,7 +82,7 @@ router.post('/', authMiddleware, masterAdminOnly, async (req: AuthRequest, res: 
 
     const passwordHash = await bcrypt.hash(adminPassword, 10);
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // 1. Create Tenant
       const tenant = await tx.tenant.create({
         data: {

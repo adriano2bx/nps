@@ -47,7 +47,7 @@ router.post('/', authMiddleware, async (req: AuthRequest, res) => {
   } = req.body;
 
   try {
-    const campaign = await prisma.$transaction(async (tx) => {
+    const campaign = await prisma.$transaction(async (tx: any) => {
       const tenantId = req.tenantId as string;
       const newCampaign = await tx.surveyCampaign.create({
         data: {
@@ -178,7 +178,7 @@ router.put('/:id', authMiddleware, async (req: AuthRequest, res) => {
   } = req.body;
 
   try {
-    const campaign = await prisma.$transaction(async (tx) => {
+    const campaign = await prisma.$transaction(async (tx: any) => {
       // 1. Verify existence
       const existing = await tx.surveyCampaign.findUnique({
         where: { id, tenantId }
@@ -267,7 +267,7 @@ router.post('/:id/trigger', authMiddleware, async (req: AuthRequest, res) => {
         where: { tenantId, optOut: false },
         select: { id: true }
       });
-      targets = allContacts.map(c => c.id);
+      targets = allContacts.map((c: any) => c.id);
     }
 
     if (targets.length === 0) {
@@ -275,7 +275,7 @@ router.post('/:id/trigger', authMiddleware, async (req: AuthRequest, res) => {
     }
 
     // 3. Enqueue Jobs (Efficient bulk add)
-    const jobs = targets.map(contactId => ({
+    const jobs = targets.map((contactId: any) => ({
       name: 'send-nps',
       data: { tenantId, campaignId: id, contactId },
       opts: { jobId: `${id}:${contactId}:${Date.now()}` } // Deduplication if needed
