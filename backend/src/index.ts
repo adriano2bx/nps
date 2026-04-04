@@ -110,7 +110,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 // --- SERVE FRONTEND STATIC FILES ---
 // The frontend 'dist' will be in the project root if deployed via single container
 // Adjust path based on your deployment structure (e.g., ../../../frontend/dist)
-const frontendPath = path.join(__dirname, '../../../frontend/dist');
+const frontendPath = path.join(__dirname, '../../frontend/dist');
 if (fs.existsSync(frontendPath)) {
   console.log(`[Static] 📦 Serving frontend from: ${frontendPath}`);
   app.use(express.static(frontendPath));
