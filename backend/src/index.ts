@@ -77,10 +77,17 @@ app.use(express.json());
 app.use(requestLogger);
 
 // Static storage (Publicly accessible for Meta Cloud API)
-const storagePath = path.join(__dirname, '../storage');
+const storagePath = process.env.STORAGE_PATH || path.join(__dirname, '../storage');
 if (!fs.existsSync(storagePath)) fs.ensureDirSync(storagePath);
 if (!fs.existsSync(path.join(storagePath, 'uploads'))) fs.ensureDirSync(path.join(storagePath, 'uploads'));
+
 app.use('/storage', express.static(storagePath));
+
+// 404 specific for storage (to avoid SPA catch-all sending HTML for missing images)
+app.use('/storage', (req, res) => {
+  logger.warn({ url: req.originalUrl, path: req.path }, '[Storage] 404 - File Not Found');
+  res.status(404).send('File Not Found');
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -129,9 +136,9 @@ if (fs.existsSync(frontendPath)) {
   app.use(express.static(frontendPath));
   
   // Catch-all route to serve index.html (SPA support)
-  app.get('*splat', (req, res, next) => {
-    // If it's an API request, let it go to the next handlers or fail
-    if (req.path.startsWith('/api')) {
+  app.get('*', (req, res, next) => {
+    // If it's an API request, static asset, or storage, do not serve index.html
+    if (req.path.startsWith('/api') || req.path.startsWith('/storage')) {
       return next();
     }
     res.sendFile(path.join(frontendPath, 'index.html'));

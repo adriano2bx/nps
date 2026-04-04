@@ -182,7 +182,10 @@ class WhatsAppMeta {
   private applyHeaderFooter(payload: any, header?: { type: 'text' | 'image', value: string }, footer?: string) {
     if (header) {
       if (header.type === 'text') payload.interactive.header = { type: 'text', text: header.value.substring(0, 60) };
-      if (header.type === 'image') payload.interactive.header = { type: 'image', image: { link: header.value } };
+      if (header.type === 'image') {
+        logger.info({ imageUrl: header.value }, '[MetaService] Attaching image header to interactive message');
+        payload.interactive.header = { type: 'image', image: { link: header.value } };
+      }
     }
     if (footer) {
       payload.interactive.footer = { text: footer.substring(0, 60) };
