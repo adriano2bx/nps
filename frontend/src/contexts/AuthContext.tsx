@@ -9,6 +9,7 @@ interface User {
     id: string;
     name: string;
     slug: string;
+    plan: string;
   };
 }
 
