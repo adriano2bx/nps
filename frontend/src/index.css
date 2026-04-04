@@ -1,0 +1,39 @@
+@import "tailwindcss";
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: "Outfit", sans-serif;
+  
+  --color-brand-50: #eef2ff;
+  --color-brand-500: #6366f1;
+  --color-brand-600: #4f46e5;
+  --color-brand-900: #312e81;
+
+  --color-surface-dark: #09090b;
+  --color-surface-card: #141416;
+  --color-surface-subtle: #18181b;
+  --color-surface-border: #27272a;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-surface-dark);
+    color: #e4e4e7;
+  }
+
+  select {
+    color-scheme: light dark;
+  }
+
+  /* Force standard option colors in dark mode to prevent browser defaults from failing */
+  .dark select option {
+    background-color: #18181b;
+    color: #f4f4f5;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-surface-card/60 backdrop-blur-xl border border-surface-border/50 shadow-2xl;
+  }
+}

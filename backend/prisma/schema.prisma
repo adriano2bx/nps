@@ -1,0 +1,266 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Tenant {
+  id          String             @id @default(uuid())
+  name        String
+  cnpj        String?
+  plan        String             @default("FREE")
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  settings    Json?
+  slug        String             @unique
+  apiKeys     ApiKey[]
+  auditLogs   AuditLog[]
+  bulkBatches BulkBatch[]
+  contacts    Contact[]
+  segments    ContactSegment[]
+  campaigns   SurveyCampaign[]
+  messageLogs SurveyMessageLog[]
+  responses   SurveyResponse[]
+  sessions    SurveySession[]
+  webhooks    TenantWebhook[]
+  users       User[]
+  channels    WhatsAppChannel[]
+}
+
+model WhatsAppChannel {
+  id            String           @id @default(uuid())
+  tenantId      String
+  name          String
+  provider      String           @default("META")
+  status        String           @default("DISCONNECTED")
+  phoneNumberId String?
+  wabaId        String?
+  accessToken   String?
+  verifyToken   String?
+  appId         String?
+  apiKey        String?
+  appName       String?
+  sourceNumber  String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  campaigns     SurveyCampaign[]
+  tenant        Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model ApiKey {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  keyHash   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model TenantWebhook {
+  id        String   @id @default(uuid())
+  tenantId  String
+  url       String
+  secret    String?
+  events    String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id           String     @id @default(uuid())
+  tenantId     String
+  name         String
+  email        String     @unique
+  passwordHash String
+  role         String     @default("OPERATOR")
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  auditLogs    AuditLog[]
+  tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  tenantId  String
+  userId    String?
+  action    String
+  resource  String?
+  details   String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id])
+}
+
+model BulkBatch {
+  id           String   @id @default(uuid())
+  tenantId     String
+  filename     String
+  status       String   @default("PENDING")
+  rowCount     Int      @default(0)
+  successCount Int      @default(0)
+  errorCount   Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model ContactSegment {
+  id          String    @id @default(uuid())
+  tenantId    String
+  name        String
+  description String?
+  color       String?   @default("#10b981")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  contacts    Contact[] @relation("ContactToSegment")
+
+  @@unique([tenantId, name])
+}
+
+model Contact {
+  id           String           @id @default(uuid())
+  tenantId     String
+  name         String
+  phoneNumber  String
+  optOut       Boolean          @default(false)
+  invalidPhone Boolean          @default(false)
+  isMasked     Boolean          @default(false)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  tenant       Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessions     SurveySession[]
+  segments     ContactSegment[] @relation("ContactToSegment")
+
+  @@index([tenantId])
+}
+
+model SurveyCampaign {
+  id                String           @id @default(uuid())
+  tenantId          String
+  name              String
+  type              String           @default("SURVEY")
+  status            String           @default("DRAFT")
+  whatsappChannelId String?
+  clinicName        String?
+  phone             String?
+  header            String?
+  footer            String?
+  openingBody       String?
+  buttonYes         String?
+  buttonNo          String?
+  closingMessage    String?
+  isHsm             Boolean          @default(false)
+  triggerType       String           @default("active")
+  scheduledAt       DateTime?
+  delay             Int?             @default(60)
+  timeout           Int?             @default(1440)
+  windowStart       String?          @default("08:00")
+  windowEnd         String?          @default("20:00")
+  resend            Int?             @default(1)
+  waNumber          String?
+  keyword           String?
+  mediaPath         String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  tenant            Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  whatsappChannel   WhatsAppChannel? @relation(fields: [whatsappChannelId], references: [id])
+  questions         SurveyQuestion[]
+  sessions          SurveySession[]
+
+  @@unique([tenantId, keyword])
+}
+
+model SurveyQuestion {
+  id          String             @id @default(uuid())
+  campaignId  String
+  orderIndex  Int
+  type        String
+  text        String
+  required    Boolean            @default(true)
+  options     String
+  messageLogs SurveyMessageLog[]
+  campaign    SurveyCampaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  responses   SurveyResponse[]
+
+  @@index([campaignId])
+}
+
+model SurveySession {
+  id          String             @id @default(uuid())
+  tenantId    String
+  campaignId  String
+  contactId   String
+  status      String             @default("OPEN")
+  activeStep  Int                @default(0)
+  isTest      Boolean            @default(false)
+  startedAt   DateTime           @default(now())
+  updatedAt   DateTime           @default(now()) @updatedAt
+  closedAt    DateTime?
+  messageLogs SurveyMessageLog[]
+  responses   SurveyResponse[]
+  campaign    SurveyCampaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  contact     Contact            @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  tenant      Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([campaignId])
+  @@index([contactId])
+  @@index([startedAt])
+  @@index([tenantId, startedAt])
+}
+
+model SurveyResponse {
+  id          String         @id @default(uuid())
+  tenantId    String
+  sessionId   String
+  questionId  String
+  answerValue Float?
+  answerText  String?
+  isInvalid   Boolean        @default(false)
+  createdAt   DateTime       @default(now())
+  question    SurveyQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  session     SurveySession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  tenant      Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([sessionId])
+  @@index([questionId])
+  @@index([createdAt])
+  @@index([tenantId, createdAt])
+}
+
+model SurveyMessageLog {
+  id          String          @id @default(uuid())
+  tenantId    String
+  sessionId   String
+  questionId  String?
+  waMessageId String          @unique
+  status      String          @default("SENT")
+  errorReason String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  question    SurveyQuestion? @relation(fields: [questionId], references: [id])
+  session     SurveySession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  tenant      Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([sessionId])
+  @@index([questionId])
+}
+
+model BaileysSession {
+  id        Int      @id @default(autoincrement())
+  channelId String
+  key       String
+  value     String   @db.Text
+  
+  @@unique([channelId, key])
+  @@index([channelId])
+}

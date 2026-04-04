@@ -1,0 +1,30 @@
+# Template de implantação para o Easypanel
+version: '3.8'
+
+# Este arquivo pode ser usado como base para criar um "Stack" no Easypanel.
+# O Easypanel detectará automaticamente como construir as pastas 'frontend' e 'backend' usando Nixpacks.
+
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_URL=${VITE_API_URL}
+    restart: always
+
+# Nota: O banco de dados (PostgreSQL) e o Redis podem ser criados como serviços separados
+# no dashboard do Easypanel para melhor gerenciamento e persistência.
