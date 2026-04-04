@@ -18,6 +18,8 @@
     "verbatimModuleSyntax": false,
     "isolatedModules": true
   },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "scripts"],
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node"

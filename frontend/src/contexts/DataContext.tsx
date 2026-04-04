@@ -1,11 +1,33 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 
+interface Contact {
+  id: string;
+  name: string;
+  phoneNumber: string;
+  optOut: boolean;
+  isMasked: boolean;
+  lastActive: string;
+  segments: { id: string; name: string; color: string }[];
+}
+
+interface Campaign {
+  id: string;
+  name: string;
+  type: string;
+  status: string;
+  triggerType: string;
+  _count?: {
+    questions: number;
+    sessions: number;
+  };
+}
+
 interface DataContextType {
   dashboard: any;
   reports: { data: any[]; pagination: any; stats: any };
-  patients: { data: any[]; pagination: any };
-  campaigns: any[];
+  patients: { data: Contact[]; pagination: any };
+  campaigns: Campaign[];
   channels: any[];
   refreshDashboard: () => Promise<void>;
   refreshReports: (page?: number, filters?: any) => Promise<void>;
@@ -15,6 +37,7 @@ interface DataContextType {
   loading: { dashboard: boolean; reports: boolean; patients: boolean; campaigns: boolean; channels: boolean };
   isRefreshing: { dashboard: boolean; reports: boolean; patients: boolean; campaigns: boolean; channels: boolean };
 }
+
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
@@ -26,8 +49,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const [dashboard, setDashboard] = useState<any>(null);
   const [reports, setReports] = useState({ data: [], pagination: { total: 0, page: 1, limit: 10, pages: 1 }, stats: null });
-  const [patients, setPatients] = useState({ data: [], pagination: { total: 0, page: 1, limit: 10, pages: 0 } });
-  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [patients, setPatients] = useState<{ data: Contact[]; pagination: any }>({ data: [], pagination: { total: 0, page: 1, limit: 10, pages: 0 } });
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+
   const [channels, setChannels] = useState<any[]>([]);
   
   const [loading, setLoading] = useState({ 

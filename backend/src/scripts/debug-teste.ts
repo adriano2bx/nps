@@ -30,7 +30,7 @@ async function main() {
       console.log('Name:', c.name);
       console.log('Status:', c.status);
       console.log('TriggerType:', c.triggerType);
-      console.log('Keyword (DB):', \`"\${c.keyword}"\`);
+      console.log('Keyword (DB):', `"${c.keyword}"`);
       console.log('Channel ID:', c.whatsappChannelId);
       console.log('Channel Name:', c.whatsappChannel?.name);
       console.log('Provider:', c.whatsappChannel?.provider);

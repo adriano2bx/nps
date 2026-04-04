@@ -206,7 +206,7 @@ export default function Users() {
           />
         </div>
         <div className="flex items-center gap-2">
-           <button onClick={refreshPatients} className={`p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 ${isRefreshing.patients ? 'animate-spin' : ''}`}>
+           <button onClick={() => refreshPatients(pagination.page)} className={`p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 ${isRefreshing.patients ? 'animate-spin' : ''}`}>
               <RefreshCcw className="w-4 h-4 text-zinc-400" />
            </button>
         </div>
@@ -244,8 +244,8 @@ export default function Users() {
                 </td>
                 <td className="py-4 px-6">
                   <div className="flex flex-wrap gap-1.5">
-                    {row.segments?.length > 0 ? (
-                      row.segments.map(seg => (
+                     {row.segments?.length > 0 ? (
+                      row.segments.map((seg: Segment) => (
                         <span 
                           key={seg.id} 
                           className="px-2 py-0.5 rounded-full text-[9px] font-bold text-white shadow-sm"
@@ -280,7 +280,7 @@ export default function Users() {
                   {menuOpen === row.id && (
                     <div className="absolute right-12 top-0 z-50 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl w-48 py-2 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                       <button
-                        onClick={() => { setEditTarget(row); setForm({ name: row.name, phoneNumber: row.phoneNumber, segmentIds: row.segments.map(s => s.id) }); setFormOpen(true); setMenuOpen(null); }}
+                        onClick={() => { setEditTarget(row); setForm({ name: row.name, phoneNumber: row.phoneNumber, segmentIds: row.segments.map((s: Segment) => s.id) }); setFormOpen(true); setMenuOpen(null); }}
                         className="flex items-center gap-3 w-full px-4 py-2.5 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors text-xs font-semibold"
                       >
                         <Edit2 className="w-3.5 h-3.5" /> Editar Cadastro
