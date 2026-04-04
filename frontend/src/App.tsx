@@ -12,6 +12,7 @@ import MasterDashboard from './pages/MasterDashboard';
 import TVDashboard from './pages/TVDashboard';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
+import Integrations from './pages/Integrations';
 
 function ProtectedRoute() {
   const { token, loading } = useAuth();
@@ -43,6 +44,7 @@ function AppContent() {
             <Route path="reports" element={<Reports />} />
             <Route path="patients" element={<Users />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="integrations" element={<Integrations />} />
             <Route path="companies" element={<Companies />} />
             <Route path="*" element={
               user?.role === 'MASTER_ADMIN' ? <Navigate to="/master-dashboard" replace /> : <Navigate to="/dashboard" replace />

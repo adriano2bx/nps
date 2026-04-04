@@ -11,6 +11,7 @@ export default function DashboardLayout() {
     { icon: MessageSquare, label: 'Pesquisas', path: '/surveys' },
     { icon: BarChart3, label: 'Relatórios', path: '/reports' },
     { icon: Users, label: 'Usuários', path: '/patients' },
+    { icon: Activity, label: 'Integrações', path: '/integrations' },
     { icon: Settings, label: 'Configurações', path: '/settings' },
   ];
 

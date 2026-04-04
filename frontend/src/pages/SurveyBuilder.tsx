@@ -282,9 +282,17 @@ function WaPreviewPhone({ header, footer, clinicName, body, buttonYes, buttonNo,
                       <p className="text-[11px] font-bold text-zinc-700 dark:text-zinc-200">{header || `🏥 ${clinicName || 'Sua Clínica'}`}</p>
                     </div>
                   )}
-                  {type === 'marketing' && mediaPath && (
-                    <div className="w-full h-32 bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center overflow-hidden">
-                      <ImageIcon className="w-8 h-8 text-zinc-400 dark:text-zinc-600" />
+                  {(type === 'marketing' || !type || type === 'survey') && mediaPath && (
+                    <div className="w-full max-h-48 bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center overflow-hidden border-b border-zinc-100 dark:border-zinc-800">
+                      <img 
+                        src={mediaPath} 
+                        alt="Header" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                      />
                     </div>
                   )}
                   <div className="px-2.5 py-2">
