@@ -340,13 +340,26 @@ function WaPreviewPhone({ header, footer, clinicName, body, buttonYes, buttonNo,
 
 
 // ─── Step 1: General Config ──────────────────────────────────────────────────
-function Step1({ data, onChange, plan, onUpgrade, channels, isBaileys }: { 
+function Step1({ 
+  data, 
+  onChange, 
+  plan, 
+  onUpgrade, 
+  channels, 
+  isBaileys,
+  isUploading,
+  fileInputRef,
+  handleFileUpload
+}: { 
   data: GeneralState; 
   onChange: (k: string, v: string) => void; 
   plan: PlanLevel;
   onUpgrade: (feature: string) => void;
   channels: WhatsAppChannel[];
   isBaileys: boolean;
+  isUploading: boolean;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
 }) {
   const inputCls = "w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-surface-border rounded-lg py-2.5 px-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-zinc-900/5 dark:focus:ring-white/5 focus:border-zinc-400 dark:focus:border-zinc-600 transition-all cursor-pointer appearance-none";
   const labelCls = "block text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-1.5";
@@ -1894,7 +1907,19 @@ export default function SurveyBuilder() {
 
   // Derive which UI components to show based on step index and type
   const renderStep = () => {
-    if (step === 0) return <Step1 data={general} onChange={updateGeneral} plan={tenantPlan} onUpgrade={(f) => { setUpgradeFeature(f); setIsUpgradeOpen(true); }} channels={channels} isBaileys={isBaileys} />;
+    if (step === 0) return (
+      <Step1 
+        data={general} 
+        onChange={updateGeneral} 
+        plan={tenantPlan} 
+        onUpgrade={(f) => { setUpgradeFeature(f); setIsUpgradeOpen(true); }} 
+        channels={channels} 
+        isBaileys={isBaileys}
+        isUploading={isUploading}
+        fileInputRef={fileInputRef}
+        handleFileUpload={handleFileUpload}
+      />
+    );
     if (step === 1) {
       if (isMkt) return <Step3 data={dispatch} onChange={updateDispatch} type={general.type} plan={tenantPlan} onUpgrade={(f) => { setUpgradeFeature(f); setIsUpgradeOpen(true); }} triggerType={general.triggerType} />;
       return <Step2 questions={questions} setQuestions={setQuestions} clinicName={general.clinicName} header={general.header} footer={general.footer} simStep={simStep} setSimStep={setSimStep} isBaileys={isBaileys} />;
