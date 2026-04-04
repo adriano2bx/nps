@@ -38,3 +38,11 @@ backend/session/
 # Prisma
 /backend/prisma/*.db
 /backend/prisma/*.db-journal
+
+# Compiled TS files
+backend/**/*.js
+backend/**/*.d.ts
+backend/**/*.js.map
+backend/**/*.d.ts.map
+!backend/node_modules/**
+
