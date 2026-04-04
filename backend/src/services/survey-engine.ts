@@ -44,7 +44,7 @@ class SurveyEngine {
           { role: "system", content: prompt },
           { role: "user", content: text }
         ],
-        temperature: 0.1,
+        temperature: 0,
         max_tokens: 150,
       });
 
@@ -53,6 +53,25 @@ class SurveyEngine {
       console.error('[SurveyEngine] Falha ao consultar OpenAI:', error);
       return fallback;
     }
+  }
+
+  /**
+   * Compara uma resposta de texto livre com uma lista de opções esperadas.
+   */
+  private async matchOptionWithAI(text: string, options: string[]) {
+    const prompt = `Você é um motor de processamento de mensagens. O usuário enviou uma resposta a uma pergunta de múltipla escolha.
+Sua tarefa é identificar qual das opções fornecidas melhor corresponde à intenção do usuário.
+Retorne APENAS um JSON válido:
+{
+  "matchedIndex": número (índice da opção, começando em 0),
+  "confidence": número (0 a 1),
+  "invalid": booleano (true se o texto não tiver nada a ver com as opções)
+}
+Opções: ${JSON.stringify(options)}`;
+
+    const fallback = { matchedIndex: -1, confidence: 0, invalid: true };
+    const result = await this.parseIntentWithAI(prompt, text, fallback);
+    return result;
   }
 
   public async handleIncomingMessage(channelId: string, fromPhone: string, text: string) {
@@ -237,13 +256,18 @@ class SurveyEngine {
       { id: 'no', title: 'NÃO' }
     ];
     
+    // Header setup with Image support
+    const header = campaign.mediaPath 
+      ? { type: 'image' as const, value: campaign.mediaPath }
+      : (campaign.header ? { type: 'text' as const, value: campaign.header } : undefined);
+
     await this.dispatchMessage(
       channelId, 
       tenantId, 
       fromPhone, 
       body, 
       buttons, 
-      campaign.header || undefined, 
+      header, 
       campaign.footer || undefined
     );
     console.log(`[SurveyEngine] 🚀 Session started! Phone: ${fromPhone} | Campaign: ${campaign.id}`);
@@ -252,7 +276,7 @@ class SurveyEngine {
   /**
    * Universal message dispatcher that chooses between Meta and Baileys.
    */
-  private async dispatchMessage(channelId: string, tenantId: string, to: string, text: string, buttons?: { id: string, title: string }[], header?: string, footer?: string) {
+  private async dispatchMessage(channelId: string, tenantId: string, to: string, text: string, buttons?: { id: string, title: string }[], header?: { type: 'text' | 'image', value: string }, footer?: string) {
     const channel = await prisma.whatsAppChannel.findUnique({
       where: { id: channelId }
     });
@@ -264,7 +288,7 @@ class SurveyEngine {
       let fullText = text;
       
       // For Baileys, we prepend/append header/footer since it's plain text
-      if (header) fullText = `*${header}*\n\n${fullText}`;
+      if (header?.type === 'text') fullText = `*${header.value}*\n\n${fullText}`;
       if (footer) fullText = `${fullText}\n\n_${footer}_`;
       
       if (buttons && buttons.length > 0) {
@@ -273,14 +297,20 @@ class SurveyEngine {
       return await baileys.sendMessage(channelId, tenantId, to, fullText);
     } else if (channel.provider === 'META') {
       const meta = await this.getMeta();
+      
+      // Logic: 1-3 buttons -> Meta Buttons. 4-10 buttons -> Meta List.
       if (buttons && buttons.length > 0) {
-        return await meta.sendButtons(channel, to, text, buttons, header, footer);
+        if (buttons.length <= 3) {
+          return await meta.sendButtons(channel, to, text, buttons, header, footer);
+        } else if (buttons.length <= 10) {
+          const sections = [{ title: 'Opções', rows: buttons }];
+          return await meta.sendList(channel, to, text, sections, 'Ver Opções', header, footer);
+        }
       }
       
-      // Standard message with Meta doesn't have native header/footer in 'text' type 
-      // without templates, so we simulate it in the body.
+      // Standard text message with simulated header/footer if needed
       let fullText = text;
-      if (header) fullText = `*${header}*\n\n${fullText}`;
+      if (header?.type === 'text') fullText = `*${header.value}*\n\n${fullText}`;
       if (footer) fullText = `${fullText}\n\n_${footer}_`;
       
       return await meta.sendMessage(channel, to, fullText);
@@ -370,6 +400,34 @@ Retorne APENAS um JSON válido e estrito com a chave:
          return;
       }
       answerValue = aiResponse.score;
+    } else if (currentQ.options) {
+      // Pergunta de Múltipla Escolha (Botão ou Lista)
+      try {
+        const options = JSON.parse(currentQ.options);
+        // Tenta bater exatamente primeiro (se o usuário clicou no botão)
+        const exactIdx = options.findIndex((o: string) => o.trim().toLowerCase() === rawText.trim().toLowerCase());
+        
+        if (exactIdx !== -1) {
+          answerText = options[exactIdx];
+        } else {
+          // Não bateu exato? Chama a IA para desambiguação
+          const match = await this.matchOptionWithAI(rawText, options);
+          if (!match.invalid && match.matchedIndex >= 0 && match.matchedIndex < options.length) {
+            answerText = options[match.matchedIndex];
+          } else {
+             // Resposta inválida para múltipla escolha
+             await this.dispatchMessage(
+                session.campaign.whatsappChannelId,
+                session.tenantId,
+                session.contact.phoneNumber,
+                'Por favor, selecione uma das opções válidas do menu ou botão acima 👆'
+             );
+             return;
+          }
+        }
+      } catch (e) {
+        answerText = rawText;
+      }
     } else {
       // Aberta / Texto Livre
       answerText = rawText;
@@ -408,10 +466,10 @@ Retorne APENAS um JSON válido e estrito com a chave:
     if (question.options) {
       try {
         const options = JSON.parse(question.options);
-        if (Array.isArray(options) && options.length > 0 && options.length <= 3) {
+        if (Array.isArray(options) && options.length > 0 && options.length <= 10) {
            buttons = options.map((opt, idx) => ({
              id: `opt_${idx}`,
-             title: String(opt).substring(0, 20) // Meta: Max 20 chars for button title
+             title: String(opt)
            }));
         }
       } catch (e) {

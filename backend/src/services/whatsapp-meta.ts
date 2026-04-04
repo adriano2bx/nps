@@ -4,8 +4,9 @@ interface MetaMessagePayload {
   messaging_product: 'whatsapp';
   recipient_type: 'individual';
   to: string;
-  type: 'text' | 'interactive';
+  type: 'text' | 'interactive' | 'image';
   text?: { body: string };
+  image?: { link: string; caption?: string };
   interactive?: any;
 }
 
@@ -15,17 +16,13 @@ class WhatsAppMeta {
   }
 
   /**
-   * Envia uma mensagem de texto simples via WhatsApp Cloud API (Meta).
+   * Envia uma mensagem de texto simples.
    */
   public async sendMessage(channel: any, to: string, text: string) {
     const { phoneNumberId, accessToken } = channel;
-
-    if (!phoneNumberId || !accessToken) {
-      throw new Error(`Canal ${channel.id} está sem Phone ID ou Access Token da Meta.`);
-    }
+    if (!phoneNumberId || !accessToken) throw new Error('Missing Meta credentials');
 
     const cleanNumber = to.replace(/\D/g, '');
-    
     const payload: MetaMessagePayload = {
       messaging_product: 'whatsapp',
       recipient_type: 'individual',
@@ -38,15 +35,10 @@ class WhatsAppMeta {
   }
 
   /**
-   * Envia botões interativos (limite de 3 pela Meta).
+   * Envia botões interativos (1-3 botões).
    */
-  public async sendButtons(channel: any, to: string, bodyText: string, buttons: { id: string, title: string }[], headerText?: string, footerText?: string) {
+  public async sendButtons(channel: any, to: string, bodyText: string, buttons: { id: string, title: string }[], header?: { type: 'text' | 'image', value: string }, footer?: string) {
     const { phoneNumberId, accessToken } = channel;
-
-    if (!phoneNumberId || !accessToken) {
-      throw new Error(`Canal ${channel.id} está sem Phone ID ou Access Token da Meta.`);
-    }
-
     const cleanNumber = to.replace(/\D/g, '');
     const limitedButtons = buttons.slice(0, 3);
 
@@ -61,17 +53,60 @@ class WhatsAppMeta {
         action: {
           buttons: limitedButtons.map(b => ({
             type: 'reply',
-            reply: { id: b.id, title: b.title }
+            reply: { id: b.id, title: b.title.substring(0, 20) }
           }))
         }
       }
     };
 
-    if (headerText) {
-      payload.interactive.header = { type: 'text', text: headerText };
+    if (header) {
+      if (header.type === 'text') payload.interactive.header = { type: 'text', text: header.value.substring(0, 60) };
+      if (header.type === 'image') payload.interactive.header = { type: 'image', image: { link: header.value } };
     }
-    if (footerText) {
-      payload.interactive.footer = { text: footerText };
+
+    if (footer) {
+      payload.interactive.footer = { text: footer.substring(0, 60) };
+    }
+
+    return this.postToMeta(phoneNumberId, accessToken, payload);
+  }
+
+  /**
+   * Envia uma lista interativa (menu suspenso - 1 a 10 opções).
+   */
+  public async sendList(channel: any, to: string, bodyText: string, sections: { title: string, rows: { id: string, title: string, description?: string }[] }[], buttonLabel: string, header?: { type: 'text' | 'image', value: string }, footer?: string) {
+    const { phoneNumberId, accessToken } = channel;
+    const cleanNumber = to.replace(/\D/g, '');
+
+    const payload: MetaMessagePayload = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: cleanNumber,
+      type: 'interactive',
+      interactive: {
+        type: 'list',
+        body: { text: bodyText },
+        action: {
+          button: buttonLabel.substring(0, 20),
+          sections: sections.map(s => ({
+            title: s.title.substring(0, 24),
+            rows: s.rows.map(r => ({
+              id: r.id,
+              title: r.title.substring(0, 24),
+              description: r.description?.substring(0, 72)
+            }))
+          }))
+        }
+      }
+    };
+
+    if (header) {
+      if (header.type === 'text') payload.interactive.header = { type: 'text', text: header.value.substring(0, 60) };
+      if (header.type === 'image') payload.interactive.header = { type: 'image', image: { link: header.value } };
+    }
+
+    if (footer) {
+      payload.interactive.footer = { text: footer.substring(0, 60) };
     }
 
     return this.postToMeta(phoneNumberId, accessToken, payload);
@@ -89,13 +124,11 @@ class WhatsAppMeta {
       });
 
       const data = await response.json();
-
       if (!response.ok) {
         logger.error({ data, phoneNumberId }, '[MetaService] Erro ao enviar mensagem');
         throw new Error(data.error?.message || 'Erro desconhecido na Cloud API');
       }
 
-      logger.info({ messageId: data.messages?.[0]?.id, to: payload.to }, '[MetaService] Mensagem enviada com sucesso');
       return data;
     } catch (error: any) {
       logger.error({ error: error.message }, '[MetaService] Falha na requisição');

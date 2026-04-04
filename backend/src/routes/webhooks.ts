@@ -50,10 +50,14 @@ router.post('/meta/:channelId', async (req, res) => {
     const msg = body.entry[0].changes[0].value.messages[0];
     const from = msg.from;
     
-    // Extract text (standard text or interactive button reply)
+    // Extract text (standard text or interactive button/list reply)
     let text = msg.text?.body || '';
-    if (msg.type === 'interactive' && msg.interactive?.button_reply) {
-      text = msg.interactive.button_reply.title || msg.interactive.button_reply.id;
+    if (msg.type === 'interactive') {
+      if (msg.interactive?.button_reply) {
+        text = msg.interactive.button_reply.title || msg.interactive.button_reply.id;
+      } else if (msg.interactive?.list_reply) {
+        text = msg.interactive.list_reply.title || msg.interactive.list_reply.id;
+      }
     }
 
     if (!text) {
