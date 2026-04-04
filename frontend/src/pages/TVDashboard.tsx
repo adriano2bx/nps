@@ -22,9 +22,9 @@ export default function TVDashboard() {
   // List of possible Record News / CNN Brasil HLS streams
   // Some links may be more stable than others depending on geographic location
   const IPTV_SOURCES = [
-    "https://turnerlive.warnermediacdn.com/hls/live/586495/cnngo/cnn_slate/VIDEO_0_3564000.m3u8",
-    "https://raw.githubusercontent.com/CODERX24/tv/master/CNN.m3u8",
-    "https://59f139610ee89.streamlock.net/recordnews/smil:recordnews.smil/playlist.m3u8"
+    "https://59f139610ee89.streamlock.net/recordnews/smil:recordnews.smil/playlist.m3u8",
+    "https://cdn.jovempan.com.br/hls/jptv/master.m3u8",
+    "https://record-news.up.video/312/index.m3u8"
   ];
 
   // Auto-refresh data every 60 seconds
