@@ -4,9 +4,11 @@ interface MetaMessagePayload {
   messaging_product: 'whatsapp';
   recipient_type: 'individual';
   to: string;
-  type: 'text' | 'interactive' | 'image';
+  type: 'text' | 'interactive' | 'image' | 'template' | 'contacts';
   text?: { body: string };
   image?: { link: string; caption?: string };
+  template?: any;
+  contacts?: any[];
   interactive?: any;
 }
 
@@ -35,7 +37,7 @@ class WhatsAppMeta {
   }
 
   /**
-   * Envia botões interativos (1-3 botões).
+   * Envia botões interativos (1-3 botões de resposta rápida).
    */
   public async sendButtons(channel: any, to: string, bodyText: string, buttons: { id: string, title: string }[], header?: { type: 'text' | 'image', value: string }, footer?: string) {
     const { phoneNumberId, accessToken } = channel;
@@ -59,15 +61,7 @@ class WhatsAppMeta {
       }
     };
 
-    if (header) {
-      if (header.type === 'text') payload.interactive.header = { type: 'text', text: header.value.substring(0, 60) };
-      if (header.type === 'image') payload.interactive.header = { type: 'image', image: { link: header.value } };
-    }
-
-    if (footer) {
-      payload.interactive.footer = { text: footer.substring(0, 60) };
-    }
-
+    this.applyHeaderFooter(payload, header, footer);
     return this.postToMeta(phoneNumberId, accessToken, payload);
   }
 
@@ -100,16 +94,99 @@ class WhatsAppMeta {
       }
     };
 
+    this.applyHeaderFooter(payload, header, footer);
+    return this.postToMeta(phoneNumberId, accessToken, payload);
+  }
+
+  /**
+   * Envia um botão de Call to Action (CTA) com URL.
+   */
+  public async sendCTA(channel: any, to: string, bodyText: string, buttonLabel: string, url: string, header?: { type: 'text' | 'image', value: string }, footer?: string) {
+    const { phoneNumberId, accessToken } = channel;
+    const cleanNumber = to.replace(/\D/g, '');
+
+    const payload: MetaMessagePayload = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: cleanNumber,
+      type: 'interactive',
+      interactive: {
+        type: 'cta_url',
+        body: { text: bodyText },
+        action: {
+          name: 'cta_url',
+          parameters: {
+            display_text: buttonLabel.substring(0, 20),
+            url
+          }
+        }
+      }
+    };
+
+    this.applyHeaderFooter(payload, header, footer);
+    return this.postToMeta(phoneNumberId, accessToken, payload);
+  }
+
+  /**
+   * Envia um cartão de contato (VCard).
+   */
+  public async sendContact(channel: any, to: string, contactName: string, contactPhone: string) {
+    const { phoneNumberId, accessToken } = channel;
+    const cleanNumber = to.replace(/\D/g, '');
+
+    const payload: MetaMessagePayload = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: cleanNumber,
+      type: 'contacts',
+      contacts: [
+        {
+          name: {
+            formatted_name: contactName,
+            first_name: contactName
+          },
+          phones: [
+            {
+              phone: contactPhone.replace(/\D/g, ''),
+              type: 'WORK'
+            }
+          ]
+        }
+      ]
+    };
+
+    return this.postToMeta(phoneNumberId, accessToken, payload);
+  }
+
+  /**
+   * Envia um template HSM oficial da Meta.
+   */
+  public async sendTemplate(channel: any, to: string, templateName: string, languageCode: string = 'pt_BR') {
+    const { phoneNumberId, accessToken } = channel;
+    const cleanNumber = to.replace(/\D/g, '');
+
+    const payload: MetaMessagePayload = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: cleanNumber,
+      type: 'template',
+      template: {
+        name: templateName,
+        language: { code: languageCode }
+      }
+    };
+
+    return this.postToMeta(phoneNumberId, accessToken, payload);
+  }
+
+  private applyHeaderFooter(payload: any, header?: { type: 'text' | 'image', value: string }, footer?: string) {
     if (header) {
       if (header.type === 'text') payload.interactive.header = { type: 'text', text: header.value.substring(0, 60) };
       if (header.type === 'image') payload.interactive.header = { type: 'image', image: { link: header.value } };
     }
-
     if (footer) {
       payload.interactive.footer = { text: footer.substring(0, 60) };
     }
-
-    return this.postToMeta(phoneNumberId, accessToken, payload);
   }
 
   private async postToMeta(phoneNumberId: string, accessToken: string, payload: any) {

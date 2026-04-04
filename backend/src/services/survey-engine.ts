@@ -261,27 +261,59 @@ Opções: ${JSON.stringify(options)}`;
       ? { type: 'image' as const, value: campaign.mediaPath }
       : (campaign.header ? { type: 'text' as const, value: campaign.header } : undefined);
 
-    await this.dispatchMessage(
-      channelId, 
-      tenantId, 
-      fromPhone, 
-      body, 
-      buttons, 
-      header, 
-      campaign.footer || undefined
-    );
+    // Enterprise: Template (HSM) Support for proactive initial message
+    if (campaign.isHsm && campaign.templateName && campaign.whatsappChannelId) {
+       await this.dispatchMessage(
+         channelId, 
+         tenantId, 
+         fromPhone, 
+         body, 
+         undefined, // Templates don't use dynamic buttons here
+         undefined, 
+         undefined,
+         undefined, // questionId
+         newSession.id,
+         campaign.templateName
+       );
+    } else {
+       await this.dispatchMessage(
+         channelId, 
+         tenantId, 
+         fromPhone, 
+         body, 
+         buttons, 
+         header, 
+         campaign.footer || undefined,
+         undefined, // questionId
+         newSession.id
+       );
+    }
     console.log(`[SurveyEngine] 🚀 Session started! Phone: ${fromPhone} | Campaign: ${campaign.id}`);
   }
 
   /**
    * Universal message dispatcher that chooses between Meta and Baileys.
+   * Logs every message for status tracking.
    */
-  private async dispatchMessage(channelId: string, tenantId: string, to: string, text: string, buttons?: { id: string, title: string }[], header?: { type: 'text' | 'image', value: string }, footer?: string) {
+  private async dispatchMessage(
+    channelId: string, 
+    tenantId: string, 
+    to: string, 
+    text: string, 
+    buttons?: { id: string, title: string }[], 
+    header?: { type: 'text' | 'image', value: string }, 
+    footer?: string,
+    questionId?: string,
+    sessionId?: string,
+    templateName?: string
+  ) {
     const channel = await prisma.whatsAppChannel.findUnique({
       where: { id: channelId }
     });
 
     if (!channel) throw new Error('Channel not found for dispatch');
+
+    let result: any;
 
     if (channel.provider === 'BAILEYS') {
       const baileys = await this.getBaileys();
@@ -294,29 +326,44 @@ Opções: ${JSON.stringify(options)}`;
       if (buttons && buttons.length > 0) {
         fullText += '\n\n' + buttons.map(b => `*${b.title}*`).join(' | ');
       }
-      return await baileys.sendMessage(channelId, tenantId, to, fullText);
+      result = await baileys.sendMessage(channelId, tenantId, to, fullText);
     } else if (channel.provider === 'META') {
       const meta = await this.getMeta();
       
-      // Logic: 1-3 buttons -> Meta Buttons. 4-10 buttons -> Meta List.
-      if (buttons && buttons.length > 0) {
+      if (templateName) {
+        result = await meta.sendTemplate(channel, to, templateName);
+      } else if (buttons && buttons.length > 0) {
         if (buttons.length <= 3) {
-          return await meta.sendButtons(channel, to, text, buttons, header, footer);
+          result = await meta.sendButtons(channel, to, text, buttons, header, footer);
         } else if (buttons.length <= 10) {
           const sections = [{ title: 'Opções', rows: buttons }];
-          return await meta.sendList(channel, to, text, sections, 'Ver Opções', header, footer);
+          result = await meta.sendList(channel, to, text, sections, 'Ver Opções', header, footer);
         }
+      } else {
+        // Standard text message with simulated header/footer if needed
+        let fullText = text;
+        if (header?.type === 'text') fullText = `*${header.value}*\n\n${fullText}`;
+        if (footer) fullText = `${fullText}\n\n_${footer}_`;
+        result = await meta.sendMessage(channel, to, fullText);
       }
-      
-      // Standard text message with simulated header/footer if needed
-      let fullText = text;
-      if (header?.type === 'text') fullText = `*${header.value}*\n\n${fullText}`;
-      if (footer) fullText = `${fullText}\n\n_${footer}_`;
-      
-      return await meta.sendMessage(channel, to, fullText);
     } else {
       throw new Error(`Provider ${channel.provider} not supported by SurveyEngine`);
     }
+
+    // LOG MESSAGE FOR TRACKING (Enterprise)
+    if (result?.messages?.[0]?.id && sessionId) {
+      await prisma.surveyMessageLog.create({
+        data: {
+          tenantId,
+          sessionId,
+          questionId: questionId || null,
+          waMessageId: result.messages[0].id,
+          status: 'SENT'
+        }
+      }).catch(e => console.error('[SurveyEngine] Error logging message:', e));
+    }
+
+    return result;
   }
 
   private async handleConsentStep(session: any, rawText: string) {
@@ -453,13 +500,13 @@ Retorne APENAS um JSON válido e estrito com a chave:
 
     // Próxima Pergunta ou Fim
     if (nextStep <= questions.length) {
-      await this.sendQuestion(session.campaign.whatsappChannelId, session.tenantId, session.contact.phoneNumber, questions[nextStep - 1]);
+      await this.sendQuestion(session.campaign.whatsappChannelId, session.tenantId, session.contact.phoneNumber, questions[nextStep - 1], session.id);
     } else {
       await this.closeSession(session);
     }
   }
 
-  private async sendQuestion(channelId: string, tenantId: string, phone: string, question: any) {
+  private async sendQuestion(channelId: string, tenantId: string, phone: string, question: any, sessionId?: string) {
     let text = question.text;
     let buttons: { id: string, title: string }[] | undefined = undefined;
 
@@ -483,7 +530,7 @@ Retorne APENAS um JSON válido e estrito com a chave:
       text += '\n\n_(Digite sua resposta)_';
     }
 
-    await this.dispatchMessage(channelId, tenantId, phone, text, buttons);
+    await this.dispatchMessage(channelId, tenantId, phone, text, buttons, undefined, undefined, question.id, sessionId);
   }
 
   private async closeSession(session: any, forcesNoMessage = false) {
@@ -493,18 +540,74 @@ Retorne APENAS um JSON válido e estrito com a chave:
     });
 
     if (!forcesNoMessage && session.campaign.closingMessage) {
-      await this.dispatchMessage(
-        session.campaign.whatsappChannelId,
-        session.tenantId,
-        session.contact.phoneNumber,
-        session.campaign.closingMessage
-      );
+      const camp = session.campaign;
+      
+      // ENTERPRISE CHOICE: CTA Button, Contact Card, or Text
+      if (camp.ctaLabel && camp.ctaLink) {
+        const meta = await this.getMeta();
+        const header = camp.header ? { type: 'text' as const, value: camp.header } : undefined;
+        // Check if provider is Meta for official CTA support
+        const channel = await prisma.whatsAppChannel.findUnique({ where: { id: camp.whatsappChannelId } });
+        
+        if (channel?.provider === 'META') {
+          await meta.sendCTA(channel, session.contact.phoneNumber, camp.closingMessage, camp.ctaLabel, camp.ctaLink, header, camp.footer || undefined);
+        } else {
+          // Fallback for Baileys
+          await this.dispatchMessage(
+            camp.whatsappChannelId,
+            session.tenantId,
+            session.contact.phoneNumber,
+            `${camp.closingMessage}\n\n🔗 *${camp.ctaLabel}*\n${camp.ctaLink}`,
+            undefined,
+            header,
+            camp.footer || undefined,
+            undefined,
+            session.id
+          );
+        }
+      } else if (camp.supportName && camp.supportPhone) {
+        // Send Contact Card
+        await this.dispatchMessage(
+          camp.whatsappChannelId,
+          session.tenantId,
+          session.contact.phoneNumber,
+          camp.closingMessage,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          session.id
+        );
+        const meta = await this.getMeta();
+        const channel = await prisma.whatsAppChannel.findUnique({ where: { id: camp.whatsappChannelId } });
+        if (channel?.provider === 'META') {
+           await meta.sendContact(channel, session.contact.phoneNumber, camp.supportName, camp.supportPhone);
+        }
+      } else {
+        // Standard Text Message
+        await this.dispatchMessage(
+          camp.whatsappChannelId,
+          session.tenantId,
+          session.contact.phoneNumber,
+          camp.closingMessage,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          session.id
+        );
+      }
     } else if (forcesNoMessage) {
       await this.dispatchMessage(
         session.campaign.whatsappChannelId,
         session.tenantId,
         session.contact.phoneNumber,
-        'Certo. Você não receberá mais mensagens dessa pesquisa. Obrigado!'
+        'Certo. Você não receberá mais mensagens dessa pesquisa. Obrigado!',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        session.id
       );
     }
   }

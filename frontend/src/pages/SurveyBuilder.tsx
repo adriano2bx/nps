@@ -39,8 +39,13 @@ interface GeneralState {
   openingBody: string;
   buttonYes: string;
   buttonNo: string;
-  closingMessage: string;
-  isHsm: string;
+  closingMessage    : string;
+  isHsm             : string;
+  templateName      : string;
+  ctaLabel          : string;
+  ctaLink           : string;
+  supportName       : string;
+  supportPhone      : string;
 }
 
 interface WhatsAppChannel {
@@ -533,6 +538,18 @@ function Step1({ data, onChange, plan, onUpgrade, channels, isBaileys }: {
                 <p className="text-[10px] text-zinc-500 dark:text-zinc-500">Obrigatório para iniciar conversas após 24h do último contato.</p>
               </button>
             </div>
+            {data.isHsm === 'true' && (
+              <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                <label className={labelCls}>Nome do Template Oficial (Meta)</label>
+                <input 
+                  className={inputCls} 
+                  placeholder="Ex: nps_pesquisa_v1" 
+                  value={data.templateName} 
+                  onChange={e => onChange('templateName', e.target.value)} 
+                />
+                <p className="text-[11px] text-zinc-500 mt-1 italic">Este nome deve corresponder exatamente ao template aprovado no Business Manager.</p>
+              </div>
+            )}
           </div>
         )}
 
@@ -672,6 +689,35 @@ Você aceita participar de uma pesquisa rápida de satisfação?`}
             </p>
           </div>
         )}
+
+        <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 space-y-4 bg-zinc-50/50 dark:bg-zinc-900/20">
+          <h4 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide flex items-center gap-2">
+            <CheckCircle2 className="w-3.5 h-3.5" /> Ações Pós-Encerramento (Enterprise)
+          </h4>
+          
+          <div className="grid grid-cols-2 gap-4">
+             <div className="col-span-2 sm:col-span-1">
+                <label className={labelCls}>Call to Action (Botão com Link)</label>
+                <input className={inputCls} placeholder="Texto do Botão (Ex: Abrir Site)" value={data.ctaLabel} onChange={e => onChange('ctaLabel', e.target.value)} />
+             </div>
+             <div className="col-span-2 sm:col-span-1">
+                <label className={labelCls}>URL do Destino</label>
+                <input className={inputCls} placeholder="https://google.com/review" value={data.ctaLink} onChange={e => onChange('ctaLink', e.target.value)} />
+             </div>
+             
+             <div className="col-span-2 h-px bg-zinc-200 dark:bg-zinc-800 my-1" />
+             
+             <div className="col-span-2 sm:col-span-1">
+                <label className={labelCls}>Sugestão de Contato Humano</label>
+                <input className={inputCls} placeholder="Nome (Ex: Suporte VIP)" value={data.supportName} onChange={e => onChange('supportName', e.target.value)} />
+             </div>
+             <div className="col-span-2 sm:col-span-1">
+                <label className={labelCls}>Telefone (VCard)</label>
+                <input className={inputCls} placeholder="5511999999999" value={data.supportPhone} onChange={e => onChange('supportPhone', e.target.value)} />
+             </div>
+          </div>
+          <p className="text-[10px] text-zinc-500 italic">Disponível para canais Meta. O CTA permite enviar um botão que abre um site. O VCard envia o contato para ser salvo.</p>
+        </div>
 
         <div>
           <label className={labelCls}>Mensagem de Encerramento</label>
@@ -1578,8 +1624,13 @@ export default function SurveyBuilder() {
     mediaPath: '',
     name: '', channel: '', channelId: '', clinicName: '', phone: '',
     header: '', footer: 'Responda SAIR para não receber mais mensagens.',
-    openingBody: '', buttonYes: '', buttonNo: '',
-    closingMessage: '', isHsm: 'false'
+    openingBody: '', buttonYes: '✅ Sim, quero participar', buttonNo: '❌ Não, obrigado',
+    closingMessage: '', isHsm: 'false',
+    templateName: '',
+    ctaLabel: '',
+    ctaLink: '',
+    supportName: '',
+    supportPhone: ''
   });
   const [questions, setQuestions] = useState<Question[]>([
     { id: 1, type: 'nps', text: 'De 0 a 10, o quanto você recomendaria nossa clínica para um amigo ou familiar?', required: true }
@@ -1623,6 +1674,11 @@ export default function SurveyBuilder() {
         closingMessage: general.closingMessage,
         isHsm: general.isHsm === 'true',
         triggerType: general.triggerType,
+        templateName: general.templateName,
+        ctaLabel: general.ctaLabel,
+        ctaLink: general.ctaLink,
+        supportName: general.supportName,
+        supportPhone: general.supportPhone,
         ...dispatch, // include keyword, waNumber, delay, timeout, etc.
         questions: questions.map(q => ({
           type: q.type,
@@ -1682,8 +1738,13 @@ export default function SurveyBuilder() {
             buttonNo: campaign.buttonNo || '❌ Não, obrigado',
             closingMessage: campaign.closingMessage || '',
             isHsm: String(campaign.isHsm),
+            templateName: campaign.templateName || '',
+            ctaLabel: campaign.ctaLabel || '',
+            ctaLink: campaign.ctaLink || '',
+            supportName: campaign.supportName || '',
+            supportPhone: campaign.supportPhone || '',
             channel: '',
-            mediaPath: ''
+            mediaPath: campaign.mediaPath || ''
           });
 
           setDispatch({

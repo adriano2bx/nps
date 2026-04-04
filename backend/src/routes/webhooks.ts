@@ -42,7 +42,23 @@ router.post('/meta/:channelId', async (req, res) => {
   const body = req.body;
 
   try {
-    // Info check
+    // 1. Handle Status Updates (Enterprise Tracking)
+    if (body.entry?.[0]?.changes?.[0]?.value?.statuses) {
+      const statusUpdate = body.entry[0].changes[0].value.statuses[0];
+      const wamid = statusUpdate.id;
+      const status = statusUpdate.status.toUpperCase(); // DELIVERED, READ, etc.
+
+      logger.info({ wamid, status, channelId }, '[Webhook] Status Update Received');
+
+      await prisma.surveyMessageLog.updateMany({
+        where: { waMessageId: wamid },
+        data: { status }
+      }).catch(e => logger.error({ e, wamid }, '[Webhook] Error updating message status'));
+
+      return res.status(200).send('OK');
+    }
+
+    // 2. Handle Incoming Messages
     if (body.object !== 'whatsapp_business_account' || !body.entry?.[0]?.changes?.[0]?.value?.messages) {
       return res.status(200).send('Event ignored');
     }
