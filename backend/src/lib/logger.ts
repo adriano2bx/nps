@@ -57,7 +57,7 @@ export function setupGlobalLogger() {
   // Traumas e Exceções não tratadas no root
   process.on('uncaughtException', (err) => {
     logger.fatal(err, 'Uncaught Exception detectada no Node.js!');
-    // Idealmente você reiniciaria o processo após gravar o fatal.
+    console.error('FATAL EXCEPTION:', err); // Log redundante para o terminal do Easypanel
     process.exit(1); 
   });
 
