@@ -136,7 +136,7 @@ if (fs.existsSync(frontendPath)) {
   app.use(express.static(frontendPath));
   
   // Catch-all route to serve index.html (SPA support)
-  app.get('*', (req, res, next) => {
+  app.get('*splat', (req, res, next) => {
     // If it's an API request, static asset, or storage, do not serve index.html
     if (req.path.startsWith('/api') || req.path.startsWith('/storage')) {
       return next();
