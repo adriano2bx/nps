@@ -243,10 +243,10 @@ function WaPreviewPhone({ header, footer, clinicName, body, buttonYes, buttonNo,
 }) {
   const [clock] = useState(() => new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
   const [replied, setReplied] = useState<string | null>(null);
-  const defaultBody = "Olá! Gostaríamos de saber sobre sua experiência conosco.\n\nVocê aceita participar de uma pesquisa rápida de satisfação? 😊";
+  const defaultBody = "Olá! Você foi convidado para uma pesquisa rápida de satisfação. 😊";
   const displayBody = body.trim() || defaultBody;
-  const displayYes = buttonYes.trim() || '✅ Sim, quero participar';
-  const displayNo  = buttonNo.trim()  || '❌ Não, obrigado';
+  const displayYes = buttonYes.trim() || 'SIM';
+  const displayNo  = buttonNo.trim()  || 'NÃO';
   return (
     <div className="flex flex-col items-center">
       <div className="relative bg-zinc-900 dark:bg-black rounded-[2.5rem] shadow-2xl border-4 border-zinc-800 dark:border-zinc-700" style={{ width: 300, height: 620 }}>
@@ -265,10 +265,10 @@ function WaPreviewPhone({ header, footer, clinicName, body, buttonYes, buttonNo,
           </div>
           <div className="bg-[#075e54] dark:bg-[#1f2c34] px-3 py-2 flex items-center gap-2.5 shrink-0">
             <div className="w-8 h-8 rounded-full bg-[#128c7e] flex items-center justify-center text-white text-xs font-bold border-2 border-white/20">
-              {(clinicName || 'C').charAt(0).toUpperCase()}
+              P
             </div>
             <div>
-              <p className="text-white text-[12px] font-semibold leading-none">{clinicName || 'Sua Clínica'}</p>
+              <p className="text-white text-[12px] font-semibold leading-none">Pesquisa de Satisfação</p>
               <p className="text-[#b2dfdb] text-[10px] mt-0.5">online agora</p>
             </div>
           </div>
@@ -277,9 +277,9 @@ function WaPreviewPhone({ header, footer, clinicName, body, buttonYes, buttonNo,
             <div className="flex justify-start">
               <div className="max-w-[88%] flex flex-col gap-px">
                 <div className="bg-white dark:bg-[#1f2c34] rounded-lg rounded-bl-none shadow-md ring-1 ring-zinc-100 dark:ring-transparent overflow-hidden">
-                  {!isBaileys && !mediaPath && (header || clinicName) && (
+                  {!isBaileys && !mediaPath && header && (
                     <div className="px-2.5 pt-2 pb-1.5 border-b border-zinc-200 dark:border-zinc-700/50">
-                      <p className="text-[11px] font-bold text-zinc-700 dark:text-zinc-200">{header || `🏥 ${clinicName || 'Sua Clínica'}`}</p>
+                      <p className="text-[11px] font-bold text-zinc-700 dark:text-zinc-200">{header}</p>
                     </div>
                   )}
                   {(type === 'marketing' || !type || type === 'survey') && mediaPath && (
@@ -627,7 +627,7 @@ function Step1({
                     <div className="w-12 h-12 rounded-full border border-zinc-200 dark:border-zinc-800 flex items-center justify-center mx-auto mb-3">
                       <span className="text-zinc-400">📷</span>
                     </div>
-                    <h3 className="text-sm font-semibold text-zinc-900 dark:text-white mb-1">Upload de Imagem ou Vídeo</h3>
+                    <h3 className="text-sm font-semibold text-zinc-900 dark:white mb-1">Upload de Imagem ou Vídeo</h3>
                     <p className="text-[11px] text-zinc-500 max-w-xs mx-auto">Arraste a mídia ou clique. Essa imagem integrará seu Template Oficial da Meta e passará pela aprovação antes do disparo livre.</p>
                   </>
                 )}
@@ -635,41 +635,6 @@ function Step1({
           </div>
         )}
 
-        {/* Identificação da Empresa */}
-        <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 space-y-4 bg-zinc-50/50 dark:bg-zinc-900/20">
-          <h4 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide flex items-center gap-2">
-            <Smartphone className="w-3.5 h-3.5" /> {isBaileys ? 'Identificação' : 'Identificação na Mensagem'}
-          </h4>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelCls}>Nome da Clínica</label>
-              <input className={inputCls} placeholder="Ex: Clínica Morumbi" value={data.clinicName} onChange={e => onChange('clinicName', e.target.value)} />
-            </div>
-            <div>
-              <label className={labelCls}>Telefone / Site (opcional)</label>
-              <input className={inputCls} placeholder="(11) 3000-0000" value={data.phone} onChange={e => onChange('phone', e.target.value)} />
-            </div>
-          </div>
-          {!isBaileys && (
-            <>
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className={`${labelCls} mb-0`}>Cabeçalho (header)</label>
-                  <span className={`text-[10px] font-mono ${(data.header || '').length >= 60 ? 'text-red-500 font-bold' : 'text-zinc-400'}`}>
-                    {(data.header || '').length}/60
-                  </span>
-                </div>
-                <input maxLength={60} className={inputCls} placeholder="Ex: 🏥 Clínica Morumbi | Pesquisa de Satisfação" value={data.header} onChange={e => onChange('header', e.target.value)} />
-                <p className="text-[11px] text-zinc-500 mt-1">Aparece em negrito no topo da primeira mensagem.</p>
-              </div>
-              <div>
-                <label className={labelCls}>Rodapé (footer)</label>
-                <input className={inputCls} placeholder="Ex: Clínica Morumbi • (11) 3000-0000 • Responda SAIR para encerrar." value={data.footer} onChange={e => onChange('footer', e.target.value)} />
-                <p className="text-[11px] text-zinc-500 mt-1">Deve incluir instrução de opt-out (exigido pela LGPD e Meta).</p>
-              </div>
-            </>
-          )}
-        </div>
 
         <div>
           <label className={labelCls}>Corpo da Mensagem Inicial</label>
