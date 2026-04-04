@@ -5,24 +5,49 @@ import {
   Volume2,
   Target,
   RefreshCcw,
-  Monitor
+  TowerControl as Tower
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Global Hls for TypeScript
 declare global { interface Window { Hls: any; } }
 
+type SignalType = 'hls' | 'iframe';
+
+interface Signal {
+  name: string;
+  type: SignalType;
+  url: string;
+}
+
 export default function TVDashboard() {
   const { dashboard, refreshDashboard, loading } = useData();
   const [time, setTime] = useState(new Date());
-  const [playerType, setPlayerType] = useState<'iptv' | 'youtube'>('iptv');
+  
+  // Signal Cycle Configuration
+  const SIGNALS: Signal[] = [
+    { 
+      name: 'RECORD NEWS (IPTV)', 
+      type: 'hls', 
+      url: "https://59f139610ee89.streamlock.net/recordnews/smil:recordnews.smil/playlist.m3u8" 
+    },
+    { 
+      name: 'RECORD NEWS (ALT)', 
+      type: 'iframe', 
+      url: "https://www.dailymotion.com/embed/video/x7v7q7m?autoplay=1&mute=1&controls=0&ui-logo=0&sharing-enable=0" 
+    },
+    { 
+      name: 'TV BRASIL (ESTÁVEL)', 
+      type: 'hls', 
+      url: "https://tvbrasil-video.ebc.com.br/hls/tvbrasil/index.m3u8" 
+    }
+  ];
+
+  const [signalIndex, setSignalIndex] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<any>(null);
-  
-  // Channels
-  const IPTV_SOURCE = "https://59f139610ee89.streamlock.net/recordnews/smil:recordnews.smil/playlist.m3u8";
-  const YOUTUBE_SOURCE = "https://www.youtube.com/embed/live_stream?channel=UC7s6SS_pYv_Xp3t9vM3i3fA&autoplay=1&mute=1&controls=0&modestbranding=1&rel=0";
+  const activeSignal = SIGNALS[signalIndex];
 
   // Clock & Sync
   useEffect(() => {
@@ -31,20 +56,30 @@ export default function TVDashboard() {
     return () => { clearInterval(clock); clearInterval(sync); };
   }, [refreshDashboard]);
 
-  // HLS Player Initialize & Watchdog
+  // Failover Watchdog
   useEffect(() => {
-    if (playerType !== 'iptv') return;
+    setIsLoaded(false);
+    
+    // Auto-failover if the signal doesn't start in 8 seconds
+    const timer = setTimeout(() => {
+      if (!isLoaded) {
+        console.warn(`Sinal ${activeSignal.name} falhou. Tentando próximo...`);
+        handleNextSignal();
+      }
+    }, 8000);
+
+    return () => clearTimeout(timer);
+  }, [signalIndex]);
+
+  // HLS logic
+  useEffect(() => {
+    if (activeSignal.type !== 'hls') {
+        setIsLoaded(true); // iframe sources report as loaded immediately for simple logic
+        return;
+    }
 
     const scriptId = 'hls-js-script';
     let script = document.getElementById(scriptId) as HTMLScriptElement;
-
-    // Watchdog: If video doesn't start in 10s, fallback to YouTube
-    const timer = setTimeout(() => {
-      if (!isLoaded && playerType === 'iptv') {
-        console.warn("IPTV Failure: Switching to YouTube fallback...");
-        setPlayerType('youtube');
-      }
-    }, 10000);
 
     const initHls = () => {
       if (!videoRef.current || !window.Hls) return;
@@ -52,11 +87,9 @@ export default function TVDashboard() {
 
       if (window.Hls.isSupported()) {
         const hls = new window.Hls({
-           xhrSetup: (xhr: any) => { 
-             xhr.withCredentials = false; // Important for CORS on some sources
-           }
+           xhrSetup: (xhr: any) => { xhr.withCredentials = false; }
         });
-        hls.loadSource(IPTV_SOURCE);
+        hls.loadSource(activeSignal.url);
         hls.attachMedia(video);
         hlsRef.current = hls;
 
@@ -65,10 +98,10 @@ export default function TVDashboard() {
         });
 
         hls.on(window.Hls.Events.ERROR, (_: any, data: any) => {
-          if (data.fatal) setPlayerType('youtube');
+          if (data.fatal) handleNextSignal();
         });
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = IPTV_SOURCE;
+        video.src = activeSignal.url;
         video.onloadedmetadata = () => {
            video.play().then(() => setIsLoaded(true)).catch(() => setIsLoaded(false));
         };
@@ -82,22 +115,23 @@ export default function TVDashboard() {
       script.async = true;
       script.onload = initHls;
       document.body.appendChild(script);
-    } else {
-      if (window.Hls) initHls();
+    } else if (window.Hls) {
+      initHls();
     }
 
     return () => { 
-      clearTimeout(timer);
       if (hlsRef.current) hlsRef.current.destroy();
     };
-  }, [playerType, isLoaded]);
+  }, [activeSignal, signalIndex]);
+
+  const handleNextSignal = () => {
+    setSignalIndex((prev) => (prev + 1) % SIGNALS.length);
+  };
 
   if (loading.dashboard && !dashboard) {
-    return (
-      <div className="h-screen w-screen bg-[#020203] flex items-center justify-center">
-         <div className="w-12 h-12 border-4 border-white/5 border-t-brand-500 rounded-full animate-spin" />
-      </div>
-    );
+     return <div className="h-screen w-screen bg-black flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-white/5 border-t-brand-500 rounded-full animate-spin" />
+     </div>;
   }
 
   const stats = dashboard?.stats || { score: 0, total: 0, promoters: 0, passives: 0, detractors: 0 };
@@ -106,19 +140,19 @@ export default function TVDashboard() {
     `✅ TOTAL RESPOSTAS: ${stats.total}`,
     `🟢 OPERAÇÃO ESTÁVEL`,
     `🕒 ÚLTIMA ATUALIZAÇÃO: ${time.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
-    `💎 SISTEMA DE MONITORAMENTO NPS v5.0`,
-    `🚀 SEU FEEDBACK É ESSENCIAL PARA O NOSSO CRESCIMENTO`
+    `🚀 SEU FEEDBACK É ESSENCIAL PARA O NOSSO CRESCIMENTO`,
+    `💎 MONITORAMENTO NPS v5.0 // SISTEMA DE SEGURANÇA ATIVO`
   ];
 
   return (
     <div className="h-screen w-screen bg-black relative overflow-hidden font-sans cursor-none">
       
-      {/* 1. LAYER: VIDEO SIGNAL */}
+      {/* 1. SIGNAL LAYER */}
       <div className="absolute inset-0 z-0">
         <AnimatePresence mode="wait">
-          {playerType === 'iptv' ? (
+          {activeSignal.type === 'hls' ? (
             <motion.video 
-              key="iptv"
+              key={activeSignal.url}
               ref={videoRef}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -128,22 +162,21 @@ export default function TVDashboard() {
             />
           ) : (
             <motion.iframe
-              key="youtube"
+              key={activeSignal.url}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              src={YOUTUBE_SOURCE}
-              className="w-full h-full border-none scale-105" // scale-105 to hide black bars
+              src={activeSignal.url}
+              className="w-full h-full border-none scale-[1.03]"
               allow="autoplay; encrypted-media; picture-in-picture"
             />
           )}
         </AnimatePresence>
-        {/* Subtle Darkening Overlay */}
         <div className="absolute inset-0 bg-black/30 pointer-events-none z-[1]" />
       </div>
 
-      {/* 2. LAYER: OVERLAY HEADER (TOP) */}
-      <header className="absolute top-0 left-0 right-0 z-50 h-[10vh] bg-gradient-to-b from-black/80 via-black/40 to-transparent flex items-center justify-between px-[5vw] backdrop-blur-[2px]">
+      {/* 2. OVERLAY HEADER */}
+      <header className="absolute top-0 left-0 right-0 z-50 h-[10vh] bg-gradient-to-b from-black/90 via-black/40 to-transparent flex items-center justify-between px-[5vw] backdrop-blur-[1px]">
         <div className="flex items-center gap-[2vw]">
           <div className="h-[6vh] w-[6vh] bg-white rounded-2xl flex items-center justify-center shadow-2xl">
              <Target className="w-[60%] h-[60%] text-black" />
@@ -153,18 +186,18 @@ export default function TVDashboard() {
               {dashboard?.recent?.[0]?.campaignName?.toUpperCase() || 'MODO TV'}
             </h1>
             <div className="flex items-center gap-[1.5vh] mt-[0.5vh]">
-              <div className="flex items-center gap-2 px-2 py-0.5 bg-red-600 rounded text-[1vh] font-black uppercase text-white shadow-lg animate-pulse">
-                <div className="w-1.5 h-1.5 rounded-full bg-white" />
+              <div className="px-2 py-0.5 bg-red-600 rounded text-[1vh] font-black uppercase text-white shadow-lg animate-pulse flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-white text-xs"/>
                 AO VIVO
               </div>
-              <span className="text-[1.2vh] font-bold text-white/50 tracking-[0.3em] uppercase">Sinal: {playerType.toUpperCase()}</span>
+              <span className="text-[1.2vh] font-bold text-white/50 tracking-[0.3em] uppercase">Sinal: {activeSignal.name}</span>
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-[4vw]">
           <div className="bg-white/10 border border-white/10 px-[2.5vw] py-[1vh] rounded-2xl backdrop-blur-md shadow-xl flex flex-col items-center">
-             <span className="text-[1vh] font-black text-white/40 tracking-widest uppercase mb-0.5">NPS ATUAL</span>
+             <span className="text-[1vh] font-black text-white/40 tracking-widest uppercase mb-0.5">NPS GLOBAL</span>
              <span className="text-[4.5vh] font-black text-brand-400 leading-none drop-shadow-lg">{stats.score}</span>
           </div>
           <div className="text-right">
@@ -172,13 +205,13 @@ export default function TVDashboard() {
               {time.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
             </span>
             <span className="text-[1.1vh] font-bold text-white/30 uppercase tracking-[0.6em] whitespace-nowrap">
-              {time.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}
+               {time.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}
             </span>
           </div>
         </div>
       </header>
 
-      {/* 3. LAYER: NPS TICKER (BOTTOM) */}
+      {/* 3. NPS TICKER */}
       <style>{`
         @keyframes ticker-scroll {
           0% { transform: translateX(0); }
@@ -188,7 +221,7 @@ export default function TVDashboard() {
           display: flex;
           white-space: nowrap;
           width: fit-content;
-          animation: ticker-scroll 45s linear infinite;
+          animation: ticker-scroll 40s linear infinite;
         }
       `}</style>
       <div className="absolute bottom-0 left-0 right-0 z-50 h-[7vh] bg-black/95 border-t border-white/5 flex items-center overflow-hidden">
@@ -200,7 +233,7 @@ export default function TVDashboard() {
           <div className="ticker-container gap-[15vw]">
             {tickerItems.concat(tickerItems).map((item, i) => (
               <div key={i} className="flex gap-[3vh] items-center">
-                <span className="text-[2.4vh] font-black text-brand-200 uppercase tracking-widest leading-none drop-shadow-md">{item}</span>
+                <span className="text-[2.4vh] font-black text-brand-200 uppercase tracking-widest leading-none drop-shadow-md text-shadow-md">{item}</span>
                 <div className="w-[1.2vh] h-[1.2vh] rounded-full bg-white/10" />
               </div>
             ))}
@@ -208,26 +241,26 @@ export default function TVDashboard() {
         </div>
       </div>
 
-      {/* 4. UTILITIES (OVERLAY) */}
+      {/* 4. CONTROLS OVERLAY */}
       <div className="absolute bottom-[10vh] left-[4vw] z-50 flex items-center gap-[2vw]">
-        {/* Unmute Helper */}
-        <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md px-5 py-2 rounded-2xl border border-white/10 opacity-60">
+        {/* Unmute Hint */}
+        <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md px-5 py-2 rounded-2xl border border-white/10 opacity-40">
           <Volume2 className="w-4 h-4 text-white animate-bounce" />
-          <span className="text-white text-[1vh] font-bold uppercase tracking-wider">Ajuste o volume se necessário</span>
+          <span className="text-white text-[0.9vh] font-bold uppercase tracking-wider">Ajuste o volume se necessário</span>
         </div>
         
-        {/* Manual Signal Toggle (Visible only when hovering bottom or as a small indicator) */}
+        {/* Signal Switcher */}
         <button 
-          onClick={() => setPlayerType(playerType === 'iptv' ? 'youtube' : 'iptv')}
-          className="pointer-events-auto flex items-center gap-2 bg-brand-600/20 hover:bg-brand-600 px-4 py-2 rounded-2xl border border-brand-500/30 transition-all text-white group"
+          onClick={handleNextSignal}
+          className="pointer-events-auto flex items-center gap-2 bg-brand-600/30 hover:bg-brand-600 px-4 py-2 rounded-2xl border border-brand-500/30 transition-all text-white group"
         >
           <RefreshCcw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-700" />
           <span className="text-[1vh] font-black uppercase tracking-widest">Trocar Sinal</span>
         </button>
       </div>
 
-      <div className="absolute bottom-[10vh] right-[4vw] z-40 opacity-5 pointer-events-none">
-         <Monitor className="w-[15vh] h-[15vh] text-white" />
+      <div className="absolute bottom-[10vh] right-[4vw] z-40 opacity-10 pointer-events-none">
+         <Tower className="w-[10vh] h-[10vh] text-white" />
       </div>
 
     </div>
