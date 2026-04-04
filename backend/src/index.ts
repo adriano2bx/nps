@@ -24,6 +24,11 @@ setupGlobalLogger();
 
 import fs from 'fs-extra';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 dotenv.config();
 
@@ -101,6 +106,27 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   console.error(err.stack);
   res.status(500).json({ error: 'Internal Server Error' });
 });
+
+// --- SERVE FRONTEND STATIC FILES ---
+// The frontend 'dist' will be in the project root if deployed via single container
+// Adjust path based on your deployment structure (e.g., ../../../frontend/dist)
+const frontendPath = path.join(__dirname, '../../../frontend/dist');
+if (fs.existsSync(frontendPath)) {
+  console.log(`[Static] 📦 Serving frontend from: ${frontendPath}`);
+  app.use(express.static(frontendPath));
+  
+  // Catch-all route to serve index.html (SPA support)
+  app.get('*', (req, res, next) => {
+    // If it's an API request, let it go to the next handlers or fail
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
+    res.sendFile(path.join(frontendPath, 'index.html'));
+  });
+} else {
+  console.warn(`[Static] ⚠️  Frontend path not found: ${frontendPath}`);
+}
+
 
 app.listen(port, async () => {
   logger.info(`🚀 Server ready at http://localhost:${port}`);
