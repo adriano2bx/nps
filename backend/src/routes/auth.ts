@@ -41,7 +41,10 @@ router.post('/login', async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        tenant: user.tenant
+        tenant: {
+          ...user.tenant,
+          plan: user.tenant.plan
+        }
       }
     });
   } catch (error) {
@@ -67,7 +70,10 @@ router.get('/me', authMiddleware, async (req: AuthRequest, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      tenant: user.tenant
+      tenant: {
+        ...user.tenant,
+        plan: user.tenant.plan
+      }
     });
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
