@@ -11,6 +11,7 @@ import contactRoutes from './routes/contacts.js';
 import segmentRoutes from './routes/segments.js';
 import tenantRoutes from './routes/tenants.js';
 import baileysRoutes from './routes/baileys.js';
+import webhookRoutes from './routes/webhooks.js';
 import { setupSurveyWorker } from './workers/survey-worker.js';
 import { setupCleanupWorker } from './workers/cleanup-worker.js';
 import { baileysManager } from './services/baileys-manager.js';
@@ -81,6 +82,7 @@ app.use('/api/contacts', contactRoutes);
 app.use('/api/segments', segmentRoutes);
 app.use('/api/tenants', tenantRoutes);
 app.use('/api/baileys', baileysRoutes);
+app.use('/api/webhooks', webhookRoutes);
 
 // Health Check
 app.get('/health', async (req, res) => {

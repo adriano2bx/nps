@@ -1,6 +1,8 @@
 import { prisma } from '../lib/prisma.js';
 import { invalidateTenantCache } from '../lib/redis.js';
 import OpenAI from 'openai';
+import { baileysManager } from './baileys-manager.js';
+import { whatsappMeta } from './whatsapp-meta.js';
 
 // Configura OpenAI (Opcional - se houver chave no .env)
 let openai: OpenAI | null = null;
@@ -15,10 +17,14 @@ if (process.env.OPENAI_API_KEY) {
  */
 class SurveyEngine {
   
-  // Dynamic import para evitar recursão circular (Circular Dependency) com baileys-manager
+  // Dynamic import for Baileys
   private async getBaileys() {
-    const { baileysManager } = await import('./baileys-manager.js');
     return baileysManager;
+  }
+
+  // Dynamic import for Meta
+  private async getMeta() {
+    return whatsappMeta;
   }
 
   /**
@@ -205,15 +211,34 @@ class SurveyEngine {
     });
 
     // Send Open message
-    const baileys = await this.getBaileys();
     const openingPayload = (campaign.openingBody || 'Olá! Você foi convidado para uma pesquisa rápida.') + '\n\nResponda SIM para participar ou NÃO para recusar.';
     
-    await baileys.sendMessage(channelId, tenantId, fromPhone, openingPayload);
+    await this.dispatchMessage(channelId, tenantId, fromPhone, openingPayload);
     console.log(`[SurveyEngine] 🚀 Session started! Phone: ${fromPhone} | Campaign: ${campaign.id}`);
   }
 
+  /**
+   * Universal message dispatcher that chooses between Meta and Baileys.
+   */
+  private async dispatchMessage(channelId: string, tenantId: string, to: string, text: string) {
+    const channel = await prisma.whatsAppChannel.findUnique({
+      where: { id: channelId }
+    });
+
+    if (!channel) throw new Error('Channel not found for dispatch');
+
+    if (channel.provider === 'BAILEYS') {
+      const baileys = await this.getBaileys();
+      return await baileys.sendMessage(channelId, tenantId, to, text);
+    } else if (channel.provider === 'META') {
+      const meta = await this.getMeta();
+      return await meta.sendMessage(channel, to, text);
+    } else {
+      throw new Error(`Provider ${channel.provider} not supported by SurveyEngine`);
+    }
+  }
+
   private async handleConsentStep(session: any, rawText: string) {
-    const baileys = await this.getBaileys();
     
     // Prompt de classificação de intenção
     const prompt = `Você é um classificador de intenção de chatbot. O usuário recebeu um convite para uma pesquisa.
@@ -234,7 +259,7 @@ Retorne APENAS um JSON válido com exatas duas chaves booleanas:
     const intent = await this.parseIntentWithAI(prompt, rawText, fallback());
 
     if (intent.invalid || intent.participating === null) {
-      await baileys.sendMessage(
+      await this.dispatchMessage(
         session.campaign.whatsappChannelId,
         session.tenantId,
         session.contact.phoneNumber,
@@ -259,7 +284,6 @@ Retorne APENAS um JSON válido com exatas duas chaves booleanas:
   }
 
   private async handleQuestionStep(session: any, rawText: string) {
-    const baileys = await this.getBaileys();
     const questions = session.campaign.questions;
     const qIndex = session.activeStep - 1;
     
@@ -282,7 +306,7 @@ Retorne APENAS um JSON válido e estrito com a chave:
       const aiResponse = await this.parseIntentWithAI(prompt, rawText, fallback());
 
       if (aiResponse.score === null || typeof aiResponse.score !== 'number' || aiResponse.score < 0 || aiResponse.score > 10) {
-         await baileys.sendMessage(
+         await this.dispatchMessage(
             session.campaign.whatsappChannelId,
             session.tenantId,
             session.contact.phoneNumber,
@@ -323,7 +347,6 @@ Retorne APENAS um JSON válido e estrito com a chave:
   }
 
   private async sendQuestion(channelId: string, tenantId: string, phone: string, question: any) {
-    const baileys = await this.getBaileys();
     let text = question.text;
     
     if (question.type === 'nps') {
@@ -332,25 +355,24 @@ Retorne APENAS um JSON válido e estrito com a chave:
       text += '\n\n_(Digite sua resposta)_';
     }
 
-    await baileys.sendMessage(channelId, tenantId, phone, text);
+    await this.dispatchMessage(channelId, tenantId, phone, text);
   }
 
   private async closeSession(session: any, forcesNoMessage = false) {
-    const baileys = await this.getBaileys();
     await prisma.surveySession.update({
       where: { id: session.id },
       data: { status: 'CLOSED', closedAt: new Date() }
     });
 
     if (!forcesNoMessage && session.campaign.closingMessage) {
-      await baileys.sendMessage(
+      await this.dispatchMessage(
         session.campaign.whatsappChannelId,
         session.tenantId,
         session.contact.phoneNumber,
         session.campaign.closingMessage
       );
     } else if (forcesNoMessage) {
-      await baileys.sendMessage(
+      await this.dispatchMessage(
         session.campaign.whatsappChannelId,
         session.tenantId,
         session.contact.phoneNumber,
