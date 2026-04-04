@@ -64,15 +64,21 @@ class SurveyEngine {
     });
 
     if (!channel) {
-      logger.error({ channelId }, '[SurveyEngine] Received message for unknown channel ID.');
+      logger.error({ channelId }, '[SurveyEngine] ❌ Received message for unknown channel ID.');
       return;
     }
 
     const tenantId = channel.tenantId;
-    console.log(`[SurveyEngine] (channel: ${channelId}, phone: ${fromPhone}) HandleIncomingMessage. Text: "${text}"`);
-    logger.info({ channelId, tenantId, fromPhone, text }, '[SurveyEngine] HandleIncomingMessage called');
-
     const cleanInput = text.trim();
+    
+    logger.info({ 
+      channelId, 
+      tenantId, 
+      fromPhone, 
+      text,
+      channelProvider: channel.provider,
+      channelStatus: channel.status
+    }, '[SurveyEngine] 📨 HandleIncomingMessage Trace');
     
     // 1. Check for EXPLICIT KEYWORD match first (Always overrides everything)
     const keywordCampaign = await prisma.surveyCampaign.findFirst({
@@ -84,7 +90,7 @@ class SurveyEngine {
     });
 
     if (keywordCampaign) {
-      logger.info({ campaignId: keywordCampaign.id, fromPhone }, '[SurveyEngine] Explicit Keyword Match! Starting/Restarting session.');
+      logger.info({ campaignId: keywordCampaign.id, fromPhone }, '[SurveyEngine] ✅ Explicit Keyword Match! Starting/Restarting session.');
       
       // Auto-close any existing OPEN session for this contact/channel to avoid conflicts
       await prisma.surveySession.updateMany({
@@ -99,6 +105,19 @@ class SurveyEngine {
       
       return await this.startNewSession(tenantId, channelId, fromPhone, keywordCampaign);
     }
+
+    // DEBUG: If not found, list what we checked
+    const allActiveForTenant = await prisma.surveyCampaign.findMany({
+      where: { tenantId, status: 'ACTIVE' },
+      select: { id: true, keyword: true, whatsappChannelId: true }
+    });
+    
+    logger.debug({ 
+      tenantId, 
+      channelId, 
+      receivedKeyword: cleanInput,
+      foundActiveCampaigns: allActiveForTenant 
+    }, '[SurveyEngine] 🔍 Matching Debug: No direct match found.');
 
     // 1.5 Global Cancel Keywords
     const exitKeywords = ['sair', 'cancelar', 'parar', 'stop', 'encerrar'];
