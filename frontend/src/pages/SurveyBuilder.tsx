@@ -579,19 +579,44 @@ function Step1({ data, onChange, plan, onUpgrade, channels, isBaileys }: {
                   <span className="px-1.5 py-0.5 bg-purple-500 text-white rounded text-[8px] font-bold tracking-tighter uppercase">ENTERPRISE</span>
                 )}
              </div>
-             <div 
-               className={`border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl p-8 text-center bg-white dark:bg-zinc-900 transition-colors hover:border-zinc-400 dark:hover:border-zinc-600 cursor-pointer ${plan !== 'ENTERPRISE' ? 'opacity-60 grayscale' : ''}`}
-               onClick={() => {
-                 if (plan !== 'ENTERPRISE') return onUpgrade('Marketing Multimídia');
-                 onChange('mediaPath', '/fake-image.jpg');
-               }}
-             >
-                <div className="w-12 h-12 rounded-full border border-zinc-200 dark:border-zinc-800 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-zinc-400">📷</span>
-                </div>
-                <h3 className="text-sm font-semibold text-zinc-900 dark:text-white mb-1">Upload de Imagem ou Vídeo</h3>
-                <p className="text-[11px] text-zinc-500 max-w-xs mx-auto">Arraste a mídia ou clique. Essa imagem integrará seu Template Oficial da Meta e passará pela aprovação antes do disparo livre.</p>
-             </div>
+              <input 
+                type="file" 
+                className="hidden" 
+                ref={fileInputRef} 
+                accept="image/*"
+                onChange={handleFileUpload}
+              />
+              <div 
+                className={`border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl p-8 text-center bg-white dark:bg-zinc-900 transition-colors hover:border-zinc-400 dark:hover:border-zinc-600 cursor-pointer relative overflow-hidden ${plan !== 'ENTERPRISE' ? 'opacity-60 grayscale' : ''}`}
+                onClick={() => {
+                  if (plan !== 'ENTERPRISE') return onUpgrade('Marketing Multimídia');
+                  fileInputRef.current?.click();
+                }}
+              >
+                {isUploading ? (
+                  <div className="flex flex-col items-center py-4 animate-pulse">
+                     <span className="text-zinc-400 mb-2 italic">Enviando mídia...</span>
+                     <div className="w-16 h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-blue-500 animate-[loading_1s_infinite]"></div>
+                     </div>
+                  </div>
+                ) : data.mediaPath ? (
+                  <div className="group relative">
+                     <img src={data.mediaPath} alt="Preview" className="max-h-48 rounded-lg mx-auto shadow-sm" />
+                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+                        <span className="text-white text-xs font-semibold">Alterar Mídia</span>
+                     </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="w-12 h-12 rounded-full border border-zinc-200 dark:border-zinc-800 flex items-center justify-center mx-auto mb-3">
+                      <span className="text-zinc-400">📷</span>
+                    </div>
+                    <h3 className="text-sm font-semibold text-zinc-900 dark:text-white mb-1">Upload de Imagem ou Vídeo</h3>
+                    <p className="text-[11px] text-zinc-500 max-w-xs mx-auto">Arraste a mídia ou clique. Essa imagem integrará seu Template Oficial da Meta e passará pela aprovação antes do disparo livre.</p>
+                  </>
+                )}
+              </div>
           </div>
         )}
 
@@ -1632,6 +1657,8 @@ export default function SurveyBuilder() {
     supportName: '',
     supportPhone: ''
   });
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [questions, setQuestions] = useState<Question[]>([
     { id: 1, type: 'nps', text: 'De 0 a 10, o quanto você recomendaria nossa clínica para um amigo ou familiar?', required: true }
   ]);
@@ -1643,6 +1670,34 @@ export default function SurveyBuilder() {
 
   const updateGeneral = (k: string, v: string) => setGeneral(p => ({ ...p, [k]: v }));
   const updateDispatch = (k: string, v: string) => setDispatch(p => ({ ...p, [k]: v }));
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+      const response = await fetch(`${apiBase}/api/campaigns/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (!response.ok) throw new Error('Falha no upload');
+      const data = await response.json();
+      updateGeneral('mediaPath', data.url);
+    } catch (err: any) {
+      alert('Erro ao carregar imagem: ' + err.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const canNext = () => {
     if (step === 0) {

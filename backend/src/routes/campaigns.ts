@@ -3,8 +3,61 @@ import { prisma } from '../lib/prisma.js';
 import { redis, invalidateTenantCache } from '../lib/redis.js';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
 import { surveyQueue } from '../lib/queue.js';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs-extra';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = Router();
+
+// Multer Storage Configuration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, '../../storage/uploads');
+    if (!fs.existsSync(uploadDir)) fs.ensureDirSync(uploadDir);
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only JPEG, PNG and WEBP are allowed.'));
+    }
+  }
+});
+
+router.post('/upload', authMiddleware, upload.single('image'), async (req: any, res: Response) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    
+    // Generate public URL
+    // Meta Cloud API needs a public URL. 
+    // We assume the host is correctly set (esp. in Easypanel/Docker)
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.get('host');
+    const imageUrl = `${protocol}://${host}/storage/uploads/${req.file.filename}`;
+    
+    res.json({ 
+      url: imageUrl,
+      filename: req.file.filename 
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: 'Upload failed', details: error.message });
+  }
+});
 
 // Middleware to use the temporary tenant if auth is skipped or for compatibility
 // but now we'll prioritize the authMiddleware's tenantId.

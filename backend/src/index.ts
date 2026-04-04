@@ -73,6 +73,12 @@ app.use(express.json());
 // API Request Logger Middleware
 app.use(requestLogger);
 
+// Static storage (Publicly accessible for Meta Cloud API)
+const storagePath = path.join(__dirname, '../storage');
+if (!fs.existsSync(storagePath)) fs.ensureDirSync(storagePath);
+if (!fs.existsSync(path.join(storagePath, 'uploads'))) fs.ensureDirSync(path.join(storagePath, 'uploads'));
+app.use('/storage', express.static(storagePath));
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/channels', channelRoutes);
