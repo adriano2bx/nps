@@ -239,6 +239,7 @@ export default function Settings() {
                                accessToken: channel.accessToken || '',
                                verifyToken: channel.verifyToken || '',
                                appName: channel.appName || '',
+                               appId: (channel as any).appId || '',
                                apiKey: channel.apiKey || '',
                                sourceNumber: channel.sourceNumber || '',
                              });

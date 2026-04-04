@@ -191,7 +191,17 @@ export default function Companies() {
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 
-                        onClick={() => { setEditingTenant(tenant); setFormData({ name: tenant.name, slug: tenant.slug, plan: tenant.plan }); setIsModalOpen(true); }}
+                        onClick={() => { 
+                          setEditingTenant(tenant); 
+                          setFormData({ 
+                            name: tenant.name, 
+                            slug: tenant.slug, 
+                            plan: tenant.plan,
+                            adminEmail: '',
+                            adminPassword: ''
+                          }); 
+                          setIsModalOpen(true); 
+                        }}
                         className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-all"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
