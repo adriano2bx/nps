@@ -19,9 +19,10 @@
     "isolatedModules": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "scripts"],
+  "exclude": ["node_modules", "dist", "src/scripts", "src/tests"],
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node"
   }
 }
+

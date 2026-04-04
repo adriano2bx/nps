@@ -43,12 +43,17 @@ router.get('/', authMiddleware, async (req: AuthRequest, res) => {
         optOut: true,
         isMasked: true,
         createdAt: true,
+        updatedAt: true,
+        segments: {
+          select: { id: true, name: true, color: true }
+        },
         sessions: {
           take: 1,
           orderBy: { startedAt: 'desc' },
           select: { startedAt: true }
         }
       },
+
       skip,
       take: limit,
       orderBy: { createdAt: 'desc' }

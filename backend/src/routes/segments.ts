@@ -59,7 +59,7 @@ router.put('/:id', authMiddleware, async (req: AuthRequest, res) => {
     const tenantId = req.tenantId as string;
 
     const segment = await prisma.contactSegment.update({
-      where: { id, tenantId },
+      where: { id: id as string, tenantId },
       data: { name, description, color }
     });
 
@@ -77,8 +77,9 @@ router.delete('/:id', authMiddleware, async (req: AuthRequest, res) => {
     const tenantId = req.tenantId as string;
 
     await prisma.contactSegment.delete({
-      where: { id, tenantId }
+      where: { id: id as string, tenantId }
     });
+
 
     await invalidateTenantCache(tenantId);
     res.status(204).send();
@@ -97,7 +98,7 @@ router.post('/:id/assign', authMiddleware, async (req: AuthRequest, res) => {
     if (!Array.isArray(contactIds)) return res.status(400).json({ error: 'contactIds must be an array' });
 
     await prisma.contactSegment.update({
-      where: { id: segmentId, tenantId },
+      where: { id: segmentId as string, tenantId },
       data: {
         contacts: {
           connect: contactIds.map(id => ({ id }))
