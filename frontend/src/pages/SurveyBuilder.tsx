@@ -1552,7 +1552,7 @@ export default function SurveyBuilder() {
   useEffect(() => {
     const fetchChannels = async () => {
       try {
-        const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+        const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
         const response = await fetch(`${apiBase}/api/channels`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -1607,7 +1607,7 @@ export default function SurveyBuilder() {
   const handleFinish = async () => {
     setIsSaving(true);
     try {
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
       
       const payload = {
         name: general.name,
@@ -1662,7 +1662,7 @@ export default function SurveyBuilder() {
     if (id) {
       const fetchCampaign = async () => {
         try {
-          const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+          const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
           const res = await fetch(`${apiBase}/api/campaigns/${id}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
@@ -1716,7 +1716,7 @@ export default function SurveyBuilder() {
   const handleUpdate = async () => {
     setIsSaving(true);
     try {
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
       const response = await fetch(`${apiBase}/api/campaigns/${id}`, {
         method: 'PUT',
         headers: { 
@@ -1906,7 +1906,7 @@ export default function SurveyBuilder() {
              onClick={async () => {
                setIsSendingTest(true);
                try {
-                 const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+                 const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
                  const messageText = (general.openingBody || 'Olá! Gostaríamos de saber sua opinião.')
                    .replace(/\{nome\}/gi, 'Visitante de Teste');
                  const response = await fetch(`${apiBase}/api/baileys/${general.channelId}/test-send`, {

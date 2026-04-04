@@ -52,7 +52,7 @@ export default function Users() {
 
   const fetchSegments = async () => {
     try {
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
       const res = await fetch(`${apiBase}/api/segments`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -73,7 +73,7 @@ export default function Users() {
     e.preventDefault();
     setIsSaving(true);
     try {
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
       const url = editTarget 
         ? `${apiBase}/api/contacts/${editTarget.id}` 
         : `${apiBase}/api/contacts`;
@@ -103,7 +103,7 @@ export default function Users() {
   const handleDelete = async () => {
     if (!deleteTarget) return;
     try {
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
       const response = await fetch(`${apiBase}/api/contacts/${deleteTarget.id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
@@ -121,7 +121,7 @@ export default function Users() {
     if (!newSegment.name) return;
     setIsCreatingSegment(true);
     try {
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
       const response = await fetch(`${apiBase}/api/segments`, {
         method: 'POST',
         headers: { 
@@ -143,7 +143,7 @@ export default function Users() {
 
   const handleDeleteSegment = async (id: string) => {
     try {
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
       const response = await fetch(`${apiBase}/api/segments/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }

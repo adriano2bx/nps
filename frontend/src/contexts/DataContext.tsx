@@ -61,7 +61,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     dashboard: false, reports: false, patients: false, campaigns: false, channels: false 
   });
 
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
   const fetchDashboard = useCallback(async () => {
     if (!token) return;

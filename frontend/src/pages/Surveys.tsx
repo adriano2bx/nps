@@ -27,7 +27,7 @@ export default function Surveys() {
 
   const toggleActive = async (id: string, currentStatus: string) => {
     try {
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
       const newStatus = currentStatus === 'ACTIVE' ? 'PAUSED' : 'ACTIVE';
       const response = await fetch(`${apiBase}/api/campaigns/${id}`, {
         method: 'PATCH',
@@ -49,7 +49,7 @@ export default function Surveys() {
   const handleDelete = async () => {
     if (!deleteTarget) return;
     try {
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
       const response = await fetch(`${apiBase}/api/campaigns/${deleteTarget.id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }

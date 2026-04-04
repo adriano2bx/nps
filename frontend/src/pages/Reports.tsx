@@ -42,7 +42,7 @@ export default function Reports() {
     setSelectedSession(id);
     setLoadingDetail(true);
     try {
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
       const response = await fetch(`${apiBase}/api/reports/session/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -68,7 +68,7 @@ export default function Reports() {
   const handleAnonymize = async (sessionId: string) => {
     if (!window.confirm('LGPD: Deseja anonimizar permanentemente este contato? A nota será mantida para estatísticas, mas o nome e telefone serão removidos.')) return;
     try {
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
       const response = await fetch(`${apiBase}/api/reports/anonymize-session/${sessionId}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` }
@@ -84,7 +84,7 @@ export default function Reports() {
 
   const handleDelete = async (id: string) => {
     try {
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
       const response = await fetch(`${apiBase}/api/reports/session/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }

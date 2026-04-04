@@ -21,7 +21,7 @@ export default function MasterDashboard() {
   const [tenants, setTenants] = useState<TenantStats[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
   const token = localStorage.getItem('nps_token');
 
   const fetchStats = async () => {
