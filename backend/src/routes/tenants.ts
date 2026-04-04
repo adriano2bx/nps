@@ -11,17 +11,23 @@ const router = Router();
  */
 const masterAdminOnly = async (req: AuthRequest, res: Response, next: any) => {
   try {
-    const user = await (prisma.user as any).findUnique({
+    if (!req.userId) {
+      return res.status(401).json({ error: 'User ID missing from request' });
+    }
+
+    const user = await prisma.user.findUnique({
       where: { id: req.userId }
     });
 
     if (!user || user.role !== 'MASTER_ADMIN') {
-      return res.status(403).json({ error: 'Forbidden: Master Admin access required' });
+      console.warn(`[Tenants] 🚫 Access denied for user ${req.userId} (Role: ${user?.role || 'None'})`);
+      return res.status(403).json({ error: 'Acesso negado: Requer privilégios de Master Admin' });
     }
 
     next();
   } catch (error) {
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error('[Tenants] ❌ Auth Middleware Error:', error);
+    res.status(500).json({ error: 'Erro interno na validação de permissões' });
   }
 };
 
@@ -76,14 +82,26 @@ router.post('/', authMiddleware, masterAdminOnly, async (req: AuthRequest, res: 
   try {
     const { name, slug, plan, settings, adminEmail, adminPassword } = req.body;
 
-    if (!adminEmail || !adminPassword) {
-      return res.status(400).json({ error: 'Admin email and password are required for new companies' });
+    if (!name || !slug || !adminEmail || !adminPassword) {
+      return res.status(400).json({ error: 'Nome, Slug, Email e Senha são obrigatórios' });
+    }
+
+    // 1. Check if slug already exists
+    const existing = await prisma.tenant.findUnique({ where: { slug } });
+    if (existing) {
+      return res.status(400).json({ error: 'Este slug (subdomínio) já está em uso por outra empresa' });
+    }
+
+    // 2. Check if email already exists
+    const existingUser = await prisma.user.findUnique({ where: { email: adminEmail } });
+    if (existingUser) {
+      return res.status(400).json({ error: 'Este e-mail já está cadastrado no sistema' });
     }
 
     const passwordHash = await bcrypt.hash(adminPassword, 10);
 
     const result = await prisma.$transaction(async (tx: any) => {
-      // 1. Create Tenant
+      // Create Tenant
       const tenant = await tx.tenant.create({
         data: {
           name,
@@ -93,24 +111,25 @@ router.post('/', authMiddleware, masterAdminOnly, async (req: AuthRequest, res: 
         }
       });
 
-      // 2. Create Initial Admin User
+      // Create Initial Admin User
       await tx.user.create({
         data: {
           tenantId: tenant.id,
           name: `${name} Admin`,
           email: adminEmail,
           passwordHash,
-          role: 'ADMIN' // Default admin for the new tenant
+          role: 'ADMIN'
         }
       });
 
       return tenant;
     });
 
+    console.log(`[Tenants] ✅ Nova empresa criada: ${name} (${slug})`);
     res.status(201).json(result);
   } catch (error: any) {
-    console.error('Failed to create tenant:', error);
-    res.status(500).json({ error: 'Failed to create tenant', details: error.message });
+    console.error('[Tenants] ❌ Falha ao criar empresa:', error);
+    res.status(500).json({ error: 'Falha ao criar empresa', details: error.message });
   }
 });
 

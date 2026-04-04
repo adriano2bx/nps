@@ -38,9 +38,13 @@ export default function Companies() {
       if (response.ok) {
         const data = await response.json();
         setTenants(data);
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+        alert(`Falha ao buscar empresas: ${errorData.error || response.statusText}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch tenants:', error);
+      alert(`Erro de conexão ao buscar empresas: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -70,9 +74,13 @@ export default function Companies() {
         setEditingTenant(null);
         setFormData({ name: '', slug: '', plan: 'FREE', adminEmail: '', adminPassword: '' });
         fetchTenants();
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido no servidor' }));
+        alert(`Falha ao salvar empresa: ${errorData.error || 'Erro inesperado'}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save tenant:', error);
+      alert(`Erro de conexão: ${error.message}`);
     }
   };
 
