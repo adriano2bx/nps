@@ -444,9 +444,6 @@ function Step1({
               <div className="flex items-center gap-2">
                 <LayoutTemplate className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
                 <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">Marketing / Informativo</span>
-                {plan === 'STARTER' && (
-                  <span className="absolute top-2 right-2 px-1.5 py-0.5 bg-blue-500 text-white rounded text-[8px] font-bold tracking-tighter uppercase">PRO</span>
-                )}
               </div>
               <p className="text-[10px] text-zinc-500 dark:text-zinc-500 leading-relaxed">Disparo massivo de promoções e alertas via HSM (Apoia Imagem/Vídeo).</p>
             </button>
@@ -588,9 +585,6 @@ function Step1({
                 <h4 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide flex items-center gap-2">
                   Anexar Mídia Oficial (HSM)
                 </h4>
-                {plan !== 'ENTERPRISE' && (
-                  <span className="px-1.5 py-0.5 bg-purple-500 text-white rounded text-[8px] font-bold tracking-tighter uppercase">ENTERPRISE</span>
-                )}
              </div>
               <input 
                 type="file" 
@@ -1486,30 +1480,21 @@ function Step3({ data, onChange, type, plan, onUpgrade, triggerType }: {
 
           {/* Scheduled Dispatch (If Marketing) */}
           {isMkt && (
-            <div className={`border border-zinc-200 dark:border-zinc-800 rounded-lg p-5 space-y-3 bg-zinc-50/50 dark:bg-zinc-900/20 relative group ${plan === 'STARTER' ? 'opacity-80' : ''}`}>
+            <div className={`border border-zinc-200 dark:border-zinc-800 rounded-lg p-5 space-y-3 bg-zinc-50/50 dark:bg-zinc-900/20 relative group`}>
               <div className="flex items-center justify-between">
                  <h4 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide flex items-center gap-2">
                     <Clock className="w-3.5 h-3.5" /> Agendar Disparo Futuro
                  </h4>
-                 {plan === 'STARTER' && (
-                   <span className="px-1.5 py-0.5 bg-blue-500 text-white rounded text-[8px] font-bold tracking-tighter uppercase animate-pulse">PRO</span>
-                 )}
               </div>
-              <div className={plan === 'STARTER' ? 'pointer-events-none' : ''}>
+              <div>
                 <input 
                   type="datetime-local" 
-                  disabled={plan === 'STARTER'}
-                  className={`${inputCls} ${plan === 'STARTER' ? 'cursor-not-allowed opacity-50' : ''}`}
+                  className={`${inputCls}`}
                   value={data.scheduledAt || ''} 
                   onChange={e => onChange('scheduledAt', e.target.value)} 
                 />
                 <p className="text-[11px] text-zinc-500 mt-2">Deixe em branco para disparar imediatamente assim que for engatilhado. Caso contrário, o servidor segurará as mensagens até a data UTC exata informada.</p>
               </div>
-              {plan === 'STARTER' && (
-                <div onClick={() => onUpgrade('Agendamento de Campanhas')} className="absolute inset-0 z-10 cursor-pointer flex items-center justify-center opacity-0 group-hover:opacity-100 bg-white/20 dark:bg-black/20 backdrop-blur-[1px] transition-opacity">
-                   <button className="px-3 py-1 bg-zinc-900 dark:bg-white text-white dark:text-black text-[10px] font-bold rounded-lg shadow-xl">Upgrade para liberar</button>
-                </div>
-              )}
             </div>
           )}
 
@@ -1586,7 +1571,7 @@ function Step3({ data, onChange, type, plan, onUpgrade, triggerType }: {
                     <p className="text-[11px] text-zinc-500">Abre o WhatsApp e envia a palavra-chave automaticamente</p>
                   </div>
                   <div className="w-full flex items-center gap-2">
-                    <div className="flex-1 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md px-3 py-2 font-mono text-[11px] text-zinc-600 dark:text-zinc-400 truncate">
+                    <div className="flex-1 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md px-3 py-2 font-mono text-[11px] text-zinc-600 dark:text-400 truncate">
                       {waLink}
                     </div>
                     <button
@@ -1625,7 +1610,7 @@ function Step3({ data, onChange, type, plan, onUpgrade, triggerType }: {
 export default function SurveyBuilder() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
-  const [tenantPlan, setTenantPlan] = useState<PlanLevel>('STARTER'); // Simulando plano do cliente
+  const tenantPlan = 'ENTERPRISE';
   const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
   const [upgradeFeature, setUpgradeFeature] = useState('');
   const [isSaving, setIsSaving] = useState(false);
