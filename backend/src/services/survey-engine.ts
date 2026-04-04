@@ -294,7 +294,7 @@ Opções: ${JSON.stringify(options)}`;
        await this.dispatchMessage(
          channelId, 
          tenantId, 
-         fromPhone, 
+         normalizedPhone, 
          body, 
          undefined, // Templates don't use dynamic buttons here
          undefined, 
@@ -307,7 +307,7 @@ Opções: ${JSON.stringify(options)}`;
        await this.dispatchMessage(
          channelId, 
          tenantId, 
-         fromPhone, 
+         normalizedPhone, 
          body, 
          buttons, 
          header, 

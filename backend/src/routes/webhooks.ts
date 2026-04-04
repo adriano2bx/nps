@@ -47,8 +47,13 @@ router.post('/meta/:channelId', async (req, res) => {
       const statusUpdate = body.entry[0].changes[0].value.statuses[0];
       const wamid = statusUpdate.id;
       const status = statusUpdate.status.toUpperCase(); // DELIVERED, READ, etc.
+      const errors = statusUpdate.errors;
 
-      logger.info({ wamid, status, channelId }, '[Webhook] Status Update Received');
+      if (errors && status === 'FAILED') {
+        logger.error({ wamid, status, channelId, errors }, '[Webhook] Message FAILED by Meta Cloud API');
+      } else {
+        logger.info({ wamid, status, channelId }, '[Webhook] Status Update Received');
+      }
 
       await prisma.surveyMessageLog.updateMany({
         where: { waMessageId: wamid },
@@ -65,6 +70,7 @@ router.post('/meta/:channelId', async (req, res) => {
 
     const msg = body.entry[0].changes[0].value.messages[0];
     const from = msg.from;
+    const profileName = body.entry[0].changes[0].value.contacts?.[0]?.profile?.name;
     
     // Extract text (standard text or interactive button/list reply)
     let text = msg.text?.body || '';
@@ -81,10 +87,10 @@ router.post('/meta/:channelId', async (req, res) => {
       return res.status(200).send('No text content');
     }
 
-    logger.info({ channelId, from, text, msgType: msg.type }, '[Webhook] Processing Meta Message');
+    logger.info({ channelId, from, text, msgType: msg.type, profileName }, '[Webhook] Processing Meta Message');
     
     // Pass to Survey Engine
-    await surveyEngine.handleIncomingMessage(channelId, from, text);
+    await surveyEngine.handleIncomingMessage(channelId, from, text, profileName);
 
     return res.status(200).send('OK');
   } catch (error) {
