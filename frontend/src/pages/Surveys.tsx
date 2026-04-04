@@ -39,9 +39,13 @@ export default function Surveys() {
       });
       if (response.ok) {
         refreshCampaigns();
+      } else {
+        const errorData = await response.json();
+        alert('Erro ao alterar status: ' + (errorData.details || errorData.error || 'Erro desconhecido'));
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error toggling status:', err);
+      alert('Falha na conexão com o servidor.');
     }
     setMenuOpen(null);
   };

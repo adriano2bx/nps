@@ -155,12 +155,15 @@ router.patch('/:id', authMiddleware, async (req: AuthRequest, res) => {
       data: { status }
     });
     
+    console.log(`[Campaigns] ✅ Status updated to ${status} for campaign ${id}`);
+    
     // Invalidate All Relevant Caches for this tenant (Scale Optimized)
     await invalidateTenantCache(req.tenantId as string);
 
     res.json(campaign);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to update campaign status' });
+  } catch (error: any) {
+    console.error(`[Campaigns] ❌ Failed to update status:`, error);
+    res.status(500).json({ error: 'Failed to update campaign status', details: error.message });
   }
 });
 
