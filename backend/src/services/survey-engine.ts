@@ -237,14 +237,22 @@ class SurveyEngine {
       { id: 'no', title: 'NÃO' }
     ];
     
-    await this.dispatchMessage(channelId, tenantId, fromPhone, body, buttons);
+    await this.dispatchMessage(
+      channelId, 
+      tenantId, 
+      fromPhone, 
+      body, 
+      buttons, 
+      campaign.header || undefined, 
+      campaign.footer || undefined
+    );
     console.log(`[SurveyEngine] 🚀 Session started! Phone: ${fromPhone} | Campaign: ${campaign.id}`);
   }
 
   /**
    * Universal message dispatcher that chooses between Meta and Baileys.
    */
-  private async dispatchMessage(channelId: string, tenantId: string, to: string, text: string, buttons?: { id: string, title: string }[]) {
+  private async dispatchMessage(channelId: string, tenantId: string, to: string, text: string, buttons?: { id: string, title: string }[], header?: string, footer?: string) {
     const channel = await prisma.whatsAppChannel.findUnique({
       where: { id: channelId }
     });
@@ -253,9 +261,12 @@ class SurveyEngine {
 
     if (channel.provider === 'BAILEYS') {
       const baileys = await this.getBaileys();
-      // Baileys support for buttons can be added here if needed, 
-      // but for now we fallback to text for simplicity in unofficial API
       let fullText = text;
+      
+      // For Baileys, we prepend/append header/footer since it's plain text
+      if (header) fullText = `*${header}*\n\n${fullText}`;
+      if (footer) fullText = `${fullText}\n\n_${footer}_`;
+      
       if (buttons && buttons.length > 0) {
         fullText += '\n\n' + buttons.map(b => `*${b.title}*`).join(' | ');
       }
@@ -263,9 +274,16 @@ class SurveyEngine {
     } else if (channel.provider === 'META') {
       const meta = await this.getMeta();
       if (buttons && buttons.length > 0) {
-        return await meta.sendButtons(channel, to, text, buttons);
+        return await meta.sendButtons(channel, to, text, buttons, header, footer);
       }
-      return await meta.sendMessage(channel, to, text);
+      
+      // Standard message with Meta doesn't have native header/footer in 'text' type 
+      // without templates, so we simulate it in the body.
+      let fullText = text;
+      if (header) fullText = `*${header}*\n\n${fullText}`;
+      if (footer) fullText = `${fullText}\n\n_${footer}_`;
+      
+      return await meta.sendMessage(channel, to, fullText);
     } else {
       throw new Error(`Provider ${channel.provider} not supported by SurveyEngine`);
     }
