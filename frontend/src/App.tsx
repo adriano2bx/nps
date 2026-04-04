@@ -51,8 +51,8 @@ function AppContent() {
             } />
           </Route>
 
-          {/* Standalone TV Dashboard (No Layout) - DISABLED FOR NOW */}
-          {/* <Route path="tv-dashboard" element={<TVDashboard />} /> */}
+          {/* Standalone TV Dashboard (No Layout) */}
+          <Route path="tv-dashboard" element={<TVDashboard />} />
         </Route>
       </Routes>
     </BrowserRouter>
