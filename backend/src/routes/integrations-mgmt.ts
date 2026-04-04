@@ -64,7 +64,7 @@ router.delete('/keys/:id', async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     await prisma.apiKey.delete({
-      where: { id, tenantId: req.tenantId }
+      where: { id: id as string, tenantId: req.tenantId as string }
     });
     
     // Invalidate cache
@@ -140,7 +140,7 @@ router.delete('/webhooks/:id', async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     await prisma.tenantWebhook.delete({
-      where: { id, tenantId: req.tenantId }
+      where: { id: id as string, tenantId: req.tenantId as string }
     });
     res.status(204).send();
   } catch (error) {
