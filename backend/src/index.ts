@@ -12,8 +12,11 @@ import segmentRoutes from './routes/segments.js';
 import tenantRoutes from './routes/tenants.js';
 import baileysRoutes from './routes/baileys.js';
 import webhookRoutes from './routes/webhooks.js';
+import integrationRoutes from './routes/integrations.js';
+import integrationMgmtRoutes from './routes/integrations-mgmt.js';
 import { setupSurveyWorker } from './workers/survey-worker.js';
 import { setupCleanupWorker } from './workers/cleanup-worker.js';
+import { setupWebhookWorker } from './workers/webhook-worker.js';
 import { baileysManager } from './services/baileys-manager.js';
 
 import { setupGlobalLogger, logger } from './lib/logger.js';
@@ -89,6 +92,8 @@ app.use('/api/segments', segmentRoutes);
 app.use('/api/tenants', tenantRoutes);
 app.use('/api/baileys', baileysRoutes);
 app.use('/api/webhooks', webhookRoutes);
+app.use('/api/v1', integrationRoutes);
+app.use('/api/integrations', integrationMgmtRoutes);
 
 // Health Check
 app.get('/health', async (req, res) => {
@@ -142,6 +147,7 @@ app.listen(port, async () => {
   // Initialize BullMQ and Cleanup Workers
   setupSurveyWorker();
   setupCleanupWorker();
+  setupWebhookWorker();
 
   // Try to acquire master lock and initialize Baileys
   await tryAcquireLock(() => {

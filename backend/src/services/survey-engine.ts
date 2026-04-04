@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import { invalidateTenantCache } from '../lib/redis.js';
+import { webhookService } from './webhook-service.js';
 import OpenAI from 'openai';
 import { baileysManager } from './baileys-manager.js';
 import { whatsappMeta } from './whatsapp-meta.js';
@@ -218,7 +219,7 @@ Opções: ${JSON.stringify(options)}`;
   /**
    * Extracted logic to start a new survey session safely.
    */
-  private async startNewSession(tenantId: string, channelId: string, fromPhone: string, campaign: any) {
+  public async startNewSession(tenantId: string, channelId: string, fromPhone: string, campaign: any) {
     const { logger } = await import('../lib/logger.js');
     
     // Resolve/Create Contact
@@ -288,6 +289,17 @@ Opções: ${JSON.stringify(options)}`;
          newSession.id
        );
     }
+    // Send Webhook Event
+    await webhookService.queueEvent(tenantId, 'survey.started', {
+      sessionId: newSession.id,
+      campaignId: campaign.id,
+      contact: {
+        id: contact.id,
+        name: contact.name,
+        phone: contact.phoneNumber
+      }
+    });
+
     console.log(`[SurveyEngine] 🚀 Session started! Phone: ${fromPhone} | Campaign: ${campaign.id}`);
   }
 
@@ -491,12 +503,22 @@ Retorne APENAS um JSON válido e estrito com a chave:
       }
     });
 
-    // Invalida cache do dashboard para este tenant para garantir dados em tempo real
-    await invalidateTenantCache(session.tenantId);
-
     // Avança Step
     const nextStep = session.activeStep + 1;
     await prisma.surveySession.update({ where: { id: session.id }, data: { activeStep: nextStep } });
+
+    // Invalida cache do dashboard para este tenant para garantir dados em tempo real
+    await invalidateTenantCache(session.tenantId);
+
+    // Send Webhook Event
+    await webhookService.queueEvent(session.tenantId, 'response.received', {
+      sessionId: session.id,
+      contactId: session.contactId,
+      questionId: currentQ.id,
+      answerValue,
+      answerText,
+      surveyFinished: nextStep > questions.length
+    });
 
     // Próxima Pergunta ou Fim
     if (nextStep <= questions.length) {
@@ -537,6 +559,14 @@ Retorne APENAS um JSON válido e estrito com a chave:
     await prisma.surveySession.update({
       where: { id: session.id },
       data: { status: 'CLOSED', closedAt: new Date() }
+    });
+
+    // Send Webhook Event
+    await webhookService.queueEvent(session.tenantId, 'survey.closed', {
+      sessionId: session.id,
+      campaignId: session.campaignId,
+      contactId: session.contactId,
+      closedAt: new Date()
     });
 
     if (!forcesNoMessage && session.campaign.closingMessage) {
