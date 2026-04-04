@@ -102,6 +102,7 @@ export default function Dashboard() {
             >
                {isRefreshing.dashboard ? 'Atualizando...' : 'Atualizar Dados'}
             </button>
+            {/* 
             <button 
               onClick={() => window.open('/tv-dashboard', '_blank')}
               className="px-3 py-1.5 text-xs font-medium bg-brand-600 dark:bg-brand-500 text-white rounded border border-transparent hover:bg-brand-700 dark:hover:bg-brand-600 transition-colors shadow-sm flex items-center gap-1.5"
@@ -109,6 +110,7 @@ export default function Dashboard() {
               <Monitor className="w-3.5 h-3.5" />
               Modo TV
             </button>
+            */}
            <button className="px-3 py-1.5 text-xs font-medium bg-zinc-900 dark:bg-white text-white dark:text-black rounded border border-transparent dark:hover:bg-zinc-200 hover:bg-zinc-800 transition-colors shadow-sm">
               Exportar CSV
            </button>
