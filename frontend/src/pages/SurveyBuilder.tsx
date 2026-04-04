@@ -245,8 +245,8 @@ function WaPreviewPhone({ header, footer, clinicName, body, buttonYes, buttonNo,
   const [replied, setReplied] = useState<string | null>(null);
   const defaultBody = "Olá! Você foi convidado para uma pesquisa rápida de satisfação. 😊";
   const displayBody = body.trim() || defaultBody;
-  const displayYes = buttonYes.trim() || 'SIM';
-  const displayNo  = buttonNo.trim()  || 'NÃO';
+  const displayYes = buttonYes.trim() || '✅ Sim, aceito';
+  const displayNo  = buttonNo.trim()  || '❌ Não, obrigado';
   return (
     <div className="flex flex-col items-center">
       <div className="relative bg-zinc-900 dark:bg-black rounded-[2.5rem] shadow-2xl border-4 border-zinc-800 dark:border-zinc-700" style={{ width: 300, height: 620 }}>
@@ -265,10 +265,10 @@ function WaPreviewPhone({ header, footer, clinicName, body, buttonYes, buttonNo,
           </div>
           <div className="bg-[#075e54] dark:bg-[#1f2c34] px-3 py-2 flex items-center gap-2.5 shrink-0">
             <div className="w-8 h-8 rounded-full bg-[#128c7e] flex items-center justify-center text-white text-xs font-bold border-2 border-white/20">
-              P
+              { (clinicName?.charAt(0) || 'P').toUpperCase() }
             </div>
             <div>
-              <p className="text-white text-[12px] font-semibold leading-none">Pesquisa de Satisfação</p>
+              <p className="text-white text-[12px] font-semibold leading-none">{ clinicName || 'Pesquisa de Satisfação' }</p>
               <p className="text-[#b2dfdb] text-[10px] mt-0.5">online agora</p>
             </div>
           </div>
@@ -1620,7 +1620,7 @@ export default function SurveyBuilder() {
     mediaPath: '',
     name: '', channel: '', channelId: '', clinicName: '', phone: '',
     header: '', footer: 'Responda SAIR para não receber mais mensagens.',
-    openingBody: '', buttonYes: '✅ Sim, quero participar', buttonNo: '❌ Não, obrigado',
+    openingBody: '', buttonYes: '✅ Sim, aceito', buttonNo: '❌ Não, obrigado',
     closingMessage: '', isHsm: 'false',
     templateName: '',
     ctaLabel: '',
@@ -1760,7 +1760,7 @@ export default function SurveyBuilder() {
             header: campaign.header || '',
             footer: campaign.footer || '',
             openingBody: campaign.openingBody || '',
-            buttonYes: campaign.buttonYes || '✅ Sim, quero participar',
+            buttonYes: campaign.buttonYes || '✅ Sim, aceito',
             buttonNo: campaign.buttonNo || '❌ Não, obrigado',
             closingMessage: campaign.closingMessage || '',
             isHsm: String(campaign.isHsm),

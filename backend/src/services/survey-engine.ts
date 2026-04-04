@@ -278,10 +278,10 @@ Opções: ${JSON.stringify(options)}`;
     });
 
     // Send Open message
-    const body = campaign.openingBody || 'Olá! Você foi convidado para uma pesquisa rápida.';
+    const body = campaign.openingBody || 'Olá! Você aceita participar de uma breve pesquisa de satisfação?';
     const buttons = [
-      { id: 'yes', title: 'SIM' },
-      { id: 'no', title: 'NÃO' }
+      { id: 'yes', title: (campaign.buttonYes || '✅ Sim, aceito').substring(0, 20) },
+      { id: 'no', title: (campaign.buttonNo || '❌ Não, obrigado').substring(0, 20) }
     ];
     
     // Header setup with Image support
@@ -427,7 +427,10 @@ Retorne APENAS um JSON válido com exatas duas chaves booleanas:
 
     if (intent.invalid || intent.participating === null) {
       const body = 'Não entendi sua resposta 🤔.\n\nPor favor, utilize os botões abaixo para confirmar sua participação:';
-      const buttons = [{ id: 'yes', title: 'SIM' }, { id: 'no', title: 'NÃO' }];
+      const buttons = [
+        { id: 'yes', title: (session.campaign.buttonYes || '✅ Sim, aceito').substring(0, 20) }, 
+        { id: 'no', title: (session.campaign.buttonNo || '❌ Não, obrigado').substring(0, 20) }
+      ];
       
       await this.dispatchMessage(
         session.campaign.whatsappChannelId,
