@@ -60,7 +60,7 @@ router.get('/', authMiddleware, async (req: AuthRequest, res) => {
     });
 
     const result = {
-      data: contacts.map(c => ({
+      data: (contacts as any[]).map((c: any) => ({
         id: c.id,
         name: c.name,
         phoneNumber: c.phoneNumber,

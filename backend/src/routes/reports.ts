@@ -99,7 +99,7 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
     let passives = 0;
     const distribution = Array(11).fill(0);
 
-    distributionResult.forEach(item => {
+    distributionResult.forEach((item: any) => {
       const val = Math.round(item.answerValue || 0);
       const count = item._count?.id || 0;
       if (val >= 0 && val <= 10) distribution[val] = count;
@@ -172,7 +172,7 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
         total: cTotal,
         score: cTotal > 0 ? Math.round(((cPromoters - cDetractors) / cTotal) * 100) : 0
       };
-    }).filter(c => c.total > 0);
+    }).filter((c: any) => c.total > 0);
 
     const result = {
       stats,
@@ -340,7 +340,7 @@ router.get('/stats', authMiddleware, async (req: AuthRequest, res: Response) => 
     const sTotal = statsResult._count?.id || 0;
     let sPromoters = 0;
     let sDetractors = 0;
-    distributionResult.forEach(item => {
+    distributionResult.forEach((item: any) => {
       const val = Math.round(item.answerValue || 0);
       const count = item._count?.id || 0;
       if (val >= 9) sPromoters += count;
@@ -394,7 +394,7 @@ router.get('/nps-stats', authMiddleware, async (req: AuthRequest, res) => {
     let detractors = 0;
     let passives = 0;
 
-    responses.forEach(r => {
+    responses.forEach((r: any) => {
       const val = r.answerValue || 0;
       if (val >= 9) promoters++;
       else if (val <= 6) detractors++;
@@ -436,7 +436,7 @@ router.get('/distribution', authMiddleware, async (req: AuthRequest, res) => {
     });
 
     const distribution = Array(11).fill(0);
-    responses.forEach(r => {
+    responses.forEach((r: any) => {
       const val = Math.round(r.answerValue || 0);
       if (val >= 0 && val <= 10) distribution[val]++;
     });
@@ -501,7 +501,7 @@ router.get('/session/:id', authMiddleware, async (req: AuthRequest, res: Respons
           phone: session.contact.phoneNumber,
           isMasked: session.contact.isMasked
         },
-        responses: session.responses.map(r => ({
+        responses: session.responses.map((r: any) => ({
           question: r.question.text,
           type: r.question.type,
           value: r.answerValue,
@@ -509,7 +509,7 @@ router.get('/session/:id', authMiddleware, async (req: AuthRequest, res: Respons
           createdAt: r.createdAt
         }))
       },
-      history: history.map(h => ({
+      history: history.map((h: any) => ({
         id: h.id,
         campaignName: h.campaign.name,
         date: h.startedAt,
