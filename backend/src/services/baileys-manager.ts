@@ -170,7 +170,7 @@ class BaileysManager {
                 if (textContent) {
                   this.badMacCount.set(channelId, 0); // Successful message = healthy session
                   const { surveyEngine } = await import('./survey-engine.js');
-                  await surveyEngine.handleIncomingMessage(channelId, msg.key.remoteJid!, textContent);
+                  await surveyEngine.handleIncomingMessage(channelId, msg.key.remoteJid!, textContent, msg.pushName || undefined);
                 } else {
                   console.log(`[BaileysManager] ⚠️ Could not extract text from message type: ${Object.keys(msg.message).join(', ')}`);
                 }

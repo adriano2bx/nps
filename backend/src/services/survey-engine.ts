@@ -75,8 +75,12 @@ Opções: ${JSON.stringify(options)}`;
     return result;
   }
 
-  public async handleIncomingMessage(channelId: string, fromPhone: string, text: string) {
+  public async handleIncomingMessage(channelId: string, fromPhone: string, text: string, pushName?: string) {
     const { logger } = await import('../lib/logger.js');
+    
+    // Normalize Phone Number (Extract digits before @s.whatsapp.net or @lid)
+    // Matches the part before any @ or : (for LIDs like 5511...:1@lid)
+    const normalizedPhone = fromPhone.split(/[@:]/)[0] || fromPhone;
     
     // Resolve Tenant from Channel ID to ensure we always use the current source of truth
     const channel = await prisma.whatsAppChannel.findUnique({
@@ -95,6 +99,8 @@ Opções: ${JSON.stringify(options)}`;
       channelId, 
       tenantId, 
       fromPhone, 
+      normalizedPhone,
+      pushName,
       text,
       channelProvider: channel.provider,
       channelStatus: channel.status
@@ -117,13 +123,13 @@ Opções: ${JSON.stringify(options)}`;
         where: {
           tenantId,
           status: 'OPEN',
-          contact: { phoneNumber: fromPhone },
+          contact: { phoneNumber: normalizedPhone },
           campaign: { whatsappChannelId: channelId }
         },
         data: { status: 'CLOSED', closedAt: new Date() }
       });
       
-      return await this.startNewSession(tenantId, channelId, fromPhone, keywordCampaign);
+      return await this.startNewSession(tenantId, channelId, normalizedPhone, keywordCampaign, pushName);
     }
 
     // DEBUG: If not found, list what we checked at INFO level to see in production
@@ -147,7 +153,7 @@ Opções: ${JSON.stringify(options)}`;
             where: {
                 tenantId,
                 status: 'OPEN',
-                contact: { phoneNumber: fromPhone },
+                contact: { phoneNumber: normalizedPhone },
                 campaign: { whatsappChannelId: channelId }
             }
         });
@@ -162,7 +168,7 @@ Opções: ${JSON.stringify(options)}`;
       where: {
         tenantId,
         status: 'OPEN',
-        contact: { phoneNumber: fromPhone },
+        contact: { phoneNumber: normalizedPhone },
         campaign: { whatsappChannelId: channelId }
       },
       include: {
@@ -182,6 +188,14 @@ Opções: ${JSON.stringify(options)}`;
         });
         // Proceed as if no session existed (allows restart)
       } else {
+        // Update Contact Name if currently generic but we have a pushName
+        if (pushName && session.contact && (session.contact.name.includes('Inbound (') || session.contact.name === 'Unknown')) {
+            await prisma.contact.update({
+                where: { id: session.contactId },
+                data: { name: pushName }
+            }).catch(e => console.error('[SurveyEngine] Error auto-updating contact name in existing session:', e));
+        }
+
         try {
           if (session.activeStep === 0) {
             await this.handleConsentStep(session, text);
@@ -207,7 +221,7 @@ Opções: ${JSON.stringify(options)}`;
     if (qrcodeCampaigns.length === 1) {
       const campaign = qrcodeCampaigns[0]!;
       logger.info({ campaignId: campaign.id }, '[SurveyEngine] Catch-All: Ativando única campanha de QRCode ativa.');
-      return await this.startNewSession(tenantId, channelId, fromPhone, campaign);
+      return await this.startNewSession(tenantId, channelId, normalizedPhone, campaign, pushName);
     } else if (qrcodeCampaigns.length > 1) {
        logger.warn({ count: qrcodeCampaigns.length, cleanInput }, '[SurveyEngine] Múltiplas campanhas de QRCode sem keyword. Desambiguação necessária.');
     }
@@ -219,24 +233,37 @@ Opções: ${JSON.stringify(options)}`;
   /**
    * Extracted logic to start a new survey session safely.
    */
-  public async startNewSession(tenantId: string, channelId: string, fromPhone: string, campaign: any) {
+  public async startNewSession(tenantId: string, channelId: string, fromPhone: string, campaign: any, pushName?: string) {
     const { logger } = await import('../lib/logger.js');
     
+    // Normalize Phone (Double check during session start)
+    const normalizedPhone = fromPhone.split(/[@:]/)[0] || fromPhone;
+
     // Resolve/Create Contact
     let contact = await prisma.contact.findFirst({
-      where: { tenantId, phoneNumber: fromPhone }
+      where: { tenantId, phoneNumber: normalizedPhone }
     });
 
     if (!contact) {
       contact = await prisma.contact.create({
         data: {
           tenantId,
-          name: `Inbound (${fromPhone})`,
-          phoneNumber: fromPhone,
+          name: pushName || `Inbound (${normalizedPhone})`,
+          phoneNumber: normalizedPhone,
         }
       });
-    } else if (contact.optOut) {
-      await prisma.contact.update({ where: { id: contact.id }, data: { optOut: false } });
+    } else {
+      // If contact exists but has a placeholder name, and we now have a real pushName
+      if (pushName && (contact.name.includes('Inbound (') || contact.name === 'Unknown')) {
+        contact = await prisma.contact.update({
+          where: { id: contact.id },
+          data: { name: pushName }
+        });
+      }
+
+      if (contact.optOut) {
+        await prisma.contact.update({ where: { id: contact.id }, data: { optOut: false } });
+      }
     }
 
     // Spawn Session
