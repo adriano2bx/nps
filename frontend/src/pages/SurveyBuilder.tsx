@@ -277,7 +277,7 @@ function WaPreviewPhone({ header, footer, clinicName, body, buttonYes, buttonNo,
             <div className="flex justify-start">
               <div className="max-w-[88%] flex flex-col gap-px">
                 <div className="bg-white dark:bg-[#1f2c34] rounded-lg rounded-bl-none shadow-md ring-1 ring-zinc-100 dark:ring-transparent overflow-hidden">
-                  {!isBaileys && (header || clinicName) && (
+                  {!isBaileys && !mediaPath && (header || clinicName) && (
                     <div className="px-2.5 pt-2 pb-1.5 border-b border-zinc-200 dark:border-zinc-700/50">
                       <p className="text-[11px] font-bold text-zinc-700 dark:text-zinc-200">{header || `🏥 ${clinicName || 'Sua Clínica'}`}</p>
                     </div>
