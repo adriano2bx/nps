@@ -47,13 +47,21 @@ router.post('/meta/:channelId', async (req, res) => {
       return res.status(200).send('Event ignored');
     }
 
-    const message = body.entry[0].changes[0].value.messages[0];
-    const from = message.from;
-    const text = message.text?.body || '';
+    const msg = body.entry[0].changes[0].value.messages[0];
+    const from = msg.from;
+    
+    // Extract text (standard text or interactive button reply)
+    let text = msg.text?.body || '';
+    if (msg.type === 'interactive' && msg.interactive?.button_reply) {
+      text = msg.interactive.button_reply.title || msg.interactive.button_reply.id;
+    }
 
-    if (!text) return res.status(200).send('No text content');
+    if (!text) {
+      logger.info({ msgType: msg.type, from }, '[Webhook] No text content found in Meta message');
+      return res.status(200).send('No text content');
+    }
 
-    logger.info({ channelId, from, text }, '[Webhook] Processing Meta Message');
+    logger.info({ channelId, from, text, msgType: msg.type }, '[Webhook] Processing Meta Message');
     
     // Pass to Survey Engine
     await surveyEngine.handleIncomingMessage(channelId, from, text);

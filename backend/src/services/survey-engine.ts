@@ -231,16 +231,20 @@ class SurveyEngine {
     });
 
     // Send Open message
-    const openingPayload = (campaign.openingBody || 'Olá! Você foi convidado para uma pesquisa rápida.') + '\n\nResponda SIM para participar ou NÃO para recusar.';
+    const body = campaign.openingBody || 'Olá! Você foi convidado para uma pesquisa rápida.';
+    const buttons = [
+      { id: 'yes', title: 'SIM' },
+      { id: 'no', title: 'NÃO' }
+    ];
     
-    await this.dispatchMessage(channelId, tenantId, fromPhone, openingPayload);
+    await this.dispatchMessage(channelId, tenantId, fromPhone, body, buttons);
     console.log(`[SurveyEngine] 🚀 Session started! Phone: ${fromPhone} | Campaign: ${campaign.id}`);
   }
 
   /**
    * Universal message dispatcher that chooses between Meta and Baileys.
    */
-  private async dispatchMessage(channelId: string, tenantId: string, to: string, text: string) {
+  private async dispatchMessage(channelId: string, tenantId: string, to: string, text: string, buttons?: { id: string, title: string }[]) {
     const channel = await prisma.whatsAppChannel.findUnique({
       where: { id: channelId }
     });
@@ -249,9 +253,18 @@ class SurveyEngine {
 
     if (channel.provider === 'BAILEYS') {
       const baileys = await this.getBaileys();
-      return await baileys.sendMessage(channelId, tenantId, to, text);
+      // Baileys support for buttons can be added here if needed, 
+      // but for now we fallback to text for simplicity in unofficial API
+      let fullText = text;
+      if (buttons && buttons.length > 0) {
+        fullText += '\n\n' + buttons.map(b => `*${b.title}*`).join(' | ');
+      }
+      return await baileys.sendMessage(channelId, tenantId, to, fullText);
     } else if (channel.provider === 'META') {
       const meta = await this.getMeta();
+      if (buttons && buttons.length > 0) {
+        return await meta.sendButtons(channel, to, text, buttons);
+      }
       return await meta.sendMessage(channel, to, text);
     } else {
       throw new Error(`Provider ${channel.provider} not supported by SurveyEngine`);
@@ -279,11 +292,15 @@ Retorne APENAS um JSON válido com exatas duas chaves booleanas:
     const intent = await this.parseIntentWithAI(prompt, rawText, fallback());
 
     if (intent.invalid || intent.participating === null) {
+      const body = 'Não entendi sua resposta 🤔.\n\nPor favor, utilize os botões abaixo para confirmar sua participação:';
+      const buttons = [{ id: 'yes', title: 'SIM' }, { id: 'no', title: 'NÃO' }];
+      
       await this.dispatchMessage(
         session.campaign.whatsappChannelId,
         session.tenantId,
         session.contact.phoneNumber,
-        'Não entendi sua resposta 🤔.\n\nPor favor, responda *SIM* para participar da nossa pesquisa, ou *NÃO* se não quiser responder agora.'
+        body,
+        buttons
       );
       return;
     }
@@ -368,14 +385,29 @@ Retorne APENAS um JSON válido e estrito com a chave:
 
   private async sendQuestion(channelId: string, tenantId: string, phone: string, question: any) {
     let text = question.text;
+    let buttons: { id: string, title: string }[] | undefined = undefined;
+
+    if (question.options) {
+      try {
+        const options = JSON.parse(question.options);
+        if (Array.isArray(options) && options.length > 0 && options.length <= 3) {
+           buttons = options.map((opt, idx) => ({
+             id: `opt_${idx}`,
+             title: String(opt).substring(0, 20) // Meta: Max 20 chars for button title
+           }));
+        }
+      } catch (e) {
+        console.error('[SurveyEngine] Error parsing question options:', e);
+      }
+    }
     
     if (question.type === 'nps') {
       text += '\n\n_(Responda com um número de 0 a 10)_';
-    } else {
+    } else if (!buttons) {
       text += '\n\n_(Digite sua resposta)_';
     }
 
-    await this.dispatchMessage(channelId, tenantId, phone, text);
+    await this.dispatchMessage(channelId, tenantId, phone, text, buttons);
   }
 
   private async closeSession(session: any, forcesNoMessage = false) {
