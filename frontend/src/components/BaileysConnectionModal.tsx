@@ -11,6 +11,7 @@ export default function BaileysConnectionModal({ channelId, channelName, onClose
   const [status, setStatus] = useState<'INITIALIZING' | 'QR' | 'CONNECTING' | 'CONNECTED' | 'ERROR' | 'DISCONNECTED'>('INITIALIZING');
   const [qr, setQr] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
   const token = localStorage.getItem('nps_token');
@@ -44,6 +45,26 @@ export default function BaileysConnectionModal({ channelId, channelName, onClose
       fetchStatus();
     } catch (err) {
       console.error('Failed to start connection:', err);
+    }
+  };
+
+  const handleLogout = async () => {
+    if (!window.confirm('Tem certeza que deseja desconectar este WhatsApp? Isso interromperá os envios ativos.')) return;
+    
+    setIsLoggingOut(true);
+    try {
+      const response = await fetch(`${apiBase}/api/baileys/${channelId}/logout`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        setStatus('DISCONNECTED');
+        setQr(null);
+      }
+    } catch (err) {
+      console.error('Failed to logout:', err);
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
@@ -86,11 +107,18 @@ export default function BaileysConnectionModal({ channelId, channelName, onClose
                    </div>
                 </div>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-4">
                 <p className="text-sm font-semibold text-zinc-900 dark:text-white">Escaneie o QR Code</p>
                 <p className="text-xs text-zinc-500 leading-relaxed max-w-[240px] mx-auto">
                   Abra o WhatsApp no seu celular, vá em <strong>Aparelhos Conectados</strong> e aponte a câmera para esta tela.
                 </p>
+                <button 
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="text-[10px] font-bold text-red-500 hover:text-red-600 uppercase tracking-widest pt-2 flex items-center justify-center gap-2 mx-auto disabled:opacity-50"
+                >
+                  {isLoggingOut ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Reiniciar Conexão'}
+                </button>
               </div>
             </div>
           )}
@@ -111,12 +139,21 @@ export default function BaileysConnectionModal({ channelId, channelName, onClose
                 <h4 className="text-lg font-bold text-zinc-900 dark:text-white">Conectado com Sucesso!</h4>
                 <p className="text-xs text-zinc-500">Seu WhatsApp agora está pronto para realizar disparos automáticos.</p>
               </div>
-              <button 
-                onClick={onClose}
-                className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
-              >
-                Concluir
-              </button>
+              <div className="flex flex-col gap-3">
+                <button 
+                  onClick={onClose}
+                  className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
+                >
+                  Concluir
+                </button>
+                <button 
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="w-full py-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-red-500/10 hover:text-red-500 text-zinc-600 dark:text-zinc-400 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isLoggingOut ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Desconectar WhatsApp'}
+                </button>
+              </div>
             </div>
           )}
 

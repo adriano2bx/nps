@@ -269,18 +269,25 @@ export default function Settings() {
                                 </div>
                                 <button 
                                   onClick={() => setBaileysConnectTarget(channel)}
-                                  className="w-full py-2 border border-zinc-200 dark:border-zinc-800 rounded-xl text-[10px] font-bold text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                                  className="w-full py-2.5 border border-zinc-200 dark:border-zinc-800 rounded-xl text-[10px] font-bold text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                                 >
-                                   RECONECTAR / STATUS
+                                   GERENCIAR CONEXÃO
                                 </button>
                              </div>
                            ) : (
-                             <button 
-                               onClick={() => setBaileysConnectTarget(channel)}
-                               className="w-full flex items-center justify-center gap-2 py-3 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl text-xs font-bold shadow-lg shadow-zinc-200 dark:shadow-none hover:scale-[1.02] active:scale-95 transition-all"
-                             >
-                               <QrCode className="w-4 h-4" /> Conectar Agora
-                             </button>
+                             <div className="flex flex-col gap-3">
+                                {channel.status !== 'DISCONNECTED' && (
+                                  <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/10 border border-amber-500/20 rounded-xl text-[10px] font-bold text-amber-600">
+                                     <QrCode className="w-3 h-3" /> AGUARDANDO CONEXÃO
+                                  </div>
+                                )}
+                                <button 
+                                  onClick={() => setBaileysConnectTarget(channel)}
+                                  className="w-full flex items-center justify-center gap-2 py-3 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl text-xs font-bold shadow-lg shadow-zinc-200 dark:shadow-none hover:brightness-110 active:scale-95 transition-all"
+                                >
+                                  <QrCode className="w-4 h-4" /> {channel.status === 'DISCONNECTED' ? 'Conectar Agora' : 'Ver QR Code'}
+                                </button>
+                             </div>
                            )}
                         </div>
                       ) : (
