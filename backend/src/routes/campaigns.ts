@@ -101,6 +101,7 @@ router.get('/', authMiddleware, async (req: AuthRequest, res: Response) => {
       where: { tenantId },
       orderBy: { createdAt: 'desc' },
       include: {
+        topic: true,
         _count: {
           select: { questions: true, sessions: true }
         }
@@ -136,6 +137,7 @@ router.post('/', authMiddleware, async (req: AuthRequest, res) => {
           name,
           type: type || 'SURVEY',
           whatsappChannelId: channelId,
+          topicId: req.body.topicId,
           clinicName,
           phone,
           header,
@@ -200,6 +202,7 @@ router.get('/:id', authMiddleware, async (req: AuthRequest, res) => {
         tenantId: req.tenantId as string
       },
       include: {
+        topic: true,
         questions: {
           orderBy: { orderIndex: 'asc' }
         }
@@ -286,6 +289,7 @@ router.put('/:id', authMiddleware, async (req: AuthRequest, res) => {
           name,
           type: type || existing.type,
           whatsappChannelId: channelId,
+          topicId: req.body.topicId,
           clinicName,
           phone,
           header,
@@ -364,14 +368,19 @@ router.post('/:id/trigger', authMiddleware, async (req: AuthRequest, res) => {
     if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
 
     // 2. Fetch contacts if not provided
-    let targets: string[] = contactIds;
-    if (!targets || targets.length === 0) {
-      const allContacts = await prisma.contact.findMany({
-        where: { tenantId, optOut: false },
-        select: { id: true }
-      });
-      targets = allContacts.map((c: any) => c.id);
-    }
+      let targets: string[] = contactIds;
+      if (!targets || targets.length === 0) {
+        const whereClause: any = { tenantId, optOut: false };
+        if (campaign.topicId) {
+          whereClause.topicOptOuts = { none: { topicId: campaign.topicId } };
+        }
+        
+        const allContacts = await prisma.contact.findMany({
+          where: whereClause,
+          select: { id: true }
+        });
+        targets = allContacts.map((c: any) => c.id);
+      }
 
     if (targets.length === 0) {
       return res.status(400).json({ error: 'No valid contacts to trigger' });

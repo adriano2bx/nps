@@ -23,7 +23,7 @@ export const setupSurveyWorker = () => {
       // 1. Fetch Campaign, Contact and Channel
       const contact = await prisma.contact.findUnique({
         where: { id: contactId, tenantId },
-        include: { segments: true }
+        include: { segments: true, topicOptOuts: true }
       });
 
       const campaign = await prisma.surveyCampaign.findUnique({
@@ -41,6 +41,13 @@ export const setupSurveyWorker = () => {
       if (contact.optOut) {
         console.log(`[Worker] Skip: Contact ${contact.phoneNumber} is Opt-Out`);
         return;
+      }
+      if (campaign.topicId && contact.topicOptOuts) {
+        const isOptedOut = contact.topicOptOuts.some(op => op.topicId === campaign.topicId);
+        if (isOptedOut) {
+           console.log(`[Worker] Skip: Contact ${contact.phoneNumber} is Opt-Out for Topic ${campaign.topicId}`);
+           return;
+        }
       }
 
       const provider = campaign.whatsappChannel?.provider || 'META';

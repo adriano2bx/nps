@@ -14,6 +14,7 @@ import baileysRoutes from './routes/baileys.js';
 import webhookRoutes from './routes/webhooks.js';
 import integrationRoutes from './routes/integrations.js';
 import integrationMgmtRoutes from './routes/integrations-mgmt.js';
+import topicRoutes from './routes/topics.js';
 import { setupSurveyWorker } from './workers/survey-worker.js';
 import { setupCleanupWorker } from './workers/cleanup-worker.js';
 import { setupWebhookWorker } from './workers/webhook-worker.js';
@@ -101,6 +102,7 @@ app.use('/api/baileys', baileysRoutes);
 app.use('/api/webhooks', webhookRoutes);
 app.use('/api/v1', integrationRoutes);
 app.use('/api/integrations', integrationMgmtRoutes);
+app.use('/api/topics', topicRoutes);
 
 // Health Check
 app.get('/health', async (req, res) => {

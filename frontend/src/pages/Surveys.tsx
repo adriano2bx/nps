@@ -15,15 +15,25 @@ interface Campaign {
   _count?: {
     questions: number;
     sessions: number;
-  }
+  };
+  topic?: {
+    id: string;
+    name: string;
+    color: string | null;
+  };
 }
 
 export default function Surveys() {
   const navigate = useNavigate();
   const { token } = useAuth();
-  const { campaigns: surveys, loading, isRefreshing, refreshCampaigns } = useData();
+  const { campaigns: surveys, loading, isRefreshing, refreshCampaigns, topics } = useData();
   const [deleteTarget, setDeleteTarget] = useState<Campaign | null>(null);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const [selectedTopicId, setSelectedTopicId] = useState<string | 'all'>('all');
+
+  const filteredSurveys = surveys.filter(s => 
+    selectedTopicId === 'all' || s.topic?.id === selectedTopicId
+  );
 
   const toggleActive = async (id: string, currentStatus: string) => {
     try {
@@ -91,6 +101,36 @@ export default function Surveys() {
           </button>
         </div>
       </div>
+      
+      {/* Topics Filter */}
+      {topics.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setSelectedTopicId('all')}
+            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border ${
+              selectedTopicId === 'all' 
+                ? 'bg-zinc-900 border-zinc-900 text-white shadow-lg shadow-zinc-200 dark:shadow-none' 
+                : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-zinc-300'
+            }`}
+          >
+            Todas
+          </button>
+          {topics.map(topic => (
+            <button
+              key={topic.id}
+              onClick={() => setSelectedTopicId(topic.id)}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border flex items-center gap-2 ${
+                selectedTopicId === topic.id 
+                  ? 'bg-zinc-900 border-zinc-900 text-white shadow-lg shadow-zinc-200 dark:shadow-none' 
+                  : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-zinc-300'
+              }`}
+            >
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: topic.color || '#10b981' }} />
+              {topic.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
@@ -111,23 +151,33 @@ export default function Surveys() {
                     <TableSkeleton rows={4} />
                   </td>
                 </tr>
-              ) : surveys.length === 0 ? (
+              ) : filteredSurveys.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-20 text-center text-zinc-500 font-medium">
-                    Nenhuma pesquisa encontrada. Comece criando uma nova!
+                    {selectedTopicId === 'all' 
+                      ? 'Nenhuma pesquisa encontrada. Comece criando uma nova!' 
+                      : 'Nenhuma pesquisa encontrada nesta categoria.'}
                   </td>
                 </tr>
               ) : (
-                surveys.map((row) => (
+                filteredSurveys.map((row) => (
                   <tr key={row.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-all group">
                     <td className="py-5 px-6">
                       <div className="font-bold text-zinc-900 dark:text-white text-sm">{row.name}</div>
                       <div className="text-[11px] text-zinc-500 font-mono mt-0.5">{row._count?.questions || 0} perguntas no fluxo</div>
                     </td>
                     <td className="py-5 px-6">
-                      <span className="inline-flex py-1 px-2 rounded-md bg-zinc-100 dark:bg-zinc-800 text-[10px] tracking-wider font-bold text-zinc-600 dark:text-zinc-400 uppercase border border-zinc-200/50 dark:border-zinc-700/50">
-                        {row.triggerType}
-                      </span>
+                      <div className="flex flex-col gap-1.5">
+                        <span className="inline-flex py-1 px-2 rounded-md bg-zinc-100 dark:bg-zinc-800 text-[10px] tracking-wider font-bold text-zinc-600 dark:text-zinc-400 uppercase border border-zinc-200/50 dark:border-zinc-700/50 w-fit">
+                          {row.triggerType}
+                        </span>
+                        {row.topic && (
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: row.topic.color || '#10b981' }} />
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-tight">{row.topic.name}</span>
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className="py-5 px-6 text-center">
                       <span className="font-mono text-xs font-bold text-zinc-700 dark:text-zinc-300">

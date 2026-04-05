@@ -27,6 +27,7 @@ model Tenant {
   webhooks    TenantWebhook[]
   users       User[]
   channels    WhatsAppChannel[]
+  topics      CampaignTopic[]
 }
 
 model WhatsAppChannel {
@@ -137,6 +138,7 @@ model Contact {
   tenant       Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   sessions     SurveySession[]
   segments     ContactSegment[] @relation("ContactToSegment")
+  topicOptOuts ContactTopicOptOut[]
 
   @@index([tenantId])
 }
@@ -148,6 +150,7 @@ model SurveyCampaign {
   type              String           @default("SURVEY")
   status            String           @default("DRAFT")
   whatsappChannelId String?
+  topicId           String?
   clinicName        String?
   phone             String?
   header            String?
@@ -176,6 +179,7 @@ model SurveyCampaign {
   updatedAt         DateTime         @updatedAt
   tenant            Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   whatsappChannel   WhatsAppChannel? @relation(fields: [whatsappChannelId], references: [id])
+  topic             CampaignTopic?   @relation(fields: [topicId], references: [id])
   questions         SurveyQuestion[]
   sessions          SurveySession[]
 
@@ -268,4 +272,31 @@ model BaileysSession {
   
   @@unique([channelId, key])
   @@index([channelId])
+}
+
+model CampaignTopic {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  color     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  campaigns SurveyCampaign[]
+  optOuts   ContactTopicOptOut[]
+  
+  @@unique([tenantId, name])
+}
+
+model ContactTopicOptOut {
+  id        String @id @default(uuid())
+  tenantId  String
+  contactId String
+  topicId   String
+  createdAt DateTime @default(now())
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  topic     CampaignTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  
+  @@unique([contactId, topicId])
+  @@index([tenantId])
 }

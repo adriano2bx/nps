@@ -29,13 +29,15 @@ interface DataContextType {
   patients: { data: Contact[]; pagination: any };
   campaigns: Campaign[];
   channels: any[];
+  topics: { id: string; name: string; color: string }[];
   refreshDashboard: () => Promise<void>;
   refreshReports: (page?: number, filters?: any) => Promise<void>;
   refreshPatients: (page?: number) => Promise<void>;
   refreshCampaigns: () => Promise<void>;
   refreshChannels: () => Promise<void>;
-  loading: { dashboard: boolean; reports: boolean; patients: boolean; campaigns: boolean; channels: boolean };
-  isRefreshing: { dashboard: boolean; reports: boolean; patients: boolean; campaigns: boolean; channels: boolean };
+  refreshTopics: () => Promise<void>;
+  loading: { dashboard: boolean; reports: boolean; patients: boolean; campaigns: boolean; channels: boolean; topics: boolean };
+  isRefreshing: { dashboard: boolean; reports: boolean; patients: boolean; campaigns: boolean; channels: boolean; topics: boolean };
 }
 
 
@@ -51,14 +53,15 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [reports, setReports] = useState({ data: [], pagination: { total: 0, page: 1, limit: 10, pages: 1 }, stats: null });
   const [patients, setPatients] = useState<{ data: Contact[]; pagination: any }>({ data: [], pagination: { total: 0, page: 1, limit: 10, pages: 0 } });
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [topics, setTopics] = useState<{ id: string; name: string; color: string }[]>([]);
 
   const [channels, setChannels] = useState<any[]>([]);
   
   const [loading, setLoading] = useState({ 
-    dashboard: true, reports: true, patients: true, campaigns: true, channels: true 
+    dashboard: true, reports: true, patients: true, campaigns: true, channels: true, topics: true
   });
   const [isRefreshing, setIsRefreshing] = useState({ 
-    dashboard: false, reports: false, patients: false, campaigns: false, channels: false 
+    dashboard: false, reports: false, patients: false, campaigns: false, channels: false, topics: false 
   });
 
   const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
@@ -246,11 +249,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       patients,
       campaigns,
       channels,
+      topics,
       refreshDashboard: fetchDashboard,
       refreshReports: fetchReports,
       refreshPatients: fetchPatients,
       refreshCampaigns: fetchCampaigns,
       refreshChannels: fetchChannels,
+      refreshTopics: fetchTopics,
       loading,
       isRefreshing
     }}>

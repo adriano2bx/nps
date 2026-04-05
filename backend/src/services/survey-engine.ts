@@ -155,9 +155,19 @@ Opções: ${JSON.stringify(options)}`;
                 status: 'OPEN',
                 contact: { phoneNumber: normalizedPhone },
                 campaign: { whatsappChannelId: channelId }
-            }
+            },
+            include: { campaign: true }
         });
         if (active) {
+            if (active.campaign.topicId) {
+                await prisma.contactTopicOptOut.upsert({
+                    where: { contactId_topicId: { contactId: active.contactId, topicId: active.campaign.topicId } },
+                    create: { tenantId, contactId: active.contactId, topicId: active.campaign.topicId },
+                    update: {}
+                });
+            } else {
+                await prisma.contact.update({ where: { id: active.contactId }, data: { optOut: true } });
+            }
             await this.closeSession(active, true); // true = forces no "thank you" message, send specific cancel msg
             return;
         }
@@ -443,7 +453,15 @@ Retorne APENAS um JSON válido com exatas duas chaves booleanas:
     }
 
     if (intent.participating === false) {
-      await prisma.contact.update({ where: { id: session.contactId }, data: { optOut: true } });
+      if (session.campaign.topicId) {
+         await prisma.contactTopicOptOut.upsert({
+             where: { contactId_topicId: { contactId: session.contactId, topicId: session.campaign.topicId } },
+             create: { tenantId: session.tenantId, contactId: session.contactId, topicId: session.campaign.topicId },
+             update: {}
+         });
+      } else {
+         await prisma.contact.update({ where: { id: session.contactId }, data: { optOut: true } });
+      }
       await this.closeSession(session, true);
       return;
     }

@@ -360,6 +360,8 @@ function Step1({
   plan: PlanLevel;
   onUpgrade: (feature: string) => void;
   channels: WhatsAppChannel[];
+  topics: any[];
+  refreshTopics: () => Promise<void>;
   isBaileys: boolean;
   isUploading: boolean;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
@@ -375,6 +377,53 @@ function Step1({
           <div className="col-span-1">
             <label className={labelCls}>Nome da Campanha *</label>
             <input className={inputCls} placeholder="Ex: Satisfação Pós-Atendimento" value={data.name} onChange={e => onChange('name', e.target.value)} />
+          </div>
+          <div className="col-span-1 relative">
+            <label className={labelCls}>Categoria (Tópico) *</label>
+            <div className="relative">
+              <select 
+                className={inputCls} 
+                value={data.topicId || ''} 
+                onChange={async e => {
+                  const val = e.target.value;
+                  if (val === 'CREATE_NEW') {
+                    const newName = window.prompt('Digite o nome da nova Categoria (ex: Promoções, Avisos, Pesquisa):');
+                    if (newName && newName.trim().length > 0) {
+                      try {
+                        const token = localStorage.getItem('nps_auth_token');
+                        const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+                        const res = await fetch(`${apiBase}/api/topics`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                          body: JSON.stringify({ name: newName.trim() })
+                        });
+                        if (res.ok) {
+                          const newTopic = await res.json();
+                          await refreshTopics();
+                          onChange('topicId', newTopic.id);
+                        }
+                      } catch (err) {
+                        console.error('Failed to create topic', err);
+                        alert('Erro ao criar categoria.');
+                      }
+                    } else {
+                       onChange('topicId', '');
+                    }
+                  } else {
+                    onChange('topicId', val);
+                  }
+                }}
+              >
+                <option value="" className="bg-white dark:bg-zinc-900">Selecione uma Categoria...</option>
+                {topics.map(t => (
+                  <option key={t.id} value={t.id} className="bg-white dark:bg-zinc-900">{t.name}</option>
+                ))}
+                <option value="CREATE_NEW" className="bg-white dark:bg-zinc-900 font-bold text-emerald-600">+ Criar Nova Categoria</option>
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <ChevronRight className="w-4 h-4 text-zinc-400 rotate-90" />
+              </div>
+            </div>
           </div>
           <div className="col-span-1">
             <label className={labelCls}>Plano Atual</label>
@@ -1575,7 +1624,7 @@ export default function SurveyBuilder() {
   const [isSaving, setIsSaving] = useState(false);
   
   const { token, user } = useAuth();
-  const { refreshCampaigns } = useData();
+  const { refreshCampaigns, topics, refreshTopics } = useData();
   const [channels, setChannels] = useState<WhatsAppChannel[]>([]);
 
   useEffect(() => {
@@ -1605,7 +1654,7 @@ export default function SurveyBuilder() {
     type: 'survey', // survey | marketing
     triggerType: 'active', // active | qrcode | bulk
     mediaPath: '',
-    name: '', channel: '', channelId: '', clinicName: '', phone: '',
+    name: '', channel: '', channelId: '', topicId: '', clinicName: '', phone: '',
     header: '', footer: 'Responda SAIR para não receber mais mensagens.',
     openingBody: '', buttonYes: '✅ Sim, aceito', buttonNo: '❌ Não, obrigado',
     closingMessage: '', isHsm: 'false',
@@ -1679,6 +1728,7 @@ export default function SurveyBuilder() {
         name: general.name,
         type: general.type,
         channelId: general.channelId || null, 
+        topicId: general.topicId || null,
         clinicName: general.clinicName,
         phone: general.phone,
         header: general.header,
@@ -1745,6 +1795,7 @@ export default function SurveyBuilder() {
             type: campaign.type.toLowerCase(),
             triggerType: campaign.triggerType,
             channelId: campaign.whatsappChannelId || '',
+            topicId: campaign.topicId || '',
             clinicName: campaign.clinicName || '',
             phone: campaign.phone || '',
             header: campaign.header || '',
@@ -1812,6 +1863,7 @@ export default function SurveyBuilder() {
         },
         body: JSON.stringify({
           ...general,
+          topicId: general.topicId || null,
           ...dispatch,
           questions: questions.map(q => ({
             type: q.type,
@@ -1853,6 +1905,8 @@ export default function SurveyBuilder() {
         plan={tenantPlan} 
         onUpgrade={(f) => { setUpgradeFeature(f); setIsUpgradeOpen(true); }} 
         channels={channels} 
+        topics={topics}
+        refreshTopics={refreshTopics}
         isBaileys={isBaileys}
         isUploading={isUploading}
         fileInputRef={fileInputRef}
