@@ -74,22 +74,27 @@ const tryAcquireLock = async (onAcquired: () => void) => {
 const app = express();
 const port = process.env.PORT || 3001;
 
-// Global Security Middlewares
-app.use(helmet());
+// Trust Proxy (Essential for Rate-Limit behind Vercel/Docker proxies)
+app.set('trust proxy', 1);
+
+// Global Security & Optimization Middlewares
+app.use(cors()); // CORS FIRST to allow preflight
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable default CSP to allow Cross-Origin (Frontend 5173 -> Backend 3001)
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+app.use(compression());
+app.use(express.json());
 
 const globalLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  max: 200, // limit each IP to 200 requests per windowMs
+  windowMs: 1 * 60 * 1000, 
+  max: 300, 
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Muitas requisições. Tente novamente em 1 minuto.' }
 });
 
-app.use('/api/', globalLimiter); // Apply to all API routes
-
-app.use(cors());
-app.use(compression());
-app.use(express.json());
+app.use('/api/', globalLimiter);
 
 // API Request Logger Middleware
 app.use(requestLogger);

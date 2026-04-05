@@ -18,7 +18,6 @@ model Tenant {
   apiKeys     ApiKey[]
   auditLogs   AuditLog[]
   bulkBatches BulkBatch[]
-  topics      CampaignTopic[]
   contacts    Contact[]
   segments    ContactSegment[]
   campaigns   SurveyCampaign[]
@@ -126,21 +125,19 @@ model ContactSegment {
 }
 
 model Contact {
-  id           String               @id @default(uuid())
+  id           String           @id @default(uuid())
   tenantId     String
   name         String
   phoneNumber  String
-  optOut       Boolean              @default(false)
-  invalidPhone Boolean              @default(false)
-  isMasked     Boolean              @default(false)
-  createdAt    DateTime             @default(now())
-  updatedAt    DateTime             @updatedAt
-  tenant       Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  topicOptOuts ContactTopicOptOut[]
+  optOut       Boolean          @default(false)
+  invalidPhone Boolean          @default(false)
+  isMasked     Boolean          @default(false)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  tenant       Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   sessions     SurveySession[]
-  segments     ContactSegment[]     @relation("ContactToSegment")
+  segments     ContactSegment[] @relation("ContactToSegment")
 
-  @@unique([tenantId, phoneNumber])
   @@index([tenantId])
 }
 
@@ -172,14 +169,7 @@ model SurveyCampaign {
   mediaPath         String?
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
-  ctaLabel          String?
-  ctaLink           String?
-  supportName       String?
-  supportPhone      String?
-  templateName      String?
-  topicId           String?
   tenant            Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  topic             CampaignTopic?   @relation(fields: [topicId], references: [id])
   whatsappChannel   WhatsAppChannel? @relation(fields: [whatsappChannelId], references: [id])
   questions         SurveyQuestion[]
   sessions          SurveySession[]
@@ -212,7 +202,6 @@ model SurveySession {
   isTest      Boolean            @default(false)
   startedAt   DateTime           @default(now())
   closedAt    DateTime?
-  updatedAt   DateTime           @default(now()) @updatedAt
   messageLogs SurveyMessageLog[]
   responses   SurveyResponse[]
   campaign    SurveyCampaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
@@ -263,41 +252,4 @@ model SurveyMessageLog {
   @@index([tenantId])
   @@index([sessionId])
   @@index([questionId])
-}
-
-model BaileysSession {
-  id        Int    @id @default(autoincrement())
-  channelId String
-  key       String
-  value     String
-
-  @@unique([channelId, key])
-  @@index([channelId])
-}
-
-model CampaignTopic {
-  id        String               @id @default(uuid())
-  tenantId  String
-  name      String
-  color     String?
-  createdAt DateTime             @default(now())
-  updatedAt DateTime             @updatedAt
-  tenant    Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  optOuts   ContactTopicOptOut[]
-  campaigns SurveyCampaign[]
-
-  @@unique([tenantId, name])
-}
-
-model ContactTopicOptOut {
-  id        String        @id @default(uuid())
-  tenantId  String
-  contactId String
-  topicId   String
-  createdAt DateTime      @default(now())
-  contact   Contact       @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  topic     CampaignTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
-
-  @@unique([contactId, topicId])
-  @@index([tenantId])
 }

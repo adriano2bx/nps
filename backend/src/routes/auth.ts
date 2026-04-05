@@ -13,7 +13,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
 // Strict Rate Limit for Login
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 5 login attempts per window
+  max: 20, // Increased for better development/testing experience
   message: { error: 'Muitas tentativas de login. Tente novamente em 15 minutos.' },
   standardHeaders: true,
   legacyHeaders: false,
