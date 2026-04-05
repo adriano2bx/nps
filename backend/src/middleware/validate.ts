@@ -23,6 +23,11 @@ export const validate = (schema: z.ZodSchema) =>
           }))
         });
       }
-      return res.status(500).json({ error: 'Internal Server Error during validation' });
+      
+      console.error('[Validation Error]:', error);
+      return res.status(500).json({ 
+        error: 'Internal Server Error during validation',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   };

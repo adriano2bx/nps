@@ -1,0 +1,1 @@
+import { PrismaClient } from '@prisma/client'; const prisma = new PrismaClient(); async function main() { try { const u = await prisma.user.findFirst(); console.log('FIRST_USER:', u ? u.email : 'NONE'); process.exit(0); } catch(e) { console.error(e); process.exit(1); } } main();

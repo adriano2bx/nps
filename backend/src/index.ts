@@ -75,7 +75,7 @@ const app = express();
 const port = process.env.PORT || 3001;
 
 // Trust Proxy (Essential for Rate-Limit behind Vercel/Docker proxies)
-app.set('trust proxy', 1);
+app.set('trust proxy', true);
 
 // Global Security & Optimization Middlewares
 app.use(cors()); // CORS FIRST to allow preflight
@@ -181,7 +181,7 @@ if (fs.existsSync(frontendPath)) {
   app.use(express.static(frontendPath));
   
   // Catch-all route to serve index.html (SPA support)
-  app.get('*splat', (req, res, next) => {
+  app.get('*', (req, res, next) => {
     // If it's an API request, static asset, or storage, do not serve index.html
     if (req.path.startsWith('/api') || req.path.startsWith('/storage')) {
       return next();
