@@ -1242,7 +1242,7 @@ function ActionConfigModal({
         isOpen={isOpen} 
         onClose={() => setIsOpen(false)} 
         title="Configurar Ação da Resposta"
-        size="sm"
+        size="md"
       >
         <div className="space-y-4">
           <div>
@@ -1302,19 +1302,28 @@ function ActionConfigModal({
             </div>
           )}
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+          <div className="flex items-center justify-between pt-6 border-t border-zinc-100 dark:border-zinc-800">
             <button 
               onClick={() => { setLocalAction(undefined); onSave(undefined); setIsOpen(false); }}
-              className="px-4 py-2 text-[11px] font-bold text-zinc-400 hover:text-rose-500 transition-colors"
+              className="px-4 py-2 text-[10px] font-bold text-zinc-400 hover:text-rose-500 uppercase tracking-widest transition-all"
             >
               Remover Ação
             </button>
-            <button 
-              onClick={handleSave}
-              className="px-5 py-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-lg text-[11px] font-bold"
-            >
-              Salvar Alterações
-            </button>
+            <div className="flex items-center gap-3">
+              <button 
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="px-5 py-2.5 text-xs font-bold text-zinc-500 hover:text-zinc-700 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleSave}
+                className="px-8 py-3 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl text-sm font-bold shadow-xl shadow-zinc-200/50 dark:shadow-none active:scale-95 transition-all"
+              >
+                Salvar Alterações
+              </button>
+            </div>
           </div>
         </div>
       </Modal>
