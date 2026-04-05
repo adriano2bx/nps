@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async function loadUser() {
       if (token) {
         try {
-          const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+          const apiBase = import.meta.env.VITE_API_URL ?? (window.location.origin === 'http://localhost:5173' ? 'http://localhost:3001' : window.location.origin);
           const response = await fetch(`${apiBase}/api/auth/me`, {
             headers: { Authorization: `Bearer ${token}` }
           });

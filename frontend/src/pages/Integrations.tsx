@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   Key, 
   Webhook, 
@@ -59,56 +58,91 @@ export default function Integrations() {
     { id: 'contact.optout', label: 'Opt-out (Sair)', icon: AlertTriangle }
   ];
 
-  const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+  const apiBase = import.meta.env.VITE_API_URL ?? (window.location.origin === 'http://localhost:5173' ? 'http://localhost:3001' : window.location.origin);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const token = localStorage.getItem('nps_auth_token');
-      const headers = { Authorization: `Bearer ${token}` };
+      const headers = { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
       
       const [keysRes, hooksRes] = await Promise.all([
-        axios.get(`${apiBase}/api/integrations/keys`, { headers }),
-        axios.get(`${apiBase}/api/integrations/webhooks`, { headers })
+        fetch(`${apiBase}/api/integrations/keys`, { headers }),
+        fetch(`${apiBase}/api/integrations/webhooks`, { headers })
       ]);
       
-      setKeys(keysRes.data);
-      setWebhooks(hooksRes.data);
-    } catch (err) {
-      console.error('Failed to fetch integrations data');
+      if (!keysRes.ok || !hooksRes.ok) {
+        throw new Error('Falha ao carregar dados de integração');
+      }
+
+      const keysData = await keysRes.json();
+      const hooksData = await hooksRes.json();
+      
+      setKeys(keysData);
+      setWebhooks(hooksData);
+    } catch (err: any) {
+      console.error('Failed to fetch integrations data:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [apiBase]);
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleCreateKey = async () => {
     try {
       const token = localStorage.getItem('nps_auth_token');
-      const res = await axios.post(`${apiBase}/api/integrations/keys`, { name: newKeyName }, {
-        headers: { Authorization: `Bearer ${token}` }
+      const res = await fetch(`${apiBase}/api/integrations/keys`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name: newKeyName })
       });
-      setGeneratedKey(res.data.key);
-      setKeys([res.data, ...keys]);
-    } catch (err) {
-      alert('Erro ao criar chave');
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || data.details || `Erro ${res.status}: Não foi possível criar a chave.`);
+      }
+
+      setGeneratedKey(data.key);
+      setKeys([data, ...keys]);
+      setNewKeyName(''); // Reset name after success
+    } catch (err: any) {
+      alert(`Erro ao criar chave: ${err.message}`);
     }
   };
 
   const handleCreateWebhook = async () => {
     try {
       const token = localStorage.getItem('nps_auth_token');
-      const res = await axios.post(`${apiBase}/api/integrations/webhooks`, { 
-        url: webhookUrl, 
-        events: selectedEvents 
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
+      const res = await fetch(`${apiBase}/api/integrations/webhooks`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify({ 
+          url: webhookUrl, 
+          events: selectedEvents 
+        })
       });
-      setWebhooks([...webhooks, res.data]);
+      
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || data.details || `Erro ${res.status}: Não foi possível cadastrar o webhook.`);
+      }
+
+      setWebhooks([...webhooks, data]);
       setIsWebhookModalOpen(false);
       setWebhookUrl('');
-    } catch (err) {
-      alert('Erro ao criar webhook');
+    } catch (err: any) {
+      alert(`Erro ao criar webhook: ${err.message}`);
     }
   };
 
@@ -118,16 +152,23 @@ export default function Integrations() {
     try {
       const token = localStorage.getItem('nps_auth_token');
       const endpoint = isWebhook ? `${apiBase}/api/integrations/webhooks/${id}` : `${apiBase}/api/integrations/keys/${id}`;
-      await axios.delete(endpoint, {
-        headers: { Authorization: `Bearer ${token}` }
+      const res = await fetch(endpoint, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
       });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Erro ao deletar recurso');
+      }
+
       if (isWebhook) {
         setWebhooks(webhooks.filter(w => w.id !== id));
       } else {
         setKeys(keys.filter(k => k.id !== id));
       }
-    } catch (err) {
-      alert('Erro ao deletar chave');
+    } catch (err: any) {
+      alert(`Erro ao deletar: ${err.message}`);
     }
   };
 

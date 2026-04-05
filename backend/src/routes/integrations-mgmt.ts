@@ -56,6 +56,7 @@ router.post('/keys', async (req: AuthRequest, res: Response) => {
       createdAt: apiKey.createdAt
     });
   } catch (error) {
+    console.error('[Integrations-Mgmt] Error creating API key:', error);
     res.status(500).json({ error: 'Failed to create API key' });
   }
 });
@@ -111,6 +112,7 @@ router.post('/webhooks', async (req: AuthRequest, res: Response) => {
 
     res.status(201).json(webhook);
   } catch (error) {
+    console.error('[Integrations-Mgmt] Error creating webhook:', error);
     res.status(500).json({ error: 'Failed to create webhook' });
   }
 });
@@ -132,6 +134,7 @@ router.put('/webhooks/:id', async (req: AuthRequest, res: Response) => {
 
     res.json(webhook);
   } catch (error) {
+    console.error('[Integrations-Mgmt] Error updating webhook:', error);
     res.status(500).json({ error: 'Failed to update webhook' });
   }
 });
