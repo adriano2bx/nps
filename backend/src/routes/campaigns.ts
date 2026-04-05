@@ -25,8 +25,9 @@ function normalizeQuestionType(q: any): { type: string; options: string } {
 
   if ((q.type === 'list' || q.type === 'choice') && opts.length > 0) {
     const allNumeric = opts.every((o: any) => {
-      const n = parseInt(String(o).trim(), 10);
-      return !isNaN(n) && n >= 0 && n <= 10;
+      const label = typeof o === 'string' ? o : o.label;
+      const n = parseInt(String(label || '').trim(), 10);
+      return !isNaN(n) && n >= 0 && n <= 10 && String(n) === String(label || '').trim();
     });
     if (allNumeric) {
       resolvedType = 'nps';
@@ -317,26 +318,65 @@ router.put('/:id', authMiddleware, async (req: AuthRequest, res) => {
         }
       });
 
-      // 3. Simple Question Sync: Delete all and re-create (cleaner for complex re-ordering)
-      // Only do this if questions are provided in the payload
+      // 3. Stable Question Sync: Update existing, create new, delete removed
       if (questions && Array.isArray(questions)) {
+        const payloadIds = questions.map(q => q.id).filter(id => typeof id === 'string');
+
+        // Delete removed questions
         await tx.surveyQuestion.deleteMany({
-          where: { campaignId: id }
+          where: { campaignId: id, id: { notIn: payloadIds as string[] } }
         });
 
-        await tx.surveyQuestion.createMany({
-          data: questions.map((q: any, i: number) => {
-            const { type, options } = normalizeQuestionType(q);
-            return {
-              campaignId: id,
-              orderIndex: i,
-              type,
-              text: q.text,
-              required: q.required ?? true,
-              options
-            };
-          })
-        });
+        // Map for jump ID fixing (Frontend temporary ID -> Backend Real ID)
+        const idMap: Record<string, string> = {};
+
+        // Upsert questions sequentially to build the map
+        for (let i = 0; i < questions.length; i++) {
+          const q = questions[i];
+          const isNew = typeof q.id !== 'string';
+          const { type, options: rawOptions } = normalizeQuestionType(q);
+          
+          let dbQ;
+          if (!isNew) {
+             dbQ = await tx.surveyQuestion.update({
+               where: { id: q.id },
+               data: { orderIndex: i, type, text: q.text, required: q.required ?? true, options: rawOptions }
+             });
+             idMap[q.id] = dbQ.id;
+          } else {
+             dbQ = await tx.surveyQuestion.create({
+               data: { campaignId: id, orderIndex: i, type, text: q.text, required: q.required ?? true, options: rawOptions }
+             });
+             idMap[String(q.id)] = dbQ.id;
+          }
+        }
+
+        // Post-pass: Fix jump targets in options if they were using temporary frontend IDs
+        const updatedQuestions = await tx.surveyQuestion.findMany({ where: { campaignId: id } });
+        for (const q of updatedQuestions) {
+          if (q.options) {
+             try {
+               const opts = JSON.parse(q.options);
+               let modified = false;
+               const newOpts = opts.map((opt: any) => {
+                 if (opt.action?.type === 'jump' && opt.action.targetQuestionId && opt.action.targetQuestionId !== 'FINISH') {
+                   const newTarget = idMap[String(opt.action.targetQuestionId)];
+                   if (newTarget && newTarget !== opt.action.targetQuestionId) {
+                     modified = true;
+                     return { ...opt, action: { ...opt.action, targetQuestionId: newTarget } };
+                   }
+                 }
+                 return opt;
+               });
+               if (modified) {
+                 await tx.surveyQuestion.update({ 
+                   where: { id: q.id }, 
+                   data: { options: JSON.stringify(newOpts) } 
+                 });
+               }
+             } catch (e) {}
+          }
+        }
       }
 
       return await tx.surveyCampaign.findUnique({

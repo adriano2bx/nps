@@ -17,12 +17,24 @@ import { useData } from '../contexts/DataContext';
 // ─── Types ───────────────────────────────────────────────────────────────────
 type QuestionType = 'nps' | 'open' | 'choice' | 'list';
 type PlanLevel = 'STARTER' | 'PRO' | 'ENTERPRISE';
+export interface QuestionAction {
+  type: 'next' | 'jump' | 'optout' | 'webhook';
+  targetQuestionId?: string | number | 'FINISH';
+  topicId?: string;
+  webhookUrl?: string;
+}
+
+export interface SurveyOption {
+  label: string;
+  action?: QuestionAction;
+}
+
 interface Question {
   id: number;
   type: QuestionType;
   text: string;
   required: boolean;
-  options?: string[]; // Para perguntas de múltipla escolha
+  options?: (string | SurveyOption)[]; // Support both legacy and new format
   fixed?: boolean; // consent question
 }
 
@@ -831,7 +843,10 @@ function SurveySimulator({
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory, activeStep]);
 
-  const handleSelect = (label: string) => {
+  const handleSelect = (val: string | SurveyOption) => {
+    const label = typeof val === 'string' ? val : val.label;
+    const action = typeof val === 'string' ? undefined : val.action;
+
     setShowList(false);
     setHoveredOption(null);
     const botText = currentQ.text || (
@@ -846,7 +861,28 @@ function SurveySimulator({
       { role: 'bot', text: botText, header: hHeader, footer: hFooter },
       { role: 'user', text: label }
     ]);
+
     setTimeout(() => {
+      if (action) {
+        if (action.type === 'jump' && action.targetQuestionId) {
+          if (action.targetQuestionId === 'FINISH') {
+            setActiveStep(questions.length);
+          } else {
+            const targetIdx = questions.findIndex(q => String(q.id) === String(action.targetQuestionId));
+            if (targetIdx !== -1) {
+              setActiveStep(targetIdx);
+            } else {
+              setActiveStep(activeStep + 1);
+            }
+          }
+          return;
+        }
+        if (action.type === 'optout') {
+          setActiveStep(questions.length);
+          return;
+        }
+      }
+
       if (activeStep < questions.length - 1) setActiveStep(activeStep + 1);
       else setActiveStep(questions.length);
     }, 380);
@@ -988,14 +1024,17 @@ function SurveySimulator({
                   {/* Inline buttons 1-3 */}
                   {currentQ.type === 'choice' && (
                     <div className="flex flex-col gap-px mt-px">
-                      {(currentQ.options ?? []).map((opt, i) => (
-                        <button key={i}
-                          onClick={() => handleSelect(opt || `Opção ${i + 1}`)}
-                          className="w-full bg-white dark:bg-[#1f2c34] py-2 px-2.5 text-[12px] font-semibold text-[#00a884] text-center hover:bg-[#f0faf7] dark:hover:bg-[#00a884]/10 transition-colors border-t border-zinc-200 dark:border-zinc-700/40"
-                        >
-                          {opt || `Opção ${i + 1}`}
-                        </button>
-                      ))}
+                      {(currentQ.options ?? []).map((o, i) => {
+                        const opt = typeof o === 'string' ? o : o.label;
+                        return (
+                          <button key={i}
+                            onClick={() => handleSelect(o || `Opção ${i + 1}`)}
+                            className="w-full bg-white dark:bg-[#1f2c34] py-2 px-2.5 text-[12px] font-semibold text-[#00a884] text-center hover:bg-[#f0faf7] dark:hover:bg-[#00a884]/10 transition-colors border-t border-zinc-200 dark:border-zinc-700/40"
+                          >
+                            {opt || `Opção ${i+1}`}
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
 
@@ -1055,29 +1094,29 @@ function SurveySimulator({
                   <button onClick={() => setShowList(false)} className="text-[12px] text-[#00a884] font-bold">FECHAR</button>
                 </div>
                 <div className="overflow-y-auto">
-                  {(currentQ.options ?? []).map((opt, i) => (
-                    <button
-                      key={i}
-                      onMouseEnter={() => setHoveredOption(i)}
-                      onMouseLeave={() => setHoveredOption(null)}
-                      onClick={() => handleSelect(opt || `Opção ${i + 1}`)}
-                      className="w-full text-left px-4 py-3.5 flex items-center gap-3 border-b border-zinc-100 dark:border-zinc-700/60 last:border-0 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
-                    >
-                      {/* Radio — always visible ring, fills green on hover */}
-                      <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                        hoveredOption === i
-                          ? 'border-[#00a884]'
-                          : 'border-zinc-400 dark:border-zinc-500'
-                      }`}>
-                        <span className={`w-2.5 h-2.5 rounded-full transition-all ${
-                          hoveredOption === i ? 'bg-[#00a884] scale-100' : 'bg-transparent scale-0'
-                        }`} />
-                      </span>
-                      <span className="text-[13px] text-zinc-700 dark:text-zinc-200 leading-snug">
-                        {opt || `Opção ${i + 1}`}
-                      </span>
-                    </button>
-                  ))}
+                  {(currentQ.options ?? []).map((o, i) => {
+                    const opt = typeof o === 'string' ? o : o.label;
+                    return (
+                      <button
+                        key={i}
+                        onMouseEnter={() => setHoveredOption(i)}
+                        onMouseLeave={() => setHoveredOption(null)}
+                        onClick={() => handleSelect(o || `Opção ${i + 1}`)}
+                        className="w-full text-left px-4 py-3.5 flex items-center gap-3 border-b border-zinc-100 dark:border-zinc-700/60 last:border-0 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
+                      >
+                        <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                          hoveredOption === i ? 'border-[#00a884]' : 'border-zinc-400 dark:border-zinc-500'
+                        }`}>
+                          <span className={`w-2.5 h-2.5 rounded-full transition-all ${
+                            hoveredOption === i ? 'bg-[#00a884] scale-100' : 'bg-transparent scale-0'
+                          }`} />
+                        </span>
+                        <span className="text-[13px] text-zinc-700 dark:text-zinc-200 leading-snug">
+                          {opt || `Opção ${i + 1}`}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -1156,6 +1195,130 @@ function SurveySimulator({
 }
 
 // ─── Step 2: Question Builder ─────────────────────────────────────────────────
+function ActionConfigModal({ 
+  action, 
+  questions, 
+  currentQuestionId,
+  onSave 
+}: { 
+  action?: QuestionAction; 
+  questions: Question[]; 
+  currentQuestionId: number;
+  onSave: (action: QuestionAction | undefined) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [localAction, setLocalAction] = useState<QuestionAction | undefined>(action);
+
+  useEffect(() => {
+    if (isOpen) setLocalAction(action);
+  }, [isOpen, action]);
+
+  const handleSave = () => {
+    onSave(localAction);
+    setIsOpen(false);
+  };
+
+  const labelCls = "block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5";
+  const inputCls = "w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-md py-1.5 px-3 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-zinc-400 transition-colors";
+
+  return (
+    <>
+      <button
+        onClick={() => setIsOpen(true)}
+        className={`p-1.5 rounded-md transition-all ${
+          action && action.type !== 'next'
+            ? 'bg-emerald-500/10 text-emerald-500'
+            : 'text-zinc-300 hover:text-emerald-500 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+        }`}
+        title="Configurar Ação"
+      >
+        <Zap className={`w-3.5 h-3.5 ${action && action.type !== 'next' ? 'fill-current' : ''}`} />
+      </button>
+
+      <Modal 
+        isOpen={isOpen} 
+        onClose={() => setIsOpen(false)} 
+        title="Configurar Ação da Resposta"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className={labelCls}>Ação ao Selecionar</label>
+            <select 
+              className={inputCls}
+              value={localAction?.type || 'next'}
+              onChange={(e) => setLocalAction({ ...localAction, type: e.target.value as any })}
+            >
+              <option value="next">Apenas coletar (Próxima pergunta)</option>
+              <option value="jump">Ir para pergunta específica (Desvio)</option>
+              <option value="optout">Bloquear contato (Opt-out)</option>
+              <option value="webhook">Acionar Integração (Webhook)</option>
+            </select>
+          </div>
+
+          {localAction?.type === 'jump' && (
+            <div>
+              <label className={labelCls}>Pular para...</label>
+              <select 
+                className={inputCls}
+                value={localAction?.targetQuestionId || ''}
+                onChange={(e) => setLocalAction({ ...localAction, targetQuestionId: e.target.value })}
+              >
+                <option value="">Selecione o destino...</option>
+                {questions
+                  .filter(q => q.id !== currentQuestionId)
+                  .map((q, i) => (
+                    <option key={q.id} value={q.id}>
+                      P{questions.findIndex(x => x.id === q.id) + 1}: {q.text.substring(0, 30)}...
+                    </option>
+                  ))
+                }
+                <option value="FINISH" className="font-bold text-emerald-600">🏁 Finalizar Pesquisa (Agradecimento)</option>
+              </select>
+            </div>
+          )}
+
+          {localAction?.type === 'webhook' && (
+            <div>
+              <label className={labelCls}>URL do Webhook (POST)</label>
+              <input 
+                className={inputCls}
+                placeholder="https://sua-api.com/callback"
+                value={localAction?.webhookUrl || ''}
+                onChange={(e) => setLocalAction({ ...localAction, webhookUrl: e.target.value })}
+              />
+              <p className="text-[10px] text-zinc-500 mt-1">Enviaremos os dados da resposta para esta URL.</p>
+            </div>
+          )}
+
+          {localAction?.type === 'optout' && (
+            <div className="bg-amber-50 dark:bg-amber-500/5 border border-amber-100 dark:border-amber-500/20 p-3 rounded-lg">
+              <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed font-medium">
+                Esta opção bloqueará o contato para que não receba mais campanhas deste tipo (Tópico) automaticamente.
+              </p>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+            <button 
+              onClick={() => { setLocalAction(undefined); onSave(undefined); setIsOpen(false); }}
+              className="px-4 py-2 text-[11px] font-bold text-zinc-400 hover:text-rose-500 transition-colors"
+            >
+              Remover Ação
+            </button>
+            <button 
+              onClick={handleSave}
+              className="px-5 py-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-lg text-[11px] font-bold"
+            >
+              Salvar Alterações
+            </button>
+          </div>
+        </div>
+      </Modal>
+    </>
+  );
+}
+
 function Step2({
   questions, setQuestions, clinicName, header, footer, simStep, setSimStep, isBaileys
 }: {
@@ -1207,11 +1370,25 @@ function Step2({
   const remove = (id: number) => setQuestions(questions.filter(q => q.id !== id));
 
   const addOption = (q: Question) =>
-    update(q.id, 'options', [...(q.options ?? []), `Opção ${(q.options?.length ?? 0) + 1}`]);
+    update(q.id, 'options', [...(q.options ?? []), { label: `Opção ${(q.options?.length ?? 0) + 1}` }]);
   const removeOption = (q: Question, idx: number) =>
     update(q.id, 'options', (q.options ?? []).filter((_, i) => i !== idx));
   const updateOption = (q: Question, idx: number, val: string) =>
-    update(q.id, 'options', (q.options ?? []).map((o, i) => i === idx ? val : o));
+    update(q.id, 'options', (q.options ?? []).map((o, i) => {
+      if (i === idx) {
+        if (typeof o === 'string') return { label: val };
+        return { ...o, label: val };
+      }
+      return o;
+    }));
+  const updateOptionAction = (q: Question, idx: number, action: QuestionAction | undefined) =>
+    update(q.id, 'options', (q.options ?? []).map((o, i) => {
+      if (i === idx) {
+        const label = typeof o === 'string' ? o : o.label;
+        return { label, action };
+      }
+      return o;
+    }));
 
   const inputCls = "w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-md py-2 px-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-600 transition-colors";
   const labelCls = "block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5";
@@ -1288,37 +1465,49 @@ function Step2({
                         </span>
                       </label>
 
-                      {(q.options ?? []).map((opt, oIdx) => (
-                        <div key={oIdx} className="flex items-center gap-2">
-                          <div className="flex-1 relative">
-                            <EmojiInput
-                              value={opt}
-                              onChange={val => updateOption(q, oIdx, val)}
-                              className="flex-1"
-                            >
-                              <input
-                                maxLength={q.type === 'choice' ? 20 : 24}
-                                className={`${inputCls} py-1.5 text-xs pr-14`}
+                      {(q.options ?? []).map((o, oIdx) => {
+                        const opt = typeof o === 'string' ? o : o.label;
+                        const action = typeof o === 'string' ? undefined : o.action;
+                        return (
+                          <div key={oIdx} className="flex items-center gap-2">
+                            <div className="flex-1 relative">
+                              <EmojiInput
                                 value={opt}
-                                onChange={e => updateOption(q, oIdx, e.target.value)}
-                                placeholder={`Opção ${oIdx + 1}`}
-                              />
-                            </EmojiInput>
-                            <span className={`absolute right-9 top-2 text-[9px] font-mono pointer-events-none mt-0.5 ${
-                                opt.length >= (q.type === 'choice' ? 20 : 24) ? 'text-red-500 font-bold' : 'text-zinc-400'
-                              }`}>
-                                {opt.length}/{q.type === 'choice' ? 20 : 24}
-                            </span>
+                                onChange={val => updateOption(q, oIdx, val)}
+                                className="flex-1"
+                              >
+                                <input
+                                  maxLength={q.type === 'choice' ? 20 : 24}
+                                  className={`${inputCls} py-1.5 text-xs pr-14`}
+                                  value={opt}
+                                  onChange={e => updateOption(q, oIdx, e.target.value)}
+                                  placeholder={`Opção ${oIdx + 1}`}
+                                />
+                              </EmojiInput>
+                              <div className="absolute right-9 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                                <span className={`text-[9px] font-mono pointer-events-none mt-0.5 ${
+                                    opt.length >= (q.type === 'choice' ? 20 : 24) ? 'text-red-500 font-bold' : 'text-zinc-400'
+                                  }`}>
+                                    {opt.length}/{q.type === 'choice' ? 20 : 24}
+                                </span>
+                                <ActionConfigModal 
+                                  action={action} 
+                                  questions={questions} 
+                                  currentQuestionId={q.id}
+                                  onSave={(act) => updateOptionAction(q, oIdx, act)}
+                                />
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => removeOption(q, oIdx)}
+                              disabled={optCount <= 1}
+                              className="p-1.5 text-zinc-300 hover:text-red-500 disabled:opacity-30 transition-colors"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           </div>
-                          <button
-                            onClick={() => removeOption(q, oIdx)}
-                            disabled={optCount <= 1}
-                            className="p-1.5 text-zinc-300 hover:text-red-500 disabled:opacity-30 transition-colors"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ))}
+                        );
+                      })}
 
                       <button
                         onClick={() => addOption(q)}
@@ -1746,6 +1935,7 @@ export default function SurveyBuilder() {
         supportPhone: general.supportPhone,
         ...dispatch, // include keyword, waNumber, delay, timeout, etc.
         questions: questions.map(q => ({
+          id: q.id,
           type: q.type,
           text: q.text,
           required: q.required,
@@ -1866,6 +2056,7 @@ export default function SurveyBuilder() {
           topicId: general.topicId || null,
           ...dispatch,
           questions: questions.map(q => ({
+            id: q.id,
             type: q.type,
             text: q.text,
             required: q.required,

@@ -510,35 +510,49 @@ Retorne APENAS um JSON válido e estrito com a chave:
     } else if (currentQ.options) {
       // Pergunta de Múltipla Escolha (Botão ou Lista)
       try {
-        const options = JSON.parse(currentQ.options);
-        // Tenta bater exatamente primeiro (se o usuário clicou no botão)
-        const exactIdx = options.findIndex((o: string) => o.trim().toLowerCase() === rawText.trim().toLowerCase());
+        const rawOptions = JSON.parse(currentQ.options);
+        // Normaliza opções para lidar com legado (string[]) e novo (objeto[])
+        const options: { label: string, action?: any }[] = rawOptions.map((o: any) => 
+          typeof o === 'string' ? { label: o } : o
+        );
         
-        if (exactIdx !== -1) {
-          answerText = options[exactIdx];
-        } else {
+        const optionLabels = options.map(o => o.label);
+        
+        // Tenta bater exatamente primeiro (se o usuário clicou no botão)
+        const exactIdx = options.findIndex((o) => o.label.trim().toLowerCase() === rawText.trim().toLowerCase());
+        
+        let selectedIdx = exactIdx;
+        if (selectedIdx === -1) {
           // Não bateu exato? Chama a IA para desambiguação
-          const match = await this.matchOptionWithAI(rawText, options);
+          const match = await this.matchOptionWithAI(rawText, optionLabels);
           if (!match.invalid && match.matchedIndex >= 0 && match.matchedIndex < options.length) {
-            answerText = options[match.matchedIndex];
-          } else {
-             // Resposta inválida para múltipla escolha
-             await this.dispatchMessage(
-                session.campaign.whatsappChannelId,
-                session.tenantId,
-                session.contact.phoneNumber,
-                'Por favor, selecione uma das opções válidas do menu ou botão acima 👆'
-             );
-             return;
+            selectedIdx = match.matchedIndex;
           }
         }
 
+        if (selectedIdx !== -1) {
+          const selectedOption = options[selectedIdx]!;
+          answerText = selectedOption.label;
+          
+          // Se tiver uma ação vinculada a esta opção, guarda para processar após o save
+          if (selectedOption.action) {
+            (session as any).selectedAction = selectedOption.action;
+          }
+        } else {
+           // Resposta inválida para múltipla escolha
+           await this.dispatchMessage(
+              session.campaign.whatsappChannelId,
+              session.tenantId,
+              session.contact.phoneNumber,
+              'Por favor, selecione uma das opções válidas do menu ou botão acima 👆'
+           );
+           return;
+        }
+
         // Proteção: se a resposta selecionada for numérica 0-10, promove para answerValue
-        // Cobre casos de perguntas 'list' criadas incorretamente como escala NPS
         if (answerText !== null) {
           const numVal = parseFloat(answerText.trim());
           if (!isNaN(numVal) && numVal >= 0 && numVal <= 10 && String(numVal) === answerText.trim()) {
-            console.log(`[SurveyEngine] 🔁 Promoção automática: answerText '${answerText}' → answerValue ${numVal} (pergunta ${currentQ.type} com valor numérico NPS)`);
             answerValue = numVal;
             answerText = null;
           }
@@ -563,13 +577,41 @@ Retorne APENAS um JSON válido e estrito com a chave:
     });
 
     // Avança Step
-    const nextStep = session.activeStep + 1;
+    let nextStep = session.activeStep + 1;
+    const action = (session as any).selectedAction;
+
+    if (action) {
+      if (action.type === 'jump' && action.targetQuestionId) {
+        if (action.targetQuestionId === 'FINISH') {
+           nextStep = questions.length + 1;
+        } else {
+           const targetIndex = questions.findIndex((q: any) => q.id === action.targetQuestionId);
+           if (targetIndex !== -1) {
+             nextStep = targetIndex + 1; // Question index is 0-based, Step is 1-based
+           }
+        }
+      } else if (action.type === 'optout') {
+        const topicId = action.topicId || session.campaign.topicId;
+        if (topicId) {
+          await prisma.contactTopicOptOut.upsert({
+            where: { contactId_topicId: { contactId: session.contactId, topicId } },
+            create: { tenantId: session.tenantId, contactId: session.contactId, topicId },
+            update: {}
+          });
+        } else {
+          await prisma.contact.update({ where: { id: session.contactId }, data: { optOut: true } });
+        }
+        await this.closeSession(session, true);
+        return;
+      }
+    }
+
     await prisma.surveySession.update({ where: { id: session.id }, data: { activeStep: nextStep } });
 
     // Invalida cache do dashboard para este tenant para garantir dados em tempo real
     await invalidateTenantCache(session.tenantId);
 
-    // Send Webhook Event
+    // Send Webhook Event (including potential custom webhook action)
     await webhookService.queueEvent(session.tenantId, 'response.received', {
       sessionId: session.id,
       contactId: session.contactId,
@@ -593,11 +635,11 @@ Retorne APENAS um JSON válido e estrito com a chave:
 
     if (question.options) {
       try {
-        const options = JSON.parse(question.options);
-        if (Array.isArray(options) && options.length > 0 && options.length <= 10) {
-           buttons = options.map((opt, idx) => ({
+        const rawOptions = JSON.parse(question.options);
+        if (Array.isArray(rawOptions) && rawOptions.length > 0 && rawOptions.length <= 10) {
+           buttons = rawOptions.map((opt, idx) => ({
              id: `opt_${idx}`,
-             title: String(opt)
+             title: (typeof opt === 'string' ? opt : (opt.label || 'Opção')).substring(0, 20)
            }));
         }
       } catch (e) {
