@@ -80,7 +80,7 @@ export default function MasterDashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-surface-card shadow-sm relative overflow-hidden group"
+            className="p-6 rounded-2xl border border-zinc-200 dark:border-surface-border bg-white dark:bg-surface-card shadow-sm relative overflow-hidden group"
           >
             <div className={`absolute top-0 right-0 p-3 rounded-bl-2xl ${stat.bg} ${stat.color} transition-transform group-hover:scale-110`}>
               <stat.icon className="w-5 h-5" />
@@ -94,17 +94,17 @@ export default function MasterDashboard() {
       {/* Main Analysis Section */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 space-y-6">
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-surface-card overflow-hidden shadow-sm">
-            <div className="px-6 py-5 border-b border-zinc-100 dark:border-zinc-800/50 flex items-center justify-between">
+          <div className="rounded-2xl border border-zinc-200 dark:border-surface-border bg-white dark:bg-surface-card overflow-hidden shadow-sm">
+            <div className="px-6 py-5 border-b border-zinc-100 dark:border-surface-border/50 flex items-center justify-between">
               <h3 className="font-bold text-zinc-900 dark:text-white flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-zinc-400" /> Saúde por Empresa
               </h3>
-              <span className="text-[10px] bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-full font-bold text-zinc-500">REALTIME</span>
+              <span className="text-[10px] bg-zinc-100 dark:bg-surface-subtle px-2 py-1 rounded-full font-bold text-zinc-500">REALTIME</span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-zinc-50/50 dark:bg-surface-subtle/50">
+                  <tr className="bg-zinc-50/50 dark:bg-surface-subtle/50 border-b border-zinc-100 dark:border-surface-border/50">
                     <th className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Empresa / Plano</th>
                     <th className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest text-center">Workflows</th>
                     <th className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest text-center">Canais</th>
@@ -112,7 +112,7 @@ export default function MasterDashboard() {
                     <th className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest text-right">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+                <tbody className="divide-y divide-zinc-100 dark:divide-surface-border/50">
                   {tenants.map((t) => (
                     <tr key={t.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/20 transition-colors">
                       <td className="px-6 py-4">
@@ -162,21 +162,21 @@ export default function MasterDashboard() {
                    <Activity className="w-4 h-4 opacity-50" /> Saúde Sistêmica
                 </h3>
                 <div className="space-y-4">
-                   <div className="p-3 bg-white/10 dark:bg-zinc-100 rounded-xl space-y-1">
+                   <div className="p-3 bg-white/10 dark:bg-surface-subtle rounded-xl space-y-1">
                       <div className="flex justify-between text-[10px] text-white/50 dark:text-zinc-500 font-bold uppercase">
                          <span>API Latency</span>
                          <span>Excellent</span>
                       </div>
-                      <div className="h-1.5 w-full bg-white/10 dark:bg-zinc-200 rounded-full overflow-hidden">
+                      <div className="h-1.5 w-full bg-white/10 dark:bg-surface-border rounded-full overflow-hidden">
                          <div className="h-full w-[95%] bg-emerald-500"></div>
                       </div>
                    </div>
-                   <div className="p-3 bg-white/10 dark:bg-zinc-100 rounded-xl space-y-1">
+                   <div className="p-3 bg-white/10 dark:bg-surface-subtle rounded-xl space-y-1">
                       <div className="flex justify-between text-[10px] text-white/50 dark:text-zinc-500 font-bold uppercase">
                          <span>WhatsApp Workers</span>
                          <span>Stable</span>
                       </div>
-                      <div className="h-1.5 w-full bg-white/10 dark:bg-zinc-200 rounded-full overflow-hidden">
+                      <div className="h-1.5 w-full bg-white/10 dark:bg-surface-border rounded-full overflow-hidden">
                          <div className="h-full w-[100%] bg-blue-500"></div>
                       </div>
                    </div>
@@ -187,8 +187,8 @@ export default function MasterDashboard() {
              </div>
           </div>
 
-          <div className="p-6 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 flex flex-col items-center justify-center text-center gap-3">
-             <div className="p-3 rounded-full bg-zinc-50 dark:bg-zinc-900 text-zinc-400">
+          <div className="p-6 rounded-2xl border border-dashed border-zinc-200 dark:border-surface-border flex flex-col items-center justify-center text-center gap-3">
+             <div className="p-3 rounded-full bg-zinc-50 dark:bg-surface-subtle text-zinc-400">
                 <Users className="w-6 h-6" />
              </div>
              <p className="text-xs font-medium text-zinc-500 max-w-[180px]">

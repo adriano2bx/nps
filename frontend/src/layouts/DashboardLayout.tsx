@@ -21,7 +21,7 @@ export default function DashboardLayout() {
   ];
 
   return (
-    <div className="min-h-screen flex bg-white dark:bg-surface-dark text-zinc-900 dark:text-zinc-100 transition-colors duration-300 font-sans selection:bg-brand-500/30">
+    <div className="min-h-screen flex bg-[#fafafa] dark:bg-surface-dark text-zinc-900 dark:text-zinc-100 transition-colors duration-500 font-sans selection:bg-blue-100 dark:selection:bg-blue-900/30">
       {/* Sidebar - Sharp, Enterprise */}
       <aside className="w-[240px] border-r border-zinc-200 dark:border-surface-border bg-white dark:bg-surface-subtle flex-col hidden md:flex transition-colors duration-300 sticky top-0 h-screen overflow-y-auto shrink-0">
         <div className="h-14 flex items-center px-5 border-b border-zinc-200 dark:border-surface-border">
@@ -43,7 +43,7 @@ export default function DashboardLayout() {
                     className={({ isActive }) =>
                       `flex items-center gap-3 px-2.5 py-1.5 rounded-md text-sm transition-all duration-150 ${
                         isActive
-                          ? 'bg-zinc-200/50 dark:bg-surface-card text-zinc-900 dark:text-white font-medium'
+                          ? 'bg-zinc-200/50 dark:bg-surface-card text-zinc-900 dark:text-white font-medium ring-1 ring-zinc-200/50 dark:ring-surface-border'
                           : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200/40 dark:hover:bg-surface-card/40'
                       }`
                     }
@@ -67,7 +67,7 @@ export default function DashboardLayout() {
                     className={({ isActive }) =>
                       `flex items-center gap-3 px-2.5 py-1.5 rounded-md text-sm transition-all duration-150 ${
                         isActive
-                          ? 'bg-zinc-200/50 dark:bg-surface-card text-zinc-900 dark:text-white font-medium'
+                          ? 'bg-zinc-200/50 dark:bg-surface-card text-zinc-900 dark:text-white font-medium ring-1 ring-zinc-200/50 dark:ring-surface-border'
                           : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200/40 dark:hover:bg-surface-card/40'
                       }`
                     }
@@ -86,7 +86,7 @@ export default function DashboardLayout() {
             onClick={logout}
             className="flex items-center gap-3 px-2 py-1.5 hover:bg-zinc-200/50 dark:hover:bg-surface-card rounded-md cursor-pointer transition-colors group"
           >
-             <div className="w-7 h-7 rounded bg-zinc-900 dark:bg-surface-subtle flex items-center justify-center text-[10px] font-medium text-white shadow-sm border border-zinc-700 group-hover:border-brand-500/50 transition-colors">
+             <div className="w-7 h-7 rounded bg-zinc-900 dark:bg-surface-card flex items-center justify-center text-[10px] font-medium text-white shadow-sm border border-zinc-700 dark:border-surface-border group-hover:border-brand-500/50 transition-colors">
                 {user?.name?.substring(0, 2).toUpperCase() || 'AD'}
              </div>
              <div className="flex flex-col flex-1 truncate">

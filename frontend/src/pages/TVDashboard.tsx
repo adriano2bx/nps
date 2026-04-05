@@ -104,8 +104,8 @@ export default function TVDashboard() {
       {/* 1. LAYER: HEADER (TOP) */}
       <header className="absolute top-0 left-0 right-0 z-[100] h-[12vh] bg-gradient-to-b from-[#020203] via-[#020203]/90 to-transparent flex items-center justify-between px-[6vw] backdrop-blur-[2px]">
         <div className="flex items-center gap-[2.5vw]">
-          <div className="h-[7vh] w-[7vh] bg-white rounded-3xl flex items-center justify-center shadow-[0_0_40px_rgba(255,255,255,0.1)]">
-             <Target className="w-[60%] h-[60%] text-black" />
+          <div className="h-[7vh] w-[7vh] bg-white dark:bg-surface-card rounded-3xl flex items-center justify-center shadow-[0_0_40px_rgba(255,255,255,0.1)] border border-white/10 dark:border-surface-border">
+             <Target className="w-[60%] h-[60%] text-black dark:text-white" />
           </div>
           <div>
             <h1 className="text-[4.5vh] font-black italic tracking-tighter leading-none text-white drop-shadow-2xl">
@@ -122,7 +122,7 @@ export default function TVDashboard() {
         </div>
 
         <div className="flex items-center gap-[5vw]">
-          <div className="bg-white/[0.03] border border-white/5 px-[3vw] py-[1.2vh] rounded-3xl backdrop-blur-3xl shadow-2xl flex flex-col items-center">
+          <div className="bg-white/[0.03] dark:bg-surface-card/20 border border-white/5 dark:border-surface-border/30 px-[3vw] py-[1.2vh] rounded-[2.5vh] backdrop-blur-3xl shadow-2xl flex flex-col items-center">
              <span className="text-[1.1vh] font-black text-zinc-500 tracking-widest uppercase mb-1">NPS ATUAL</span>
              <span className="text-[5vh] font-black text-brand-400 leading-none drop-shadow-lg">{stats.score}</span>
           </div>
@@ -146,7 +146,7 @@ export default function TVDashboard() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 1.1, y: -20 }}
             transition={{ duration: 1.5, ease: [0.165, 0.84, 0.44, 1] }}
-            className={`w-full max-w-[85%] h-[60vh] rounded-[8vh] bg-gradient-to-br ${slides[currentSlide].gradient} border border-white/[0.03] shadow-inner relative flex flex-col items-center justify-center p-[8vh] text-center`}
+            className={`w-full max-w-[85%] h-[60vh] rounded-[8vh] bg-gradient-to-br ${slides[currentSlide].gradient} border border-white/[0.03] dark:border-surface-border/20 shadow-inner relative flex flex-col items-center justify-center p-[8vh] text-center`}
           >
             {/* Background Icon Watermark */}
             <div className="absolute inset-0 opacity-[0.03] flex items-center justify-center overflow-hidden pointer-events-none scale-150 rotate-12">
@@ -194,7 +194,7 @@ export default function TVDashboard() {
           text-shadow: 0 0 20px rgba(255,255,255,0.1);
         }
       `}</style>
-      <div className="absolute bottom-0 left-0 right-0 z-[100] h-[8vh] bg-[#020203] border-t border-white/[0.03] flex items-center overflow-hidden shadow-[0_-20px_50px_rgba(0,0,0,0.8)]">
+      <div className="absolute bottom-0 left-0 right-0 z-[100] h-[8vh] bg-[#020203] border-t border-white/[0.03] dark:border-surface-border/30 flex items-center overflow-hidden shadow-[0_-20px_50px_rgba(0,0,0,0.8)]">
         <div className="h-full bg-brand-600 px-[5vw] flex items-center gap-[3vh] z-10 shadow-[30px_0_40px_rgba(0,0,0,1)]">
            <Activity className="w-[3.5vh] h-[3.5vh] text-white animate-pulse" />
            <span className="text-[2.2vh] font-black text-white tracking-widest uppercase italic whitespace-nowrap">Dashboard NPS</span>

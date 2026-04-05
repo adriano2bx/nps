@@ -211,16 +211,16 @@ export default function Integrations() {
           <p className="text-zinc-500 dark:text-zinc-400 mt-2">Conecte seu CRM, ERP e automatize disparos via API e Webhooks.</p>
         </div>
         
-        <div className="flex bg-zinc-100 dark:bg-zinc-800/50 p-1 rounded-xl border border-zinc-200 dark:border-zinc-800">
+        <div className="flex bg-zinc-100 dark:bg-surface-subtle/50 p-1 rounded-xl border border-zinc-200 dark:border-surface-border">
           <button 
             onClick={() => setActiveTab('keys')}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'keys' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'keys' ? 'bg-white dark:bg-surface-card text-zinc-900 dark:text-white shadow-sm ring-1 ring-zinc-200/50 dark:ring-surface-border' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
           >
             Chaves de API
           </button>
           <button 
             onClick={() => setActiveTab('webhooks')}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'webhooks' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'webhooks' ? 'bg-white dark:bg-surface-card text-zinc-900 dark:text-white shadow-sm ring-1 ring-zinc-200/50 dark:ring-surface-border' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
           >
             Webhooks
           </button>
@@ -231,8 +231,8 @@ export default function Integrations() {
         {/* Left Column: List */}
         <div className="lg:col-span-2 space-y-6">
           {activeTab === 'keys' ? (
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
-              <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+            <div className="bg-white dark:bg-surface-card border border-zinc-200 dark:border-surface-border rounded-2xl overflow-hidden shadow-sm">
+              <div className="p-6 border-b border-zinc-100 dark:border-surface-border/50 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600">
                     <Key className="w-5 h-5" />
@@ -241,13 +241,13 @@ export default function Integrations() {
                 </div>
                 <button 
                   onClick={() => { setIsKeyModalOpen(true); setGeneratedKey(null); }}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 dark:bg-white text-white dark:text-black text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity"
+                  className="btn-primary py-1.5 px-4"
                 >
-                  <Plus className="w-4 h-4" /> Nova Chave
+                  <Plus className="w-4 h-4 mr-2" /> Nova Chave
                 </button>
               </div>
 
-              <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+              <div className="divide-y divide-zinc-100 dark:divide-surface-border/50">
                 {keys.length === 0 ? (
                   <div className="p-12 text-center">
                     <p className="text-zinc-500 text-sm italic">Nenhuma chave gerada ainda.</p>
@@ -277,8 +277,8 @@ export default function Integrations() {
               </div>
             </div>
           ) : (
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
-                <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+            <div className="bg-white dark:bg-surface-card border border-zinc-200 dark:border-surface-border rounded-2xl overflow-hidden shadow-sm">
+                <div className="p-6 border-b border-zinc-100 dark:border-surface-border/50 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-purple-600">
                       <Webhook className="w-5 h-5" />
@@ -287,13 +287,13 @@ export default function Integrations() {
                   </div>
                   <button 
                     onClick={() => setIsWebhookModalOpen(true)}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 dark:bg-white text-white dark:text-black text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity"
+                    className="btn-primary py-1.5 px-4"
                   >
-                    <Plus className="w-4 h-4" /> Novo Webhook
+                    <Plus className="w-4 h-4 mr-2" /> Novo Webhook
                   </button>
                 </div>
 
-                <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                <div className="divide-y divide-zinc-100 dark:divide-surface-border/50">
                   {webhooks.length === 0 ? (
                     <div className="p-12 text-center text-sm italic text-zinc-500">Nenhum endpoint configurado.</div>
                   ) : (
@@ -317,7 +317,7 @@ export default function Integrations() {
                         </div>
                         <div className="flex flex-wrap gap-2">
                            {hook.events.split(',').map(ev => (
-                             <span key={ev} className="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-[10px] font-bold text-zinc-500 rounded uppercase tracking-wider">{ev}</span>
+                             <span key={ev} className="px-2 py-0.5 bg-zinc-100 dark:bg-surface-subtle text-[10px] font-bold text-zinc-500 rounded uppercase tracking-wider">{ev}</span>
                            ))}
                         </div>
                       </div>
@@ -330,7 +330,7 @@ export default function Integrations() {
 
         {/* Right Column: Mini-docs / Stats */}
         <div className="space-y-6">
-          <div className="bg-gradient-to-br from-zinc-900 to-zinc-800 dark:from-zinc-100 dark:to-zinc-200 p-6 rounded-2xl shadow-xl text-white dark:text-zinc-900">
+          <div className="bg-gradient-to-br from-zinc-900 to-zinc-800 dark:from-zinc-50 dark:to-white p-6 rounded-2xl shadow-xl text-white dark:text-zinc-900 border border-white/5 dark:border-zinc-200">
              <div className="flex items-center gap-3 mb-4">
                 <ShieldCheck className="w-6 h-6 text-emerald-400" />
                 <h3 className="font-bold text-lg">Ambiente Seguro</h3>
@@ -349,12 +349,12 @@ export default function Integrations() {
               </div>
           </div>
 
-          <div className="bg-zinc-950 rounded-3xl p-8 text-white relative overflow-hidden group shadow-2xl border border-white/5">
-            <Code2 className="absolute -right-4 -bottom-4 w-24 h-24 text-white/5 group-hover:rotate-12 transition-transform duration-700" />
+          <div className="bg-zinc-950 dark:bg-surface-card rounded-3xl p-8 text-white dark:text-zinc-900 relative overflow-hidden group shadow-2xl border border-white/5 dark:border-surface-border">
+            <Code2 className="absolute -right-4 -bottom-4 w-24 h-24 text-white/5 dark:text-zinc-900/5 group-hover:rotate-12 transition-transform duration-700" />
             <h4 className="text-sm font-bold flex items-center gap-2 mb-6"><Terminal className="w-4 h-4 text-emerald-500" /> API SDK v1.2</h4>
             <div className="space-y-6 relative z-10">
-              <div className="space-y-2"><span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Base API URL</span><div className="bg-white/5 p-3 rounded-xl text-[11px] font-mono text-emerald-400 break-all border border-white/5 shadow-inner leading-relaxed">{`${apiBase}/api`}</div></div>
-              <div className="space-y-2"><span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Gatilho Rápido</span><pre className="bg-white/5 p-4 rounded-xl text-[10px] font-mono text-zinc-400 overflow-x-auto border border-white/5 shadow-inner leading-relaxed">{`curl -X POST /trigger \\
+              <div className="space-y-2"><span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Base API URL</span><div className="bg-white/5 dark:bg-surface-subtle p-3 rounded-xl text-[11px] font-mono text-emerald-400 break-all border border-white/5 dark:border-surface-border shadow-inner leading-relaxed">{`${apiBase}/api`}</div></div>
+              <div className="space-y-2"><span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Gatilho Rápido</span><pre className="bg-white/5 dark:bg-surface-subtle p-4 rounded-xl text-[10px] font-mono text-zinc-400 dark:text-zinc-500 overflow-x-auto border border-white/5 dark:border-surface-border shadow-inner leading-relaxed">{`curl -X POST /trigger \\
   -H "X-API-KEY: SUA_CHAVE" \\
   -d '{"ph": "55..."}'`}</pre></div>
               <Link to="/integrations/docs" className="flex items-center gap-2 text-[10px] font-black text-emerald-500 hover:text-emerald-400 transition-colors pt-2 uppercase tracking-widest">Documentação Completa <ChevronRight className="w-3 h-3" /></Link>
@@ -365,8 +365,8 @@ export default function Integrations() {
 
       {/* MODAL: Nueva Chave */}
       {isKeyModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-           <div className="bg-white dark:bg-zinc-900 w-full max-w-md rounded-2xl shadow-2xl p-8 space-y-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+           <div className="bg-white dark:bg-surface-card border border-zinc-200 dark:border-surface-border w-full max-w-md rounded-2xl shadow-2xl p-8 space-y-6">
               {!generatedKey ? (
                 <>
                   <div className="space-y-2">
@@ -374,17 +374,16 @@ export default function Integrations() {
                     <p className="text-sm text-zinc-500">Dê um nome para identificar onde essa chave será usada (ex: CRM, Site, ERP).</p>
                   </div>
                   <input 
-                    className="w-full bg-zinc-50 dark:bg-zinc-800 border-none rounded-xl px-4 py-3 focus:ring-2 ring-zinc-900 dark:ring-white transition-all outline-none"
                     placeholder="Nome da Integração" 
                     value={newKeyName}
                     onChange={e => setNewKeyName(e.target.value)}
                   />
-                  <div className="flex gap-3">
-                    <button onClick={() => setIsKeyModalOpen(false)} className="flex-1 py-3 text-sm font-bold hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-colors">Cancelar</button>
+                  <div className="flex gap-3 pt-4 border-t border-zinc-100 dark:border-surface-border/50">
+                    <button onClick={() => setIsKeyModalOpen(false)} className="btn-ghost flex-1 py-3">Cancelar</button>
                     <button 
                       onClick={handleCreateKey}
                       disabled={!newKeyName}
-                      className="flex-1 py-3 bg-zinc-900 dark:bg-white text-white dark:text-black text-sm font-bold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
+                      className="btn-primary flex-1 py-3"
                     >
                       Gerar Chave
                     </button>
@@ -401,12 +400,12 @@ export default function Integrations() {
                       IMPORTANTE: Copie e salve sua chave agora. Por segurança, ela não será mostrada novamente.
                     </p>
                     <div className="relative group">
-                      <div className="w-full bg-zinc-100 dark:bg-zinc-800 p-4 rounded-xl font-mono text-xs break-all pr-12 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">
+                      <div className="w-full bg-zinc-100 dark:bg-surface-subtle p-4 rounded-xl font-mono text-xs break-all pr-12 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-surface-border">
                         {generatedKey}
                       </div>
                       <button 
                         onClick={() => copyToClipboard(generatedKey)}
-                        className="absolute right-3 top-3 p-2 bg-white dark:bg-zinc-700 rounded-lg shadow-sm hover:scale-105 transition-transform"
+                        className="absolute right-3 top-3 p-2 bg-white dark:bg-surface-card rounded-lg shadow-sm hover:scale-105 transition-transform border border-zinc-200 dark:border-surface-border"
                       >
                         {copied ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
                       </button>
@@ -414,7 +413,7 @@ export default function Integrations() {
                   </div>
                   <button 
                     onClick={() => setIsKeyModalOpen(false)}
-                    className="w-full py-4 bg-zinc-900 dark:bg-white text-white dark:text-black text-sm font-bold rounded-xl shadow-xl"
+                    className="btn-primary w-full py-4"
                   >
                     Entendido, já salvei
                   </button>
@@ -426,8 +425,8 @@ export default function Integrations() {
 
       {/* MODAL: Nuevo Webhook */}
       {isWebhookModalOpen && (
-         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-zinc-900 w-full max-w-xl rounded-2xl shadow-2xl p-8 space-y-6">
+         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white dark:bg-surface-card border border-zinc-200 dark:border-surface-border w-full max-w-xl rounded-2xl shadow-2xl p-8 space-y-6">
               <div className="space-y-2">
                 <h3 className="text-xl font-bold">Configurar Endpoint Webhook</h3>
                 <p className="text-sm text-zinc-500">Seu servidor receberá um POST JSON sempre que um destes eventos ocorrer.</p>
@@ -437,7 +436,6 @@ export default function Integrations() {
                 <div>
                   <label className="text-[10px] font-bold uppercase text-zinc-400 mb-1 block">URL do Destino (Endpoint)</label>
                   <input 
-                    className="w-full bg-zinc-50 dark:bg-zinc-800 border-none rounded-xl px-4 py-3 focus:ring-2 ring-zinc-900 dark:ring-white outline-none"
                     placeholder="https://seu-servidor.com/webhook"
                     value={webhookUrl}
                     onChange={e => setWebhookUrl(e.target.value)}
@@ -457,7 +455,7 @@ export default function Integrations() {
                             setSelectedEvents([...selectedEvents, event.id]);
                           }
                         }}
-                        className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${selectedEvents.includes(event.id) ? 'bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white text-white dark:text-zinc-900 shadow-lg scale-[1.02]' : 'bg-transparent border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-zinc-400'}`}
+                        className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${selectedEvents.includes(event.id) ? 'bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white text-white dark:text-zinc-900 shadow-lg scale-[1.02]' : 'bg-transparent border-zinc-200 dark:border-surface-border text-zinc-500 hover:border-zinc-400'}`}
                       >
                         <event.icon className="w-4 h-4 shrink-0" />
                         <span className="text-xs font-bold">{event.label}</span>
@@ -467,12 +465,12 @@ export default function Integrations() {
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-4">
-                <button onClick={() => setIsWebhookModalOpen(false)} className="flex-1 py-3 text-sm font-bold hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-colors">Cancelar</button>
+               <div className="flex gap-3 pt-6 border-t border-zinc-100 dark:border-surface-border/50">
+                <button onClick={() => setIsWebhookModalOpen(false)} className="btn-ghost flex-1 py-3">Cancelar</button>
                 <button 
                   onClick={handleCreateWebhook}
                   disabled={!webhookUrl || selectedEvents.length === 0}
-                  className="flex-1 py-3 bg-zinc-900 dark:bg-white text-white dark:text-black text-sm font-bold rounded-xl hover:opacity-90 shadow-xl disabled:opacity-50"
+                  className="btn-primary flex-1 py-3"
                 >
                   Confirmar Endpoint
                 </button>

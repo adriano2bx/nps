@@ -87,16 +87,16 @@ export default function Surveys() {
         <div className="flex items-center gap-3">
           <button 
             onClick={() => refreshCampaigns()} 
-            className="p-2.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all active:scale-95"
+            className="btn-secondary p-2.5"
             title="Atualizar Dados"
           >
             <RefreshCcw className={`w-4 h-4 ${isRefreshing.campaigns ? 'animate-spin' : ''}`} />
           </button>
           <button 
             onClick={() => navigate('new')}
-            className="flex items-center gap-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-6 py-3 rounded-2xl font-bold transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-zinc-200/50 dark:shadow-none"
+            className="btn-primary"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-5 h-5 mr-2" />
             Nova Pesquisa
           </button>
         </div>
@@ -109,8 +109,8 @@ export default function Surveys() {
             onClick={() => setSelectedTopicId('all')}
             className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border ${
               selectedTopicId === 'all' 
-                ? 'bg-zinc-900 border-zinc-900 text-white shadow-lg shadow-zinc-200 dark:shadow-none' 
-                : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-zinc-300'
+                ? 'bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white text-white dark:text-black shadow-lg shadow-zinc-200 dark:shadow-none' 
+                : 'bg-white dark:bg-surface-subtle border-zinc-200 dark:border-surface-border text-zinc-500 hover:border-zinc-300 dark:hover:border-zinc-700'
             }`}
           >
             Todas
@@ -121,8 +121,8 @@ export default function Surveys() {
               onClick={() => setSelectedTopicId(topic.id)}
               className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border flex items-center gap-2 ${
                 selectedTopicId === topic.id 
-                  ? 'bg-zinc-900 border-zinc-900 text-white shadow-lg shadow-zinc-200 dark:shadow-none' 
-                  : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-zinc-300'
+                  ? 'bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white text-white dark:text-black shadow-lg shadow-zinc-200 dark:shadow-none' 
+                  : 'bg-white dark:bg-surface-subtle border-zinc-200 dark:border-surface-border text-zinc-500 hover:border-zinc-300 dark:hover:border-zinc-700'
               }`}
             >
               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: topic.color || '#10b981' }} />
@@ -132,11 +132,11 @@ export default function Surveys() {
         </div>
       )}
 
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-surface-card border border-zinc-200 dark:border-surface-border rounded-2xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
-              <tr className="border-b border-zinc-100 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/50">
+              <tr className="border-b border-zinc-100 dark:border-surface-border/50 bg-zinc-50/50 dark:bg-surface-subtle/50">
                 <th className="py-4 px-6 font-bold text-zinc-400 text-xs uppercase tracking-widest">Nome da Campanha</th>
                 <th className="py-4 px-6 font-bold text-zinc-400 text-xs uppercase tracking-widest">Canal</th>
                 <th className="py-4 px-6 font-bold text-zinc-400 text-xs uppercase tracking-widest text-center">Interações</th>
@@ -233,9 +233,9 @@ export default function Surveys() {
             Esta ação apagará todos os dados vinculados a esta campanha e é <span className="text-rose-500 font-semibold underline">irreversível</span>.
           </p>
         </div>
-        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-          <button onClick={() => setDeleteTarget(null)} className="px-5 py-2.5 text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors">Cancelar</button>
-          <button onClick={handleDelete} className="px-6 py-2.5 text-xs font-bold bg-rose-600 text-white rounded-xl hover:bg-rose-700 transition-all shadow-lg shadow-rose-200/50 dark:shadow-none active:scale-95">Excluir Agora</button>
+        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-zinc-100 dark:border-surface-border/50">
+          <button onClick={() => setDeleteTarget(null)} className="btn-ghost">Cancelar</button>
+          <button onClick={handleDelete} className="btn-danger px-8">Excluir Agora</button>
         </div>
       </Modal>
     </div>

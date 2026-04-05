@@ -110,29 +110,29 @@ export default function Companies() {
         </div>
         <button 
           onClick={() => { setEditingTenant(null); setFormData({ name: '', slug: '', plan: 'FREE', adminEmail: '', adminPassword: '' }); setIsModalOpen(true); }}
-          className="flex items-center gap-2 px-4 py-2 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-lg text-sm font-semibold hover:opacity-90 transition-all shadow-sm active:scale-95"
+          className="btn-primary"
         >
-          <Plus className="w-4 h-4" /> Nova Empresa
+          <Plus className="w-4 h-4 mr-2" /> Nova Empresa
         </button>
       </div>
 
       {/* Stats Quick View */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-surface-card shadow-sm">
+        <div className="p-5 rounded-xl border border-zinc-200 dark:border-surface-border bg-white dark:bg-surface-card shadow-sm">
           <div className="flex items-center gap-3 mb-2">
             <Building2 className="w-4 h-4 text-zinc-400" />
             <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Total de Clientes</span>
           </div>
           <p className="text-2xl font-bold">{tenants.length}</p>
         </div>
-        <div className="p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-surface-card shadow-sm">
+        <div className="p-5 rounded-xl border border-zinc-200 dark:border-surface-border bg-white dark:bg-surface-card shadow-sm">
           <div className="flex items-center gap-3 mb-2">
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
             <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Plano Enterprise</span>
           </div>
           <p className="text-2xl font-bold">{tenants.filter(t => t.plan === 'ENTERPRISE').length}</p>
         </div>
-        <div className="p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-surface-card shadow-sm">
+        <div className="p-5 rounded-xl border border-zinc-200 dark:border-surface-border bg-white dark:bg-surface-card shadow-sm">
           <div className="flex items-center gap-3 mb-2">
             <Zap className="w-4 h-4 text-amber-500" />
             <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Planos Ativos</span>
@@ -142,11 +142,11 @@ export default function Companies() {
       </div>
 
       {/* Tenants Table */}
-      <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-surface-card overflow-hidden shadow-sm">
+      <div className="border border-zinc-200 dark:border-surface-border rounded-xl bg-white dark:bg-surface-card overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-zinc-100 dark:border-zinc-800/50 bg-zinc-50/50 dark:bg-surface-subtle/40">
+              <tr className="border-b border-zinc-100 dark:border-surface-border/50 bg-zinc-50/50 dark:bg-surface-subtle/40">
                 <th className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Empresa</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Slug / ID</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Plano</th>
@@ -155,7 +155,7 @@ export default function Companies() {
                 <th className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest text-right">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+            <tbody className="divide-y divide-zinc-100 dark:divide-surface-border/50">
               {loading ? (
                 <tr><td colSpan={6} className="px-6 py-12 text-center text-zinc-400">Carregando instâncias...</td></tr>
               ) : tenants.length === 0 ? (
@@ -231,8 +231,8 @@ export default function Companies() {
 
       {/* Create/Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-white/20 dark:bg-black/20 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-white dark:bg-[#0d0d0f] border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-6 overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-white dark:bg-surface-card border border-zinc-200 dark:border-surface-border rounded-2xl shadow-2xl p-6 overflow-hidden">
             <h3 className="text-lg font-bold mb-4">{editingTenant ? 'Editar Empresa' : 'Nova Empresa'}</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -240,17 +240,16 @@ export default function Companies() {
                 <input 
                   autoFocus
                   required
-                  className="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-600 transition-colors"
+                  placeholder="Ex: Clínica Saúde Total"
                   value={formData.name}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Ex: Clínica Saúde Total"
                 />
               </div>
               <div>
                 <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Slug (Subdomínio)</label>
                 <input 
                   required
-                  className="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-600 transition-colors font-mono"
+                  className="font-mono"
                   value={formData.slug}
                   onChange={e => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
                   placeholder="clinica-saude"
@@ -259,7 +258,7 @@ export default function Companies() {
               <div>
                 <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Plano</label>
                 <select 
-                  className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-600 transition-colors appearance-none cursor-pointer"
+                  className="cursor-pointer"
                   value={formData.plan}
                   onChange={e => setFormData({ ...formData, plan: e.target.value })}
                 >
@@ -281,7 +280,6 @@ export default function Companies() {
                     <input 
                       required
                       type="email"
-                      className="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-600 transition-colors"
                       value={formData.adminEmail}
                       onChange={e => setFormData({ ...formData, adminEmail: e.target.value })}
                       placeholder="admin@empresa.com"
@@ -292,7 +290,6 @@ export default function Companies() {
                     <input 
                       required
                       type="password"
-                      className="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-600 transition-colors"
                       value={formData.adminPassword}
                       onChange={e => setFormData({ ...formData, adminPassword: e.target.value })}
                       placeholder="••••••••"
@@ -300,17 +297,17 @@ export default function Companies() {
                   </div>
                 </div>
               )}
-              <div className="flex items-center gap-3 pt-4">
+              <div className="flex items-center gap-3 pt-6 border-t border-zinc-100 dark:border-surface-border/50">
                 <button 
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 px-4 py-2 text-sm font-semibold text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+                  className="btn-ghost"
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-lg text-sm font-semibold hover:opacity-90 active:scale-95 transition-all shadow-lg"
+                  className="btn-primary flex-1"
                 >
                   {editingTenant ? 'Salvar Alterações' : 'Criar Empresa'}
                 </button>

@@ -75,12 +75,12 @@ export default function IntegrationDocs() {
   );
 
   return (
-    <div className="min-h-screen bg-[#fafafa] dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 selection:bg-blue-100 dark:selection:bg-blue-900/30">
+    <div className="min-h-screen bg-[#fafafa] dark:bg-surface-dark text-zinc-900 dark:text-zinc-100 selection:bg-blue-100 dark:selection:bg-blue-900/30 font-sans transition-colors duration-500">
       {/* Header / Navigation */}
-      <nav className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-b border-zinc-200 dark:border-zinc-800">
+      <nav className="sticky top-0 z-50 bg-white/80 dark:bg-surface-dark/80 backdrop-blur-xl border-b border-zinc-200 dark:border-surface-border">
         <div className="max-w-7xl mx-auto px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-zinc-900 dark:bg-white rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-zinc-900 dark:bg-white rounded-lg flex items-center justify-center border border-zinc-200 dark:border-surface-border">
               <Code2 className="w-5 h-5 text-white dark:text-black" />
             </div>
             <span className="font-bold tracking-tight">API Reference <span className="text-zinc-400 font-medium ml-1">v1.0</span></span>
@@ -89,9 +89,9 @@ export default function IntegrationDocs() {
              <a href={`${apiBase}/api/docs`} target="_blank" className="text-sm font-medium hover:text-blue-500 transition-colors flex items-center gap-2">
                 Swagger <ExternalLink className="w-3.5 h-3.5" />
              </a>
-             <Link to="/integrations" className="px-4 py-1.5 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
-                Voltar ao Painel
-             </Link>
+              <Link to="/integrations" className="btn-primary py-1.5 px-4">
+                 Voltar ao Painel
+              </Link>
           </div>
         </div>
       </nav>
@@ -103,10 +103,10 @@ export default function IntegrationDocs() {
             <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-4 px-4">Início</h4>
             <div className="space-y-1">
                {sections.map(s => (
-                 <a key={s.id} href={`#${s.id}`} className="flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all group">
-                    <s.icon className={`w-4 h-4 ${s.color}`} />
-                    {s.title}
-                 </a>
+                  <a key={s.id} href={`#${s.id}`} className="flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-xl hover:bg-zinc-100 dark:hover:bg-surface-subtle transition-all group">
+                     <s.icon className={`w-4 h-4 ${s.color}`} />
+                     {s.title}
+                  </a>
                ))}
             </div>
           </div>
@@ -132,23 +132,23 @@ export default function IntegrationDocs() {
             </div>
             <h2 className="text-4xl font-extrabold tracking-tight">Fundamentos da API</h2>
             <p className="text-xl text-zinc-500 dark:text-zinc-400 leading-relaxed">
-               Todas as chamadas à API do HealthNPS devem ser autenticadas via header <code className="bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-900 dark:text-white font-mono text-base">X-API-KEY</code>. 
+               Todas as chamadas à API do HealthNPS devem ser autenticadas via header <code className="bg-zinc-100 dark:bg-surface-subtle px-1.5 py-0.5 rounded text-zinc-900 dark:text-white font-mono text-base">X-API-KEY</code>. 
                Sua chave é composta pelo seu <code className="text-blue-500 font-bold">tenantId</code> seguido por um <code className="text-emerald-500 font-bold">segredo</code>.
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-               <div className="p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-sm">
-                  <h4 className="font-bold flex items-center gap-2 mb-2"><Terminal className="w-4 h-4 text-zinc-400" /> Header Exemplo</h4>
-                  <div className="bg-zinc-100 dark:bg-zinc-950 p-4 rounded-xl font-mono text-xs break-all text-zinc-500">
-                     X-API-KEY: b8c1...9c22.d9f2...a4e5
-                  </div>
-               </div>
-               <div className="p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-sm">
-                  <h4 className="font-bold flex items-center gap-2 mb-2"><Server className="w-4 h-4 text-zinc-400" /> Base URL</h4>
-                  <div className="bg-zinc-100 dark:bg-zinc-950 p-4 rounded-xl font-mono text-xs text-blue-500 font-bold">
-                     {apiBase}/api/v1
-                  </div>
-               </div>
+                <div className="p-6 bg-white dark:bg-surface-card border border-zinc-200 dark:border-surface-border rounded-3xl shadow-sm">
+                   <h4 className="font-bold flex items-center gap-2 mb-2"><Terminal className="w-4 h-4 text-zinc-400" /> Header Exemplo</h4>
+                   <div className="bg-zinc-100 dark:bg-surface-subtle p-4 rounded-xl font-mono text-xs break-all text-zinc-500">
+                      X-API-KEY: b8c1...9c22.d9f2...a4e5
+                   </div>
+                </div>
+                <div className="p-6 bg-white dark:bg-surface-card border border-zinc-200 dark:border-surface-border rounded-3xl shadow-sm">
+                   <h4 className="font-bold flex items-center gap-2 mb-2"><Server className="w-4 h-4 text-zinc-400" /> Base URL</h4>
+                   <div className="bg-zinc-100 dark:bg-surface-subtle p-4 rounded-xl font-mono text-xs text-blue-500 font-bold">
+                      {apiBase}/api/v1
+                   </div>
+                </div>
             </div>
           </section>
 
@@ -234,7 +234,7 @@ export default function IntegrationDocs() {
                </p>
             </div>
 
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden">
+            <div className="bg-white dark:bg-surface-card border border-zinc-200 dark:border-surface-border rounded-3xl overflow-hidden shadow-sm">
                <div className="overflow-x-auto">
                   <table className="w-full text-left text-sm">
                      <thead>
@@ -263,7 +263,7 @@ export default function IntegrationDocs() {
           </section>
 
           {/* Final Message Card */}
-          <section className="bg-gradient-to-br from-zinc-900 to-black dark:from-zinc-100 dark:to-zinc-200 p-12 rounded-3xl text-white dark:text-zinc-900 relative overflow-hidden">
+          <section className="bg-gradient-to-br from-zinc-900/90 to-black dark:from-zinc-100 dark:to-zinc-200 p-12 rounded-3xl text-white dark:text-zinc-900 relative overflow-hidden border border-white/5 dark:border-surface-border">
              <Terminal className="absolute top-0 right-0 w-64 h-64 text-white/5 dark:text-black/5 -translate-y-12 translate-x-12" />
              <div className="relative z-10 max-w-xl space-y-6">
                 <h3 className="text-3xl font-bold">Pronto para Integrar?</h3>

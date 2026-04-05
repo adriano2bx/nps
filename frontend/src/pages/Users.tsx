@@ -178,48 +178,48 @@ export default function Users() {
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setSegmentsOpen(true)}
-            className="flex items-center gap-2 px-4 py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 rounded-2xl font-bold hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all active:scale-95 border border-zinc-200 dark:border-zinc-800"
+            className="btn-secondary"
           >
-            <Layers className="w-4 h-4" />
+            <Layers className="w-4 h-4 mr-2" />
             Segmentos
           </button>
           <button 
             onClick={() => { setEditTarget(null); setForm(emptyForm); setFormOpen(true); }}
-            className="flex items-center gap-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-6 py-3 rounded-2xl font-bold transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-zinc-200/50 dark:shadow-none"
+            className="btn-primary"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-5 h-5 mr-2" />
             Novo Usuário
           </button>
         </div>
       </div>
 
       {/* Filters Bar */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl flex flex-wrap items-center gap-4 shadow-sm">
+      <div className="bg-white dark:bg-surface-card border border-zinc-200 dark:border-surface-border p-4 rounded-2xl flex flex-wrap items-center gap-4 shadow-sm">
         <div className="relative flex-1 min-w-[240px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
           <input 
             type="text" 
             placeholder="Buscar por nome ou WhatsApp ID..." 
-            className="w-full bg-zinc-50 dark:bg-zinc-800 border-none rounded-xl py-2.5 px-10 text-sm focus:ring-2 focus:ring-zinc-200 dark:focus:ring-zinc-700 transition-all"
+            className="w-full pl-10"
             value={filter}
             onChange={e => setFilter(e.target.value)}
           />
         </div>
         <div className="flex items-center gap-2">
-           <button onClick={() => refreshPatients(pagination.page)} className={`p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 ${isRefreshing.patients ? 'animate-spin' : ''}`}>
-              <RefreshCcw className="w-4 h-4 text-zinc-400" />
+           <button onClick={() => refreshPatients(pagination.page)} className={`btn-secondary p-2.5 ${isRefreshing.patients ? 'animate-spin' : ''}`}>
+              <RefreshCcw className="w-4 h-4" />
            </button>
         </div>
       </div>
 
       {/* Data Table */}
-      <div className="border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-white dark:bg-zinc-900 overflow-hidden shadow-sm flex flex-col h-[600px]">
+      <div className="border border-zinc-200 dark:border-surface-border rounded-2xl bg-white dark:bg-surface-card overflow-hidden shadow-sm flex flex-col h-[600px]">
         <div className="flex-1 overflow-hidden">
           <TableVirtuoso
             style={{ height: '100%' }}
             data={filteredPatients}
             fixedHeaderContent={() => (
-              <tr className="border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 backdrop-blur-md">
+              <tr className="border-b border-zinc-100 dark:border-surface-border/50 bg-zinc-50/50 dark:bg-surface-subtle/50 backdrop-blur-md">
                 <th className="py-4 px-6 font-bold text-zinc-400 text-[10px] uppercase tracking-widest bg-inherit text-left">Usuário</th>
                 <th className="py-4 px-6 font-bold text-zinc-400 text-[10px] uppercase tracking-widest bg-inherit text-center">WhatsApp ID</th>
                 <th className="py-4 px-6 font-bold text-zinc-400 text-[10px] uppercase tracking-widest bg-inherit text-left">Segmentos</th>
@@ -230,7 +230,7 @@ export default function Users() {
             components={{
               Table: (props) => <table {...props} className="w-full text-left border-collapse text-sm" />,
               TableRow: (props) => <tr {...props} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-all group" />,
-              TableBody: React.forwardRef((props, ref) => <tbody {...props} ref={ref} className="divide-y divide-zinc-100 dark:divide-zinc-800" />),
+              TableBody: React.forwardRef((props, ref) => <tbody {...props} ref={ref} className="divide-y divide-zinc-100 dark:divide-surface-border/50" />),
             }}
             itemContent={(_index, row) => (
               <>
@@ -313,7 +313,6 @@ export default function Users() {
               <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Nome Completo</label>
               <input 
                 required
-                className="w-full bg-zinc-50 dark:bg-zinc-850/50 border border-zinc-200 dark:border-zinc-800 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-zinc-900/5 transition-all text-zinc-900 dark:text-white"
                 placeholder="Ex: João da Silva"
                 value={form.name}
                 onChange={e => setForm({...form, name: e.target.value})}
@@ -323,7 +322,7 @@ export default function Users() {
               <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">WhatsApp (com DDD)</label>
               <input 
                 required
-                className="w-full bg-zinc-50 dark:bg-zinc-850/50 border border-zinc-200 dark:border-zinc-800 rounded-xl py-2.5 px-4 text-sm font-mono text-zinc-900 dark:text-white"
+                className="font-mono"
                 placeholder="5511999999999"
                 value={form.phoneNumber}
                 onChange={e => setForm({...form, phoneNumber: e.target.value})}
@@ -335,7 +334,7 @@ export default function Users() {
              <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1 flex items-center gap-2">
                 <Tag className="w-3 h-3" /> Segmentação & Tags
              </label>
-             <div className="flex flex-wrap gap-2 p-4 bg-zinc-50 dark:bg-zinc-850/50 rounded-2xl border border-zinc-200 dark:border-zinc-800">
+             <div className="flex flex-wrap gap-2 p-4 bg-zinc-50 dark:bg-surface-subtle/50 rounded-2xl border border-zinc-200 dark:border-surface-border/50">
                 {segments.length === 0 ? (
                   <p className="text-[10px] text-zinc-500 italic">Nenhum segmento criado ainda.</p>
                 ) : (
@@ -347,7 +346,7 @@ export default function Users() {
                       className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
                         form.segmentIds.includes(seg.id)
                           ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-transparent shadow-lg'
-                          : 'bg-white dark:bg-zinc-900 text-zinc-500 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300'
+                          : 'bg-white dark:bg-surface-subtle text-zinc-500 border-zinc-200 dark:border-surface-border hover:border-zinc-300'
                       }`}
                     >
                       <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: seg.color }} />
@@ -359,24 +358,24 @@ export default function Users() {
              </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-6 border-t border-zinc-100 dark:border-zinc-800">
-            <button type="button" onClick={() => setFormOpen(false)} className="px-5 py-2.5 text-xs font-bold text-zinc-500">Cancelar</button>
-            <button 
-              type="submit" 
-              disabled={isSaving}
-              className="flex items-center gap-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-8 py-3 rounded-2xl font-bold text-sm shadow-xl active:scale-95 transition-all"
-            >
-              {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-              {editTarget ? 'Salvar Alterações' : 'Cadastrar Usuário'}
-            </button>
-          </div>
+            <div className="flex justify-end gap-3 pt-6 border-t border-zinc-100 dark:border-surface-border/50">
+              <button type="button" onClick={() => setFormOpen(false)} className="btn-ghost">Cancelar</button>
+              <button 
+                type="submit" 
+                disabled={isSaving}
+                className="btn-primary px-8"
+              >
+                {isSaving && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                {editTarget ? 'Salvar Alterações' : 'Cadastrar Usuário'}
+              </button>
+            </div>
         </form>
       </Modal>
 
       {/* Segment Manager Modal */}
       <Modal isOpen={segmentsOpen} onClose={() => setSegmentsOpen(false)} title="Gerenciar Segmentos" size="md">
          <div className="p-6 space-y-8">
-            <div className="bg-zinc-50 dark:bg-zinc-850/50 p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 space-y-4">
+            <div className="bg-zinc-50 dark:bg-surface-subtle/50 p-6 rounded-3xl border border-zinc-200 dark:border-surface-border space-y-4">
                <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Criar Novo Segmento</h4>
                <div className="flex gap-3">
                   <input 
@@ -387,14 +386,14 @@ export default function Users() {
                   />
                   <input 
                     type="color" 
-                    className="w-12 h-10 p-0 border-none bg-transparent cursor-pointer rounded-lg overflow-hidden"
+                    className="w-12 h-10 p-0 border-none bg-transparent cursor-pointer rounded-lg overflow-hidden shrink-0"
                     value={newSegment.color}
                     onChange={e => setNewSegment({...newSegment, color: e.target.value})}
                   />
                   <button 
                     onClick={handleCreateSegment}
                     disabled={isCreatingSegment || !newSegment.name}
-                    className="bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-6 py-2.5 rounded-xl font-bold text-sm disabled:opacity-50"
+                    className="btn-primary py-2.5"
                   >
                     {isCreatingSegment ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Criar'}
                   </button>
@@ -405,7 +404,7 @@ export default function Users() {
                <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Segmentos Existentes</h4>
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {segments.map(seg => (
-                    <div key={seg.id} className="p-4 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl flex items-center justify-between shadow-sm group">
+                    <div key={seg.id} className="p-4 bg-white dark:bg-surface-card border border-zinc-100 dark:border-surface-border rounded-2xl flex items-center justify-between shadow-sm group">
                        <div className="flex items-center gap-3">
                           <div className="w-3 h-3 rounded-full" style={{ backgroundColor: seg.color }} />
                           <div>
@@ -424,8 +423,8 @@ export default function Users() {
                </div>
             </div>
 
-            <div className="flex justify-end pt-4 border-t border-zinc-100 dark:border-zinc-800">
-               <button onClick={() => setSegmentsOpen(false)} className="px-6 py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl font-bold text-sm">Fechar</button>
+            <div className="flex justify-end pt-4 border-t border-zinc-100 dark:border-surface-border/50">
+               <button onClick={() => setSegmentsOpen(false)} className="btn-primary">Fechar</button>
             </div>
          </div>
       </Modal>
@@ -437,9 +436,9 @@ export default function Users() {
             Tem certeza que deseja excluir <span className="font-bold text-zinc-900 dark:text-zinc-100">"{deleteTarget?.name}"</span>? 
             Esta ação é irreversível e removerá todos os dados deste contato.
           </p>
-          <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-             <button onClick={() => setDeleteTarget(null)} className="px-5 py-2 text-xs font-bold text-zinc-500">Cancelar</button>
-             <button onClick={handleDelete} className="bg-rose-600 text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-rose-200">Excluir Usuário</button>
+          <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-zinc-100 dark:border-surface-border/50">
+             <button onClick={() => setDeleteTarget(null)} className="btn-ghost">Cancelar</button>
+             <button onClick={handleDelete} className="btn-danger px-8">Excluir Usuário</button>
           </div>
         </div>
       </Modal>
