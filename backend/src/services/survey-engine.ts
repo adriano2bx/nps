@@ -623,6 +623,10 @@ Retorne APENAS um JSON válido e estrito com a chave:
             text: answerText
           }
         }).catch(e => console.error('[SurveyEngine] Error triggering direct webhook:', e));
+      } else if (action.type === 'cta' && action.ctaLabel && action.ctaLink) {
+        // Encerra a sessão enviando o botão CTA específico desta opção
+        await this.closeSession(session, false, action);
+        return;
       }
     }
 
@@ -684,7 +688,7 @@ Retorne APENAS um JSON válido e estrito com a chave:
     await this.dispatchMessage(channelId, tenantId, phone, text, buttons, undefined, undefined, question.id, sessionId);
   }
 
-  private async closeSession(session: any, forcesNoMessage = false) {
+  private async closeSession(session: any, forcesNoMessage = false, overrideAction?: any) {
     await prisma.surveySession.update({
       where: { id: session.id },
       data: { status: 'CLOSED', closedAt: new Date() }
@@ -700,23 +704,25 @@ Retorne APENAS um JSON válido e estrito com a chave:
 
     if (!forcesNoMessage && session.campaign.closingMessage) {
       const camp = session.campaign;
+      const ctaLabel = overrideAction?.ctaLabel || camp.ctaLabel;
+      const ctaLink = overrideAction?.ctaLink || camp.ctaLink;
       
       // ENTERPRISE CHOICE: CTA Button, Contact Card, or Text
-      if (camp.ctaLabel && camp.ctaLink) {
+      if (ctaLabel && ctaLink) {
         const meta = await this.getMeta();
         const header = camp.header ? { type: 'text' as const, value: camp.header } : undefined;
         // Check if provider is Meta for official CTA support
         const channel = await prisma.whatsAppChannel.findUnique({ where: { id: camp.whatsappChannelId } });
         
         if (channel?.provider === 'META') {
-          await meta.sendCTA(channel, session.contact.phoneNumber, camp.closingMessage, camp.ctaLabel, camp.ctaLink, header, camp.footer || undefined);
+          await meta.sendCTA(channel, session.contact.phoneNumber, camp.closingMessage, ctaLabel, ctaLink, header, camp.footer || undefined);
         } else {
           // Fallback for Baileys
           await this.dispatchMessage(
             camp.whatsappChannelId,
             session.tenantId,
             session.contact.phoneNumber,
-            `${camp.closingMessage}\n\n🔗 *${camp.ctaLabel}*\n${camp.ctaLink}`,
+            `${camp.closingMessage}\n\n🔗 *${ctaLabel}*\n${ctaLink}`,
             undefined,
             header,
             camp.footer || undefined,

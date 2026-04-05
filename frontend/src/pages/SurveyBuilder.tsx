@@ -18,10 +18,12 @@ import { useData } from '../contexts/DataContext';
 type QuestionType = 'nps' | 'open' | 'choice' | 'list';
 type PlanLevel = 'FREE' | 'STARTER' | 'PRO' | 'ENTERPRISE';
 export interface QuestionAction {
-  type: 'next' | 'jump' | 'optout' | 'webhook';
+  type: 'next' | 'jump' | 'optout' | 'webhook' | 'cta';
   targetQuestionId?: string | number | 'FINISH';
   topicId?: string;
   webhookUrl?: string;
+  ctaLabel?: string;
+  ctaLink?: string;
 }
 
 export interface SurveyOption {
@@ -751,34 +753,6 @@ Você aceita participar de uma pesquisa rápida de satisfação?`}
           </div>
         )}
 
-        <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 space-y-4 bg-zinc-50/50 dark:bg-zinc-900/20">
-          <h4 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide flex items-center gap-2">
-            <CheckCircle2 className="w-3.5 h-3.5" /> Ações Pós-Encerramento (Enterprise)
-          </h4>
-          
-          <div className="grid grid-cols-2 gap-4">
-             <div className="col-span-2 sm:col-span-1">
-                <label className={labelCls}>Call to Action (Botão com Link)</label>
-                <input className={inputCls} placeholder="Texto do Botão (Ex: Abrir Site)" value={data.ctaLabel} onChange={e => onChange('ctaLabel', e.target.value)} />
-             </div>
-             <div className="col-span-2 sm:col-span-1">
-                <label className={labelCls}>URL do Destino</label>
-                <input className={inputCls} placeholder="https://google.com/review" value={data.ctaLink} onChange={e => onChange('ctaLink', e.target.value)} />
-             </div>
-             
-             <div className="col-span-2 h-px bg-zinc-200 dark:bg-zinc-800 my-1" />
-             
-             <div className="col-span-2 sm:col-span-1">
-                <label className={labelCls}>Sugestão de Contato Humano</label>
-                <input className={inputCls} placeholder="Nome (Ex: Suporte VIP)" value={data.supportName} onChange={e => onChange('supportName', e.target.value)} />
-             </div>
-             <div className="col-span-2 sm:col-span-1">
-                <label className={labelCls}>Telefone (VCard)</label>
-                <input className={inputCls} placeholder="5511999999999" value={data.supportPhone} onChange={e => onChange('supportPhone', e.target.value)} />
-             </div>
-          </div>
-          <p className="text-[10px] text-zinc-500 italic">Disponível para canais Meta. O CTA permite enviar um botão que abre um site. O VCard envia o contato para ser salvo.</p>
-        </div>
 
         <div>
           <label className={labelCls}>Mensagem de Encerramento</label>
@@ -876,7 +850,7 @@ function SurveySimulator({
           }
           return;
         }
-        if (action.type === 'optout') {
+        if (action.type === 'optout' || action.type === 'cta') {
           setActiveStep(questions.length);
           return;
         }
@@ -1258,6 +1232,7 @@ function ActionConfigModal({
               <option value="jump">Ir para pergunta específica (Desvio)</option>
               <option value="optout">Bloquear contato (Opt-out)</option>
               <option value="webhook">Acionar Integração (Webhook)</option>
+              <option value="cta">Enviar Botão de Link (CTA)</option>
             </select>
           </div>
 
@@ -1300,6 +1275,32 @@ function ActionConfigModal({
             <div className="bg-amber-50 dark:bg-amber-500/5 border border-amber-100 dark:border-amber-500/20 p-3 rounded-lg">
               <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed font-medium">
                 Esta opção bloqueará o contato para que não receba mais campanhas deste tipo (Tópico) automaticamente.
+              </p>
+            </div>
+          )}
+
+          {localAction?.type === 'cta' && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <label className={labelCls}>Texto do Botão (Ex: Avaliar no Google)</label>
+                <input 
+                  className={inputCls}
+                  placeholder="Avaliar agora"
+                  value={localAction?.ctaLabel || ''}
+                  onChange={(e) => setLocalAction({ ...localAction, ctaLabel: e.target.value })}
+                />
+              </div>
+              <div className="col-span-2">
+                <label className={labelCls}>URL do Link (https://...)</label>
+                <input 
+                  className={inputCls}
+                  placeholder="https://g.page/sua-clinica/review"
+                  value={localAction?.ctaLink || ''}
+                  onChange={(e) => setLocalAction({ ...localAction, ctaLink: e.target.value })}
+                />
+              </div>
+              <p className="col-span-2 text-[11px] text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 p-2 rounded-lg leading-snug">
+                Ao selecionar esta opção, o sistema enviará a mensagem de agradecimento com este botão de link e encerrará a pesquisa imediatamente.
               </p>
             </div>
           )}
