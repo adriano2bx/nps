@@ -13,6 +13,7 @@ import TVDashboard from './pages/TVDashboard';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
 import Integrations from './pages/Integrations';
+import IntegrationDocs from './pages/IntegrationDocs';
 
 function ProtectedRoute() {
   const { token, loading } = useAuth();
@@ -45,6 +46,7 @@ function AppContent() {
             <Route path="patients" element={<Users />} />
             <Route path="settings" element={<Settings />} />
             <Route path="integrations" element={<Integrations />} />
+            <Route path="integrations/docs" element={<IntegrationDocs />} />
             <Route path="companies" element={<Companies />} />
             <Route path="*" element={
               user?.role === 'MASTER_ADMIN' ? <Navigate to="/master-dashboard" replace /> : <Navigate to="/dashboard" replace />

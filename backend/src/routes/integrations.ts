@@ -13,9 +13,79 @@ const router = Router();
 router.use(apiKeyMiddleware);
 
 /**
- * POST /api/v1/trigger
- * Triggers a survey campaign for a specific phone number.
- * Body: { campaignId, phoneNumber, contactName? }
+ * @swagger
+ * components:
+ *   securitySchemes:
+ *     ApiKeyAuth:
+ *       type: apiKey
+ *       in: header
+ *       name: X-API-KEY
+ */
+
+/**
+ * @swagger
+ * /api/v1/campaigns:
+ *   get:
+ *     summary: Lista todas as campanhas ativas
+ *     security:
+ *       - ApiKeyAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de campanhas
+ *       401:
+ *         description: Chave de API inválida ou ausente
+ */
+
+/**
+ * GET /api/v1/campaigns
+ * Lists all active survey campaigns.
+ */
+router.get('/campaigns', async (req: ApiRequest, res: Response) => {
+  const tenantId = req.tenantId!;
+  try {
+    const campaigns = await prisma.surveyCampaign.findMany({
+      where: { tenantId, status: 'ACTIVE' },
+      select: {
+        id: true,
+        name: true,
+        keyword: true,
+        triggerType: true,
+        createdAt: true
+      }
+    });
+    res.json(campaigns);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch campaigns' });
+  }
+});
+
+/**
+ * @swagger
+ * /api/v1/trigger:
+ *   post:
+ *     summary: Dispara uma pesquisa para um número de telefone
+ *     security:
+ *       - ApiKeyAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               campaignId:
+ *                 type: string
+ *               phoneNumber:
+ *                 type: string
+ *               contactName:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Pesquisa disparada com sucesso
+ *       404:
+ *         description: Campanha não encontrada
+ *       409:
+ *         description: Sessão já aberta para este contato
  */
 router.post('/trigger', async (req: ApiRequest, res: Response) => {
   const { campaignId, phoneNumber, contactName } = req.body;
@@ -59,18 +129,8 @@ router.post('/trigger', async (req: ApiRequest, res: Response) => {
         return res.status(409).json({ error: 'There is already an open session for this contact/campaign' });
     }
 
-    // Create Session (SurveyEngine handles the rest via its logic if we trigger it)
-    // For now, we'll use a simplified version of SurveyEngine's startNewSession pattern
-    // or just import SurveyEngine.
+    // Create Session
     const { surveyEngine } = await import('../services/survey-engine.js');
-    
-    // We simulate an inbound message or a manual trigger
-    // Actually SurveyEngine.startNewSession is private, but I can call handleIncomingMessage
-    // with a "trigger" keyword if I add one.
-    // Better: I'll make a public trigger method in SurveyEngine later.
-    // For now, I'll just use the logic directly or call a new public method.
-    
-    // @ts-ignore - Accessing private for now, will fix visibility in next step
     await surveyEngine.startNewSession(tenantId, campaign.whatsappChannelId!, phoneNumber, campaign);
 
     res.json({ success: true, message: 'Survey triggered successfully' });
@@ -80,8 +140,30 @@ router.post('/trigger', async (req: ApiRequest, res: Response) => {
 });
 
 /**
- * POST /api/v1/contacts/upsert
- * High-speed contact syncing from external CRM.
+ * @swagger
+ * /api/v1/contacts/upsert:
+ *   post:
+ *     summary: Cria ou atualiza um contato e seus segmentos
+ *     security:
+ *       - ApiKeyAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               phoneNumber:
+ *                 type: string
+ *               segmentNames:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       200:
+ *         description: Contato atualizado com sucesso
  */
 router.post('/contacts/upsert', async (req: ApiRequest, res: Response) => {
   const { name, phoneNumber, segmentNames } = req.body;
@@ -101,13 +183,11 @@ router.post('/contacts/upsert', async (req: ApiRequest, res: Response) => {
       }
     }
 
-    // 2. Upsert Contact
+    // 2. Upsert Contact (Using the new unique constraint on [tenantId, phoneNumber])
     const contact = await prisma.contact.upsert({
       where: { 
-          // Assuming we use phoneNumber as unique key for upsert in integrations
-          // Need to handle uniqueness properly in schema if not done
-          id: (await prisma.contact.findFirst({ where: { tenantId, phoneNumber } }))?.id || 'new'
-      },
+          tenantId_phoneNumber: { tenantId, phoneNumber }
+      } as any,
       update: {
         name,
         segments: { set: segmentIds.map(id => ({ id })) }
@@ -127,8 +207,15 @@ router.post('/contacts/upsert', async (req: ApiRequest, res: Response) => {
 });
 
 /**
- * GET /api/v1/metrics/nps
- * Current NPS score for the tenant.
+ * @swagger
+ * /api/v1/metrics/nps:
+ *   get:
+ *     summary: Obtém métricas de NPS em tempo real
+ *     security:
+ *       - ApiKeyAuth: []
+ *     responses:
+ *       200:
+ *         description: Estatísticas de NPS
  */
 router.get('/metrics/nps', async (req: ApiRequest, res: Response) => {
   const tenantId = req.tenantId!;

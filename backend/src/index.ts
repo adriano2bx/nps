@@ -19,6 +19,8 @@ import { setupSurveyWorker } from './workers/survey-worker.js';
 import { setupCleanupWorker } from './workers/cleanup-worker.js';
 import { setupWebhookWorker } from './workers/webhook-worker.js';
 import { baileysManager } from './services/baileys-manager.js';
+import swaggerUi from 'swagger-ui-express';
+import swaggerJsdoc from 'swagger-jsdoc';
 
 import { setupGlobalLogger, logger } from './lib/logger.js';
 import { requestLogger } from './middleware/request-logger.js';
@@ -84,11 +86,32 @@ if (!fs.existsSync(path.join(storagePath, 'uploads'))) fs.ensureDirSync(path.joi
 
 app.use('/storage', express.static(storagePath));
 
-// 404 specific for storage (to avoid SPA catch-all sending HTML for missing images)
 app.use('/storage', (req, res) => {
   logger.warn({ url: req.originalUrl, path: req.path }, '[Storage] 404 - File Not Found');
   res.status(404).send('File Not Found');
 });
+
+// Swagger Documentation
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'NPS Health API',
+      version: '1.0.0',
+      description: 'Documentação da API Pública para Integrações',
+    },
+    servers: [
+      {
+        url: process.env.APP_URL || 'http://localhost:3001',
+        description: 'Servidor de Produção',
+      },
+    ],
+  },
+  apis: ['./src/routes/*.ts'], // Path to the API docs
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
 app.use('/api/auth', authRoutes);

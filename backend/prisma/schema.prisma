@@ -140,6 +140,7 @@ model Contact {
   sessions     SurveySession[]
   segments     ContactSegment[]     @relation("ContactToSegment")
 
+  @@unique([tenantId, phoneNumber])
   @@index([tenantId])
 }
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   Key, 
   Webhook, 
@@ -18,6 +19,7 @@ import {
   ChevronRight,
   MessageSquare
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 interface ApiKey {
   id: string;
@@ -35,6 +37,7 @@ interface WebhookConfig {
 }
 
 export default function Integrations() {
+  const { token } = useAuth();
   const [activeTab, setActiveTab] = useState<'keys' | 'webhooks'>('keys');
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [webhooks, setWebhooks] = useState<WebhookConfig[]>([]);
@@ -58,11 +61,14 @@ export default function Integrations() {
     { id: 'contact.optout', label: 'Opt-out (Sair)', icon: AlertTriangle }
   ];
 
-  const apiBase = import.meta.env.VITE_API_URL ?? (window.location.origin === 'http://localhost:5173' ? 'http://localhost:3001' : window.location.origin);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const envApiUrl = import.meta.env.VITE_API_URL;
+  const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const apiBase = envApiUrl || (isDev ? 'http://localhost:3001' : window.location.origin);
 
   const fetchData = useCallback(async () => {
     try {
-      const token = localStorage.getItem('nps_auth_token');
       const headers = { 
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -87,13 +93,12 @@ export default function Integrations() {
     } finally {
       setLoading(false);
     }
-  }, [apiBase]);
+  }, [apiBase, token]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleCreateKey = async () => {
     try {
-      const token = localStorage.getItem('nps_auth_token');
       const res = await fetch(`${apiBase}/api/integrations/keys`, {
         method: 'POST',
         headers: { 
@@ -119,7 +124,6 @@ export default function Integrations() {
 
   const handleCreateWebhook = async () => {
     try {
-      const token = localStorage.getItem('nps_auth_token');
       const res = await fetch(`${apiBase}/api/integrations/webhooks`, {
         method: 'POST',
         headers: { 
@@ -147,10 +151,23 @@ export default function Integrations() {
   };
 
   const handleDeleteKey = async (id: string, isWebhook = false) => {
-    const msg = isWebhook ? 'Deletar webhook?' : 'Tem certeza? Isso quebrará as integrações usando esta chave.';
-    if (!confirm(msg)) return;
+    console.log(`[Integrations] 🚮 handleDeleteKey called for ${id}, isWebhook: ${isWebhook}`);
+    if (confirmDeleteId !== id) {
+       console.log(`[Integrations] ⏳ First click - asking for confirmation`);
+       setConfirmDeleteId(id);
+       setTimeout(() => setConfirmDeleteId(null), 3000); // 3s for confirmation
+       return;
+    }
+    
+    setConfirmDeleteId(null);
+
+    if (!token) {
+      alert('Sessão expirada. Por favor, faça login novamente.');
+      return;
+    }
+
     try {
-      const token = localStorage.getItem('nps_auth_token');
+      console.log(`[Integrations] 🗑️ Deleting ${isWebhook ? 'webhook' : 'key'}: ${id}`);
       const endpoint = isWebhook ? `${apiBase}/api/integrations/webhooks/${id}` : `${apiBase}/api/integrations/keys/${id}`;
       const res = await fetch(endpoint, {
         method: 'DELETE',
@@ -158,16 +175,24 @@ export default function Integrations() {
       });
 
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Erro ao deletar recurso');
+        let errorMsg = 'Erro ao deletar recurso';
+        try {
+          const data = await res.json();
+          errorMsg = data.error || data.details || errorMsg;
+        } catch (e) {
+          // If body is not JSON, use default error
+        }
+        throw new Error(errorMsg);
       }
 
+      console.log(`[Integrations] ✅ ${isWebhook ? 'Webhook' : 'Key'} deleted success`);
       if (isWebhook) {
-        setWebhooks(webhooks.filter(w => w.id !== id));
+        setWebhooks(prev => prev.filter(w => w.id !== id));
       } else {
-        setKeys(keys.filter(k => k.id !== id));
+        setKeys(prev => prev.filter(k => k.id !== id));
       }
     } catch (err: any) {
+      console.error('[Integrations] ❌ Delete error:', err);
       alert(`Erro ao deletar: ${err.message}`);
     }
   };
@@ -238,9 +263,13 @@ export default function Integrations() {
                       </div>
                       <button 
                         onClick={() => handleDeleteKey(key.id)}
-                        className="p-2 text-zinc-400 hover:text-red-500 transition-colors"
+                        className={`p-2 transition-all rounded-lg flex items-center gap-2 ${confirmDeleteId === key.id ? 'bg-red-500 text-white shadow-lg' : 'text-zinc-400 hover:text-red-500'}`}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        {confirmDeleteId === key.id ? (
+                           <span className="text-[10px] font-bold uppercase px-1">Confirmar?</span>
+                        ) : (
+                           <Trash2 className="w-4 h-4" />
+                        )}
                       </button>
                     </div>
                   ))
@@ -275,7 +304,16 @@ export default function Integrations() {
                               <div className={`w-2 h-2 rounded-full ${hook.active ? 'bg-green-500' : 'bg-zinc-400'}`} />
                               <span className="font-mono text-sm text-zinc-700 dark:text-zinc-300 truncate max-w-md">{hook.url}</span>
                            </div>
-                           <button onClick={() => handleDeleteKey(hook.id, true)} className="text-zinc-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+                           <button 
+                              onClick={() => handleDeleteKey(hook.id, true)} 
+                              className={`p-1.5 rounded-lg transition-all ${confirmDeleteId === hook.id ? 'bg-red-500 text-white' : 'text-zinc-400 hover:text-red-500'}`}
+                           >
+                              {confirmDeleteId === hook.id ? (
+                                <span className="text-[10px] font-bold px-1">Confirmar?</span>
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
+                           </button>
                         </div>
                         <div className="flex flex-wrap gap-2">
                            {hook.events.split(',').map(ev => (
@@ -301,9 +339,14 @@ export default function Integrations() {
                 Todas as requisições API requerem o header <strong>X-API-KEY</strong>. 
                 Seus webhooks são assinados com um segredo <strong>HMAC-SHA256</strong> exclusivo.
              </p>
-             <a href="https://documenter.getpostman.com/view/nps-api" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm font-bold border-b border-white/20 pb-1 w-fit hover:opacity-80 transition-opacity">
-                Abrir Documentação Técnica <ExternalLink className="w-3.5 h-3.5" />
-             </a>
+              <div className="space-y-3">
+                <Link to="/integrations/docs" className="flex items-center gap-2 text-sm font-bold border-b border-white/20 pb-1 w-fit hover:opacity-80 transition-opacity">
+                  Tutorial & Guia Completo <ChevronRight className="w-3.5 h-3.5" />
+                </Link>
+                <a href="/api/docs" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm font-bold border-b border-white/20 pb-1 w-fit hover:opacity-80 transition-opacity">
+                  Swagger OpenAPI <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
           </div>
 
           <div className="bg-zinc-950 rounded-3xl p-8 text-white relative overflow-hidden group shadow-2xl border border-white/5">
@@ -314,7 +357,7 @@ export default function Integrations() {
               <div className="space-y-2"><span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Gatilho Rápido</span><pre className="bg-white/5 p-4 rounded-xl text-[10px] font-mono text-zinc-400 overflow-x-auto border border-white/5 shadow-inner leading-relaxed">{`curl -X POST /trigger \\
   -H "X-API-KEY: SUA_CHAVE" \\
   -d '{"ph": "55..."}'`}</pre></div>
-              <a href="https://documenter.getpostman.com/view/nps-api" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-[10px] font-black text-emerald-500 hover:text-emerald-400 transition-colors pt-2 uppercase tracking-widest">Documentação Completa <ChevronRight className="w-3 h-3" /></a>
+              <Link to="/integrations/docs" className="flex items-center gap-2 text-[10px] font-black text-emerald-500 hover:text-emerald-400 transition-colors pt-2 uppercase tracking-widest">Documentação Completa <ChevronRight className="w-3 h-3" /></Link>
             </div>
           </div>
         </div>

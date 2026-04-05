@@ -64,9 +64,14 @@ router.post('/keys', async (req: AuthRequest, res: Response) => {
 router.delete('/keys/:id', async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    await prisma.apiKey.delete({
-      where: { id: id as string, tenantId: req.tenantId as string }
+    const tenantId = req.tenantId as string;
+    console.log(`[Integrations-Mgmt] 🗑️ Deleting API Key ${id} for tenant ${tenantId}`);
+    
+    const result = await prisma.apiKey.deleteMany({
+      where: { id: id as string, tenantId }
     });
+    
+    console.log(`[Integrations-Mgmt] ✅ API Key delete result:`, result);
     
     // Invalidate cache
     await redis.del(`api_key_valid:${req.tenantId}`);
@@ -142,9 +147,14 @@ router.put('/webhooks/:id', async (req: AuthRequest, res: Response) => {
 router.delete('/webhooks/:id', async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    await prisma.tenantWebhook.delete({
-      where: { id: id as string, tenantId: req.tenantId as string }
+    const tenantId = req.tenantId as string;
+    console.log(`[Integrations-Mgmt] 🗑️ Deleting Webhook ${id} for tenant ${tenantId}`);
+
+    const result = await prisma.tenantWebhook.deleteMany({
+      where: { id: id as string, tenantId }
     });
+    
+    console.log(`[Integrations-Mgmt] ✅ Webhook delete result:`, result);
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete webhook' });
