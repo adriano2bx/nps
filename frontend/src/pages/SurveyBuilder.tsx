@@ -396,7 +396,7 @@ function Step1({
                 }}
               >
                 <option value="" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Selecione um canal...</option>
-                {channels.map(channel => (
+                {channels.filter(c => c.provider !== 'BAILEYS' || c.id === data.channelId).map(channel => (
                   <option key={channel.id} value={channel.id} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">
                     {channel.name} {channel.provider === 'BAILEYS' ? '⚡ (Baileys)' : `(${channel.provider})`}
                   </option>
@@ -1963,7 +1963,7 @@ export default function SurveyBuilder() {
             <div className="flex gap-3 p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl">
               <span className="text-amber-600 text-sm">⚠️</span>
               <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed">
-                <strong>Canal não selecionado:</strong> Volte ao Passo 1 e selecione um canal Baileys conectado para habilitar o envio de teste.
+                <strong>Canal não selecionado:</strong> Volte ao Passo 1 e selecione um canal conectado para habilitar o envio de teste.
               </p>
             </div>
           )}

@@ -210,7 +210,7 @@ export default function Settings() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {channels.map((channel) => (
+                {channels.filter(c => c.provider !== 'BAILEYS').map((channel) => (
                   <div key={channel.id} className={`${cardCls} group hover:border-zinc-300 dark:hover:border-zinc-700 transition-all rounded-3xl`}>
                     <div className={cardHeadCls}>
                       <div className="flex items-center gap-3">
@@ -312,7 +312,6 @@ export default function Settings() {
                 >
                   <option value="META" className="bg-white dark:bg-zinc-900">Meta Official API</option>
                   <option value="GUPSHUP" className="bg-white dark:bg-zinc-900">Gupshup Hub</option>
-                  <option value="BAILEYS" className="bg-white dark:bg-zinc-900">Baileys API (Legacy/Private)</option>
                 </select>
             </div>
           </div>
