@@ -278,7 +278,7 @@ function WaPreviewPhone({ header, footer, clinicName, body, buttonYes, buttonNo,
             <div className="flex justify-start">
               <div className="max-w-[88%] flex flex-col gap-px">
                 <div className="bg-white dark:bg-[#1f2c34] rounded-lg rounded-bl-none shadow-md ring-1 ring-zinc-100 dark:ring-transparent overflow-hidden">
-                  {!isBaileys && !mediaPath && header && (
+                  {!mediaPath && header && (
                     <div className="px-2.5 pt-2 pb-1.5 border-b border-zinc-200 dark:border-zinc-700/50">
                       <p className="text-[11px] font-bold text-zinc-700 dark:text-zinc-200">{header}</p>
                     </div>
@@ -299,7 +299,7 @@ function WaPreviewPhone({ header, footer, clinicName, body, buttonYes, buttonNo,
                   <div className="px-2.5 py-2">
                     <p className="text-[12px] text-zinc-800 dark:text-zinc-200 leading-relaxed whitespace-pre-wrap">{displayBody}</p>
                   </div>
-                  {!isBaileys && footer && (
+                  {footer && (
                     <div className="px-2.5 pb-1.5 border-t border-zinc-200 dark:border-zinc-700/50">
                       <p className="text-[9px] text-zinc-400 italic">{footer}</p>
                     </div>
@@ -308,15 +308,10 @@ function WaPreviewPhone({ header, footer, clinicName, body, buttonYes, buttonNo,
                     <span className="text-[9px] text-zinc-400">{clock}</span>
                   </div>
                 </div>
-                {!replied && type !== 'marketing' && !isBaileys && (
+                {!replied && type !== 'marketing' && (
                   <div className="flex flex-col gap-px mt-px">
                     <button onClick={() => setReplied(displayYes)} className="w-full bg-white dark:bg-[#1f2c34] py-2 px-2.5 text-[12px] font-semibold text-[#00a884] text-center hover:bg-[#f0faf7] dark:hover:bg-[#00a884]/10 transition-colors border-t border-zinc-200 dark:border-zinc-700/40">{displayYes}</button>
                     <button onClick={() => setReplied(displayNo)}  className="w-full bg-white dark:bg-[#1f2c34] py-2 px-2.5 text-[12px] font-semibold text-[#00a884] text-center hover:bg-[#f0faf7] dark:hover:bg-[#00a884]/10 transition-colors border-t border-zinc-200 dark:border-zinc-700/40">{displayNo}</button>
-                  </div>
-                )}
-                {!replied && type !== 'marketing' && isBaileys && (
-                  <div className="px-2.5 py-2 mt-px bg-white/50 dark:bg-[#1f2c34]/50 border-t border-zinc-100 dark:border-zinc-800">
-                    <p className="text-[10px] text-zinc-400 italic text-center">Usuário deve responder com texto (ex: SIM/NÃO)</p>
                   </div>
                 )}
               </div>
@@ -522,7 +517,7 @@ function Step1({
         </div>
 
         {/* Configurações Adicionais (Somente para Pesquisas — Oculto para Baileys) */}
-        {data.type === 'survey' && data.triggerType !== 'qrcode' && !isBaileys && (
+        {data.type === 'survey' && data.triggerType !== 'qrcode' && (
           <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 space-y-4 bg-zinc-50/50 dark:bg-zinc-900/20">
             <label className={labelCls}>Tipo de Envio do WhatsApp</label>
             <div className="grid grid-cols-2 gap-3 mt-1">
@@ -588,7 +583,7 @@ function Step1({
         )}
 
         {/* Media Upload (Meta Only) */}
-        {!isBaileys && (
+        {(
           <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 space-y-4 bg-zinc-50/50 dark:bg-zinc-900/20">
              <div className="flex items-center justify-between">
                 <h4 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide flex items-center gap-2">
@@ -654,7 +649,7 @@ Você aceita participar de uma pesquisa rápida de satisfação?`}
         </div>
 
         {/* Botões de Aceite — Ocultos para Baileys (texto puro) */}
-        {!isBaileys && (
+        {(
           <div className="grid grid-cols-2 gap-4">
             <div>
               <div className="flex items-center justify-between mb-1.5">
@@ -794,8 +789,8 @@ function SurveySimulator({
       currentQ.type === 'nps' ? 'De 0 a 10, o quanto você nos recomendaria?' :
       currentQ.type === 'open' ? 'Deixe seu comentário:' : 'Selecione uma opção:'
     );
-    const hHeader = !isBaileys && activeStep === 0 ? (header || `🏥 ${clinicName || 'Sua Clínica'}`) : undefined;
-    const hFooter = !isBaileys && activeStep === 0 ? footer : undefined;
+    const hHeader = activeStep === 0 ? (header || `🏥 ${clinicName || 'Sua Clínica'}`) : undefined;
+    const hFooter = activeStep === 0 ? footer : undefined;
     
     setChatHistory(h => [
       ...h, 
@@ -916,7 +911,7 @@ function SurveySimulator({
               <div className="flex justify-start" key={`q-${activeStep}`}>
                 <div className="max-w-[88%] flex flex-col gap-px">
                   <div className="bg-white dark:bg-[#1f2c34] rounded-lg rounded-bl-none shadow-md ring-1 ring-zinc-100 dark:ring-transparent overflow-hidden">
-                    {!isBaileys && (header || clinicName) && (
+                    {(header || clinicName) && (
                       <div className="px-2.5 pt-2 pb-1.5 border-b border-zinc-200 dark:border-zinc-700/50">
                         <p className="text-[11px] font-bold text-zinc-700 dark:text-zinc-200">
                           {header || `🏥 ${clinicName}`}
@@ -931,7 +926,7 @@ function SurveySimulator({
                         )}
                       </p>
                     </div>
-                    {!isBaileys && footer && (
+                    {footer && (
                       <div className="px-2.5 pb-1.5 border-t border-zinc-200 dark:border-zinc-700/50">
                         <p className="text-[9px] text-zinc-400 dark:text-zinc-500 italic">{footer}</p>
                       </div>
@@ -942,7 +937,7 @@ function SurveySimulator({
                   </div>
 
                   {/* Inline buttons 1-3 */}
-                  {currentQ.type === 'choice' && !isBaileys && (
+                  {currentQ.type === 'choice' && (
                     <div className="flex flex-col gap-px mt-px">
                       {(currentQ.options ?? []).map((opt, i) => (
                         <button key={i}
@@ -956,7 +951,7 @@ function SurveySimulator({
                   )}
 
                   {/* List button 4+ */}
-                  {currentQ.type === 'list' && !isBaileys && (
+                  {currentQ.type === 'list' && (
                     <button onClick={() => setShowList(true)}
                       className="mt-px w-full bg-white dark:bg-[#1f2c34] py-2 px-2.5 text-[12px] font-semibold text-[#00a884] flex items-center justify-center gap-1.5 hover:bg-[#f0faf7] dark:hover:bg-[#00a884]/10 transition-colors border-t border-zinc-200 dark:border-zinc-700/40"
                     >
@@ -1045,7 +1040,7 @@ function SurveySimulator({
             className={`bg-[#f0f0f0] dark:bg-[#1f2c34] px-2 py-1.5 flex items-center gap-1.5 shrink-0`}
             onSubmit={(e) => {
               e.preventDefault();
-              const canType = isBaileys || currentQ?.type === 'nps' || currentQ?.type === 'open';
+              const canType = currentQ?.type === 'nps' || currentQ?.type === 'open';
               if (isFinished || !inputText.trim() || !canType) return;
               
               if (currentQ?.type === 'nps') {
@@ -1066,7 +1061,7 @@ function SurveySimulator({
             }}
           >
             {(() => {
-              const canType = isBaileys || currentQ?.type === 'nps' || currentQ?.type === 'open';
+              const canType = currentQ?.type === 'nps' || currentQ?.type === 'open';
               return (
                 <>
                   <input
@@ -1080,7 +1075,7 @@ function SurveySimulator({
                     placeholder={
                       isFinished ? 'Mensagem' :
                       currentQ?.type === 'nps' ? 'Digite sua nota (0-10)...' :
-                      isBaileys ? 'Digite sua resposta...' :
+                      false ? 'Digite sua resposta...' :
                       currentQ?.type === 'open' ? 'Digite sua mensagem...' :
                       'Mensagem'
                     }
@@ -1285,17 +1280,8 @@ function Step2({
                   )}
 
                   {/* Footer row */}
-                  <div className="flex items-center gap-3 pt-2 border-t border-zinc-100 dark:border-zinc-900">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={q.required}
-                        onChange={e => update(q.id, 'required', e.target.checked)}
-                        className="w-3.5 h-3.5 rounded accent-zinc-900 dark:accent-white"
-                      />
-                      <span className="text-[11px] font-medium text-zinc-500">Obrigatória</span>
-                    </label>
-                    <span className="text-[10px] text-zinc-400 italic ml-auto">{meta.hint}</span>
+                  <div className="flex justify-end pt-2 border-t border-zinc-100 dark:border-zinc-900">
+                    <span className="text-[10px] text-zinc-400 italic">{meta.hint}</span>
                   </div>
                 </div>
               </div>
@@ -1304,9 +1290,8 @@ function Step2({
         })}
 
         {/* Add buttons bar */}
-        <div className="grid grid-cols-3 gap-2 pt-2">
+        <div className="grid grid-cols-4 gap-2 pt-2">
           {(Object.entries(qTypeLabels) as [QuestionType, any][])
-            .filter(([type]) => !isBaileys || (type !== 'choice' && type !== 'list'))
             .map(([type, meta]) => (
             <button
               key={type}
@@ -1321,11 +1306,6 @@ function Step2({
               </span>
             </button>
           ))}
-          {isBaileys && (
-            <div className="col-span-1 border border-zinc-200 dark:border-zinc-800/40 rounded-xl bg-zinc-50/50 dark:bg-zinc-900/10 flex flex-col items-center justify-center p-2 opacity-50">
-               <span className="text-[9px] text-zinc-400 font-bold uppercase text-center leading-tight">Botões/Lista<br/>Indisponíveis</span>
-            </div>
-          )}
         </div>
       </div>
 
@@ -1857,27 +1837,7 @@ export default function SurveyBuilder() {
 
   const showSim = step === 0 || (step === 1 && !isMkt);
   const selectedChannel = channels.find(c => c.id === general.channelId);
-  const isBaileys = selectedChannel?.provider === 'BAILEYS';
-
-  // Auto-cleanup when switching to Baileys: strip incompatible question types & button fields
-  useEffect(() => {
-    if (isBaileys) {
-      // Remove choice/list questions (unsupported in Baileys)
-      const hasIncompatible = questions.some(q => q.type === 'choice' || q.type === 'list');
-      if (hasIncompatible) {
-        setQuestions(questions.filter(q => q.type !== 'choice' && q.type !== 'list'));
-      }
-      // Clear button/header/footer fields & force text-only mode
-      setGeneral(prev => ({
-        ...prev,
-        buttonYes: '',
-        buttonNo: '',
-        header: '',
-        footer: '',
-        isHsm: 'false'
-      }));
-    }
-  }, [isBaileys]);
+  const isBaileys = false; // Forced to allow list/channels everywhere
 
   // Derive which UI components to show based on step index and type
   const renderStep = () => {
