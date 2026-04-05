@@ -14,7 +14,10 @@ import {
   Info,
   MoreVertical,
   Activity,
-  AlertTriangle
+  AlertTriangle,
+  Code2,
+  Terminal,
+  ChevronRight
 } from 'lucide-react';
 
 interface ApiKey {
@@ -254,18 +257,16 @@ export default function Integrations() {
              </a>
           </div>
 
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-2xl space-y-4">
-             <h4 className="font-semibold text-sm flex items-center gap-2">
-                <Activity className="w-4 h-4 text-zinc-500" /> Métricas de Integração
-             </h4>
-             <div className="flex items-center justify-between py-2 border-b border-zinc-100 dark:border-zinc-800">
-                <span className="text-sm text-zinc-500">Chamadas API (24h)</span>
-                <span className="font-mono text-sm font-bold">1.242</span>
-             </div>
-             <div className="flex items-center justify-between py-2 border-b border-zinc-100 dark:border-zinc-800">
-                <span className="text-sm text-zinc-500">Taxa de Sucesso Webhook</span>
-                <span className="text-sm font-bold text-emerald-500">99.8%</span>
-             </div>
+          <div className="bg-zinc-950 rounded-3xl p-8 text-white relative overflow-hidden group shadow-2xl border border-white/5">
+            <Code2 className="absolute -right-4 -bottom-4 w-24 h-24 text-white/5 group-hover:rotate-12 transition-transform duration-700" />
+            <h4 className="text-sm font-bold flex items-center gap-2 mb-6"><Terminal className="w-4 h-4 text-emerald-500" /> API SDK v1.2</h4>
+            <div className="space-y-6 relative z-10">
+              <div className="space-y-2"><span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Base API URL</span><div className="bg-white/5 p-3 rounded-xl text-[11px] font-mono text-emerald-400 break-all border border-white/5 shadow-inner leading-relaxed">https://api.nps.com/v1</div></div>
+              <div className="space-y-2"><span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Gatilho Rápido</span><pre className="bg-white/5 p-4 rounded-xl text-[10px] font-mono text-zinc-400 overflow-x-auto border border-white/5 shadow-inner leading-relaxed">{`curl -X POST /trigger \\
+  -H "Auth: Bearer KEY" \\
+  -d '{"ph": "55..."}'`}</pre></div>
+              <button className="flex items-center gap-2 text-[10px] font-black text-emerald-500 hover:text-emerald-400 transition-colors pt-2 uppercase tracking-widest">Documentação Completa <ChevronRight className="w-3 h-3" /></button>
+            </div>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { 
-  Plus, SmartphoneNfc, Trash2, Globe, Shield, Terminal, 
-  Key, Radio, Code2, Copy, Eye, EyeOff, Check, ExternalLink,
+  Plus, SmartphoneNfc, Trash2, Globe, Shield, 
+  Check, ExternalLink,
   ChevronRight, Box, Bell, RefreshCcw, Edit2, Link, Link2Off, QrCode
 } from 'lucide-react';
 import Modal from '../components/Modal';
@@ -39,7 +39,7 @@ interface Channel {
 }
 
 export default function Settings() {
-  const [activeTab, setActiveTab] = useState<'general' | 'channels' | 'developers'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'channels'>('general');
   const { channels, loading, isRefreshing, refreshChannels } = useData();
   const { token } = useAuth();
   const [createOpen, setCreateOpen] = useState(false);
@@ -48,15 +48,6 @@ export default function Settings() {
   const [form, setForm] = useState(emptyChannel);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [baileysConnectTarget, setBaileysConnectTarget] = useState<Channel | null>(null);
-  
-  // Developer Mock Labels (Real backend keys feature coming soon)
-  const apiKeys = [
-    { id: '1', name: 'ERP Clinicorp Integration', key: 'pk_live_51M...', createdAt: '2026-03-20', visible: false },
-    { id: '2', name: 'Sandbox Local', key: 'pk_test_88x...', createdAt: '2026-04-01', visible: false }
-  ];
-  const [webhooks] = useState([
-    { id: '1', url: 'https://webhook.clinicorp.com/nps', events: ['survey.completed'], status: 'active' }
-  ]);
 
   const handleSave = async () => {
     try {
@@ -128,8 +119,7 @@ export default function Settings() {
       <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800/50 p-1.5 rounded-2xl w-fit border border-zinc-200 dark:border-zinc-800 shadow-inner">
         {[
           { id: 'general', label: 'Geral', icon: Globe },
-          { id: 'channels', label: 'Canais de WA', icon: SmartphoneNfc },
-          { id: 'developers', label: 'API & Webhooks', icon: Terminal },
+          { id: 'channels', label: 'Canais de WA', icon: SmartphoneNfc }
         ].map((tab) => (
           <button
             key={tab.id}
@@ -304,42 +294,6 @@ export default function Settings() {
                 ))}
               </div>
             )}
-          </div>
-        )}
-
-        {activeTab === 'developers' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-in fade-in duration-500">
-            <div className="lg:col-span-8 space-y-8">
-              <div className={cardCls}>
-                <div className={cardHeadCls}>
-                   <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2"><Key className="w-4 h-4 text-zinc-400" /> API Keys de Integração</h3>
-                   <button className="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest hover:brightness-110 flex items-center gap-1.5 bg-brand-50 dark:bg-brand-500/10 px-3 py-1.5 rounded-lg border border-brand-100 dark:border-brand-500/20"><Plus className="w-3 h-3" /> Gerar Nova</button>
-                </div>
-                <div className="overflow-x-auto"><table className="w-full text-left"><thead><tr className="bg-zinc-50/50 dark:bg-surface-subtle border-b border-zinc-100 dark:border-zinc-800"><th className="px-6 py-4 text-[10px] uppercase font-bold text-zinc-400 tracking-widest">Identificador</th><th className="px-6 py-4 text-[10px] uppercase font-bold text-zinc-400 tracking-widest">Token Secreto</th><th className="px-6 py-4 text-[10px] uppercase font-bold text-zinc-400 tracking-widest text-right">Controle</th></tr></thead><tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">{apiKeys.map(key => (<tr key={key.id} className="hover:bg-zinc-50/30 dark:hover:bg-surface-subtle/30 transition-colors"><td className="px-6 py-5"><span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">{key.name}</span><p className="text-[10px] text-zinc-500 mt-1">Criada em {key.createdAt}</p></td><td className="px-6 py-5 font-mono text-[11px]"><div className="flex items-center gap-3 text-zinc-500"><span className="bg-zinc-100 dark:bg-zinc-800 px-2 py-1.5 rounded-lg border border-zinc-200/50 dark:border-zinc-700/50">{key.visible ? key.key : '••••••••••••••••••••'}</span><button onClick={() => {}} className="hover:text-zinc-900 dark:hover:text-white transition-colors">{key.visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button><button onClick={() => handleCopy(key.key)} className="hover:text-zinc-900 dark:hover:text-white transition-colors">{copiedKey === key.key ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}</button></div></td><td className="px-6 py-5 text-right"><button className="p-2 text-zinc-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-all"><Trash2 className="w-4 h-4" /></button></td></tr>))}</tbody></table></div>
-              </div>
-
-              <div className={cardCls}>
-                <div className={cardHeadCls}>
-                   <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2"><Radio className="w-4 h-4 text-zinc-400" /> Webhooks de Eventos (Real-time)</h3>
-                   <button className="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest px-3 py-1.5 bg-brand-50 dark:bg-brand-500/10 rounded-lg border border-brand-100 dark:border-brand-500/20 hover:brightness-110 flex items-center gap-1.5"><Plus className="w-3 h-3" /> Adicionar Endpoint</button>
-                </div>
-                <div className="p-6 space-y-4">{webhooks.map(hook => (<div key={hook.id} className="p-5 bg-zinc-50/50 dark:bg-surface-subtle/40 border border-zinc-100 dark:border-zinc-800 rounded-2xl flex items-center justify-between group"><div className="space-y-2 flex-1 min-w-0"><div className="flex items-center gap-2"><Globe className="w-3.5 h-3.5 text-zinc-400" /><span className="text-xs font-mono font-bold text-zinc-700 dark:text-zinc-300 truncate">{hook.url}</span></div><div className="flex flex-wrap gap-2">{hook.events.map(ev => (<span key={ev} className="text-[10px] font-bold text-zinc-500 bg-white dark:bg-zinc-800 px-3 py-1 rounded-full border border-zinc-200 dark:border-zinc-700 lowercase shadow-sm">{ev}</span>))}</div></div><div className="flex items-center gap-1 ml-6 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-1.5 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"><button className="p-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-lg"><ExternalLink className="w-3.5 h-3.5" /></button><button className="p-2 text-zinc-500 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button></div></div>))}<p className="text-[10px] text-zinc-500 font-medium bg-zinc-50 dark:bg-surface-subtle/50 p-3 rounded-xl border border-zinc-100 dark:border-zinc-800 italic">O NPS Multi-Tenant enviará requisições POST JSON para as URLs configuradas sempre que um evento de pesquisa for detectado.</p></div>
-              </div>
-            </div>
-
-            <div className="lg:col-span-4 space-y-6">
-              <div className="bg-zinc-950 rounded-3xl p-8 text-white relative overflow-hidden group shadow-2xl border border-white/5">
-                <Code2 className="absolute -right-4 -bottom-4 w-24 h-24 text-white/5 group-hover:rotate-12 transition-transform duration-700" />
-                <h4 className="text-sm font-bold flex items-center gap-2 mb-6"><Terminal className="w-4 h-4 text-emerald-500" /> API SDK v1.2</h4>
-                <div className="space-y-6 relative z-10">
-                  <div className="space-y-2"><span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Base API URL</span><div className="bg-white/5 p-3 rounded-xl text-[11px] font-mono text-emerald-400 break-all border border-white/5 shadow-inner leading-relaxed">https://api.nps.com/v1</div></div>
-                  <div className="space-y-2"><span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Gatilho Rápido</span><pre className="bg-white/5 p-4 rounded-xl text-[10px] font-mono text-zinc-400 overflow-x-auto border border-white/5 shadow-inner leading-relaxed">{`curl -X POST /trigger \\
-  -H "Auth: Bearer KEY" \\
-  -d '{"ph": "55..."}'`}</pre></div>
-                  <button className="flex items-center gap-2 text-[10px] font-black text-emerald-500 hover:text-emerald-400 transition-colors pt-2 uppercase tracking-widest">Documentação <ChevronRight className="w-3 h-3" /></button>
-                </div>
-              </div>
-            </div>
           </div>
         )}
       </div>
