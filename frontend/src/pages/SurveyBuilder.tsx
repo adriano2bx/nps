@@ -381,6 +381,7 @@ function Step1({
   isUploading: boolean;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
+  onOpenTopicModal: () => void;
 }) {
   const inputCls = "w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-surface-border rounded-lg py-2.5 px-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-zinc-900/5 dark:focus:ring-white/5 focus:border-zinc-400 dark:focus:border-zinc-600 transition-all cursor-pointer appearance-none";
   const labelCls = "block text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-1.5";
@@ -394,7 +395,7 @@ function Step1({
             <input className={inputCls} placeholder="Ex: Satisfação Pós-Atendimento" value={data.name} onChange={e => onChange('name', e.target.value)} />
           </div>
           <div className="col-span-1 relative">
-            <label className={labelCls}>Categoria (Tópico) *</label>
+            <label className={labelCls}>Categoria *</label>
             <div className="relative">
               <select 
                 className={inputCls} 
@@ -402,28 +403,8 @@ function Step1({
                 onChange={async e => {
                   const val = e.target.value;
                   if (val === 'CREATE_NEW') {
-                    const newName = window.prompt('Digite o nome da nova Categoria (ex: Promoções, Avisos, Pesquisa):');
-                    if (newName && newName.trim().length > 0) {
-                      try {
-                        const token = localStorage.getItem('nps_auth_token');
-                        const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
-                        const res = await fetch(`${apiBase}/api/topics`, {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                          body: JSON.stringify({ name: newName.trim() })
-                        });
-                        if (res.ok) {
-                          const newTopic = await res.json();
-                          await refreshTopics();
-                          onChange('topicId', newTopic.id);
-                        }
-                      } catch (err) {
-                        console.error('Failed to create topic', err);
-                        alert('Erro ao criar categoria.');
-                      }
-                    } else {
-                       onChange('topicId', '');
-                    }
+                    onOpenTopicModal();
+                    onChange('topicId', ''); // Reset to placeholder while modal is open
                   } else {
                     onChange('topicId', val);
                   }
@@ -1827,6 +1808,9 @@ export default function SurveyBuilder() {
   const { token, user } = useAuth();
   const { refreshCampaigns, topics, refreshTopics } = useData();
   const [channels, setChannels] = useState<WhatsAppChannel[]>([]);
+  const [isTopicModalOpen, setIsTopicModalOpen] = useState(false);
+  const [newTopicName, setNewTopicName] = useState('');
+  const [isCreatingTopic, setIsCreatingTopic] = useState(false);
 
   useEffect(() => {
     const fetchChannels = async () => {
@@ -1843,8 +1827,11 @@ export default function SurveyBuilder() {
         console.error('Failed to fetch channels:', err);
       }
     };
-    if (token) fetchChannels();
-  }, [token]);
+    if (token) {
+      fetchChannels();
+      refreshTopics(); // Ensure topics are loaded
+    }
+  }, [token, refreshTopics]);
 
   // Sandbox State
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
@@ -1918,12 +1905,7 @@ export default function SurveyBuilder() {
 
   const canNext = () => {
     if (step === 0) {
-      if (general.channel === 'whatsapp') {
-        return !!general.name && !!general.channelId && !!general.clinicName;
-      }
-      // Usa channelId (não channel/nome) pois ao editar o nome pode não estar
-      // resetado ainda --- o que importa é ter um canal válido selecionado
-      return !!general.name && !!general.channelId;
+      return !!general.name && !!general.channelId && !!general.topicId;
     }
     if (step === 1) return questions.length > 0 && questions.every(q => q.text.trim());
     return true;
@@ -2062,6 +2044,37 @@ export default function SurveyBuilder() {
     }
   }, [channels, general.channelId, id]);
 
+  const handleCreateTopic = async () => {
+    if (!newTopicName.trim()) return;
+    setIsCreatingTopic(true);
+    try {
+      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+      const res = await fetch(`${apiBase}/api/topics`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json', 
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify({ name: newTopicName.trim() })
+      });
+      if (res.ok) {
+        const newTopic = await res.json();
+        await refreshTopics();
+        setGeneral(prev => ({ ...prev, topicId: newTopic.id }));
+        setIsTopicModalOpen(false);
+        setNewTopicName('');
+      } else {
+        const err = await res.json();
+        alert('Erro ao criar categoria: ' + (err.error || 'Erro desconhecido'));
+      }
+    } catch (err) {
+      console.error('Failed to create topic', err);
+      alert('Erro de conexão ao criar categoria.');
+    } finally {
+      setIsCreatingTopic(false);
+    }
+  };
+
   const handleUpdate = async () => {
     setIsSaving(true);
     try {
@@ -2123,6 +2136,7 @@ export default function SurveyBuilder() {
         isUploading={isUploading}
         fileInputRef={fileInputRef}
         handleFileUpload={handleFileUpload}
+        onOpenTopicModal={() => setIsTopicModalOpen(true)}
       />
     );
     if (step === 1) {
@@ -2322,6 +2336,48 @@ export default function SurveyBuilder() {
           </div>
         </div>
       )}
+
+      {/* Topic Creation Modal */}
+      <Modal 
+        isOpen={isTopicModalOpen} 
+        onClose={() => setIsTopicModalOpen(false)} 
+        title="Criar Nova Categoria"
+        size="sm"
+      >
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 ml-1">
+              Nome da Categoria
+            </label>
+            <input 
+              className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-zinc-900/5 transition-all outline-none"
+              placeholder="Ex: Promoções, Avisos, NPS..."
+              value={newTopicName}
+              onChange={e => setNewTopicName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleCreateTopic()}
+              autoFocus
+            />
+            <p className="text-[10px] text-zinc-500 mt-2 ml-1 italic">
+              Esta categoria será usada para organizar suas campanhas e gerenciar o opt-out dos clientes.
+            </p>
+          </div>
+          <div className="flex justify-end gap-3 pt-6 border-t border-zinc-100 dark:border-zinc-800/50">
+            <button 
+              onClick={() => setIsTopicModalOpen(false)}
+              className="px-4 py-2 text-xs font-bold text-zinc-400 hover:text-zinc-600 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button 
+              onClick={handleCreateTopic}
+              disabled={isCreatingTopic || !newTopicName.trim()}
+              className="flex items-center gap-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-6 py-2.5 rounded-xl font-bold text-xs shadow-xl active:scale-95 transition-all disabled:opacity-50"
+            >
+              {isCreatingTopic ? 'Criando...' : 'Criar Categoria'}
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       <UpgradeModal isOpen={isUpgradeOpen} onClose={() => setIsUpgradeOpen(false)} requiredPlan={upgradeFeature} />
     </div>
