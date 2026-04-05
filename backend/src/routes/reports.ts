@@ -35,7 +35,7 @@ router.get('/export', authMiddleware, async (req: AuthRequest, res) => {
 
     // CSV Header with BOM for UTF-8 compatibility (Excel Friendly)
     let csvData = '\uFEFF'; 
-    csvData += 'Data;Status;Campanha;Paciente;Telefone;Nota NPS;Resposta/Comentário\n';
+    csvData += 'Data;Paciente;Telefone;Campanha;Nota NPS;Resposta/Comentário;Status\n';
 
     sessions.forEach((s: any) => {
       // Find NPS score and any significant text response
@@ -45,12 +45,12 @@ router.get('/export', authMiddleware, async (req: AuthRequest, res) => {
 
       const row = [
         new Date(s.startedAt).toLocaleString('pt-BR'),
-        s.status,
-        s.campaign.name,
         s.contact.name,
         s.contact.phoneNumber,
+        s.campaign.name,
         npsResp ? npsResp.answerValue : '—',
-        latestText.replace(/[\n\r;]/g, ' ') // Escape CSV separators
+        latestText.replace(/[\n\r;]/g, ' '), // Escape CSV separators
+        s.status
       ];
       csvData += row.join(';') + '\n';
     });
