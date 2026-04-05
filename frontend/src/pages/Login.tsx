@@ -55,7 +55,7 @@ export default function Login() {
       </div>
       
       {/* Left Column: Form */}
-      <div className="w-full lg:w-[45%] flex flex-col justify-center px-8 sm:px-16 md:px-24 xl:px-32 relative z-10 bg-white dark:bg-black transition-colors duration-300">
+      <div className="w-full lg:w-[45%] flex flex-col justify-center px-8 sm:px-16 md:px-24 xl:px-32 relative z-10 bg-white dark:bg-surface-dark transition-colors duration-300">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -94,7 +94,7 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-lg py-2.5 pl-10 pr-4 text-zinc-900 dark:text-white text-sm placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-600 focus:bg-zinc-50 dark:focus:bg-zinc-900 transition-all duration-200"
+                  className="w-full pl-10"
                   placeholder="admin@clinica.com.br"
                 />
               </div>
@@ -114,7 +114,7 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-lg py-2.5 pl-10 pr-4 text-zinc-900 dark:text-white text-sm placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-600 focus:bg-zinc-50 dark:focus:bg-zinc-900 transition-all duration-200"
+                  className="w-full pl-10"
                   placeholder="••••••••"
                 />
               </div>
@@ -125,7 +125,7 @@ export default function Login() {
               disabled={loading}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
-              className="w-full bg-zinc-900 dark:bg-white text-white dark:text-black font-medium text-sm rounded-lg py-2.5 px-4 mt-4 flex items-center justify-center gap-2 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors duration-200 disabled:opacity-50 cursor-pointer"
+              className="btn-primary w-full mt-4"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Entrar na plataforma'}
               {!loading && (

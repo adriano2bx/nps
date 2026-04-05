@@ -237,10 +237,10 @@ function UpgradeModal({ isOpen, onClose, requiredPlan }: { isOpen: boolean; onCl
             Para desbloquear o módulo <span className="font-bold text-brand-600 dark:text-brand-400">{requiredPlan}</span> e outras ferramentas avançadas, você precisa realizar o upgrade da sua conta.
           </p>
           <div className="space-y-3">
-             <button className="w-full bg-zinc-900 dark:bg-white text-white dark:text-black py-3 rounded-xl font-bold text-sm hover:scale-[1.02] transition-transform active:scale-95 shadow-lg">
+             <button className="w-full btn-primary py-3">
                 Falar com Consultor (Upgrade)
              </button>
-             <button onClick={onClose} className="w-full py-2 text-xs font-semibold text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">
+             <button onClick={onClose} className="w-full btn-ghost py-2">
                 Agora não, obrigado.
              </button>
           </div>
@@ -386,7 +386,7 @@ function Step1({
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
   onOpenTopicModal: () => void;
 }) {
-  const inputCls = "w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-surface-border rounded-lg py-2.5 px-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-zinc-900/5 dark:focus:ring-white/5 focus:border-zinc-400 dark:focus:border-zinc-600 transition-all cursor-pointer appearance-none";
+  const inputCls = "w-full bg-white dark:bg-surface-subtle border border-zinc-200 dark:border-surface-border rounded-xl py-2.5 px-4 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:ring-2 focus:ring-surface-ring/20 focus:border-surface-ring outline-hidden transition-all cursor-pointer appearance-none shadow-sm";
   const labelCls = "block text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-1.5";
 
   return (
@@ -1580,7 +1580,7 @@ function Step3({ data, onChange, type, plan, onUpgrade, triggerType }: {
   onUpgrade: (feature: string) => void;
   triggerType: string;
 }) {
-  const inputCls = "w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-surface-border rounded-lg py-2.5 px-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-zinc-900/5 dark:focus:ring-white/5 focus:border-zinc-400 dark:focus:border-zinc-600 transition-all cursor-pointer appearance-none";
+  const inputCls = "w-full bg-white dark:bg-surface-subtle border border-zinc-200 dark:border-surface-border rounded-xl py-2.5 px-4 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:ring-2 focus:ring-surface-ring/20 focus:border-surface-ring outline-hidden transition-all cursor-pointer appearance-none shadow-sm";
   const labelCls = "block text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-1.5";
   const [copied, setCopied] = useState(false);
 

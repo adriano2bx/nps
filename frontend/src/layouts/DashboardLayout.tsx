@@ -21,10 +21,10 @@ export default function DashboardLayout() {
   ];
 
   return (
-    <div className="min-h-screen flex bg-white dark:bg-[#050505] text-zinc-900 dark:text-zinc-100 transition-colors duration-300 font-sans selection:bg-brand-500/30">
+    <div className="min-h-screen flex bg-white dark:bg-surface-dark text-zinc-900 dark:text-zinc-100 transition-colors duration-300 font-sans selection:bg-brand-500/30">
       {/* Sidebar - Sharp, Enterprise */}
-      <aside className="w-[240px] border-r border-zinc-200 dark:border-zinc-800/80 bg-[#FAFAFA] dark:bg-[#0A0A0A] flex-col hidden md:flex transition-colors duration-300 sticky top-0 h-screen overflow-y-auto shrink-0">
-        <div className="h-14 flex items-center px-5 border-b border-zinc-200 dark:border-zinc-800/80">
+      <aside className="w-[240px] border-r border-zinc-200 dark:border-surface-border bg-white dark:bg-surface-subtle flex-col hidden md:flex transition-colors duration-300 sticky top-0 h-screen overflow-y-auto shrink-0">
+        <div className="h-14 flex items-center px-5 border-b border-zinc-200 dark:border-surface-border">
           <div className="w-6 h-6 bg-zinc-900 dark:bg-white flex items-center justify-center rounded-sm mr-2.5">
              <Hexagon className="text-white dark:text-black w-4 h-4" />
           </div>
@@ -43,8 +43,8 @@ export default function DashboardLayout() {
                     className={({ isActive }) =>
                       `flex items-center gap-3 px-2.5 py-1.5 rounded-md text-sm transition-all duration-150 ${
                         isActive
-                          ? 'bg-zinc-200/50 dark:bg-zinc-800/80 text-zinc-900 dark:text-white font-medium'
-                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200/40 dark:hover:bg-zinc-800/40'
+                          ? 'bg-zinc-200/50 dark:bg-surface-card text-zinc-900 dark:text-white font-medium'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200/40 dark:hover:bg-surface-card/40'
                       }`
                     }
                   >
@@ -67,8 +67,8 @@ export default function DashboardLayout() {
                     className={({ isActive }) =>
                       `flex items-center gap-3 px-2.5 py-1.5 rounded-md text-sm transition-all duration-150 ${
                         isActive
-                          ? 'bg-zinc-200/50 dark:bg-zinc-800/80 text-zinc-900 dark:text-white font-medium'
-                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200/40 dark:hover:bg-zinc-800/40'
+                          ? 'bg-zinc-200/50 dark:bg-surface-card text-zinc-900 dark:text-white font-medium'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200/40 dark:hover:bg-surface-card/40'
                       }`
                     }
                   >
@@ -81,12 +81,12 @@ export default function DashboardLayout() {
           )}
         </div>
         
-        <div className="p-3 border-t border-zinc-200 dark:border-zinc-800/80">
+        <div className="p-3 border-t border-zinc-200 dark:border-surface-border">
           <div 
             onClick={logout}
-            className="flex items-center gap-3 px-2 py-1.5 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 rounded-md cursor-pointer transition-colors group"
+            className="flex items-center gap-3 px-2 py-1.5 hover:bg-zinc-200/50 dark:hover:bg-surface-card rounded-md cursor-pointer transition-colors group"
           >
-             <div className="w-7 h-7 rounded bg-zinc-900 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-medium text-white shadow-sm border border-zinc-700 group-hover:border-red-500/50 transition-colors">
+             <div className="w-7 h-7 rounded bg-zinc-900 dark:bg-surface-subtle flex items-center justify-center text-[10px] font-medium text-white shadow-sm border border-zinc-700 group-hover:border-brand-500/50 transition-colors">
                 {user?.name?.substring(0, 2).toUpperCase() || 'AD'}
              </div>
              <div className="flex flex-col flex-1 truncate">
@@ -99,7 +99,7 @@ export default function DashboardLayout() {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0">
-        <header className="h-14 flex items-center justify-between px-6 border-b border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-[#050505] sticky top-0 z-20 transition-colors duration-300">
+        <header className="h-14 flex items-center justify-between px-6 border-b border-zinc-200 dark:border-surface-border bg-white dark:bg-surface-dark sticky top-0 z-20 transition-colors duration-300">
           <div className="flex items-center text-sm font-medium">
              <span className="text-zinc-600 dark:text-zinc-400">HealthNPS</span>
              <span className="text-zinc-300 dark:text-zinc-700 mx-2">/</span>
@@ -114,7 +114,7 @@ export default function DashboardLayout() {
               <input 
                 type="text" 
                 placeholder="Pesquisar..." 
-                className="w-full bg-[#FAFAFA] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/80 rounded-md py-1.5 pl-8 pr-3 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-600 transition-colors"
+                className="w-full bg-zinc-50 dark:bg-surface-subtle border border-zinc-200 dark:border-surface-border rounded-lg py-1.5 pl-8 pr-3 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-surface-ring/20 focus:border-surface-ring transition-all"
               />
             </div>
             <ThemeToggle />

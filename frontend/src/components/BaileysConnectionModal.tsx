@@ -75,15 +75,15 @@ export default function BaileysConnectionModal({ channelId, channelName, onClose
   }, [channelId]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-white/20 dark:bg-black/40 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="w-full max-w-md bg-white dark:bg-[#0d0d0f] border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="w-full max-w-md bg-white dark:bg-surface-card border border-zinc-200 dark:border-surface-border rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-zinc-100 dark:border-zinc-800/60 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-900/20">
+        <div className="px-6 py-4 border-b border-zinc-100 dark:border-surface-border/50 flex items-center justify-between bg-zinc-50/50 dark:bg-surface-subtle/40">
            <div>
               <h3 className="text-sm font-bold text-zinc-900 dark:text-white tracking-tight">Conectar WhatsApp</h3>
               <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider">{channelName}</p>
            </div>
-           <button onClick={onClose} className="p-1.5 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-full transition-colors">
+           <button onClick={onClose} className="p-1.5 hover:bg-zinc-100 dark:hover:bg-surface-subtle rounded-full transition-colors">
               <X className="w-4 h-4 text-zinc-500" />
            </button>
         </div>
@@ -142,7 +142,7 @@ export default function BaileysConnectionModal({ channelId, channelName, onClose
               <div className="flex flex-col gap-3">
                 <button 
                   onClick={onClose}
-                  className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
+                  className="w-full btn-brand"
                 >
                   Concluir
                 </button>
@@ -168,7 +168,7 @@ export default function BaileysConnectionModal({ channelId, channelName, onClose
               </div>
               <button 
                 onClick={startConnection}
-                className="px-6 py-2 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-lg text-xs font-bold"
+                className="btn-primary"
               >
                 Tentar Novamente
               </button>

@@ -109,7 +109,7 @@ export default function Dashboard() {
             <button 
               onClick={() => refreshDashboard()}
               disabled={isRefreshing.dashboard}
-              className="px-3 py-1.5 text-xs font-medium bg-zinc-50 dark:bg-zinc-800/50 text-zinc-900 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700/80 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50"
+              className="btn-secondary py-1.5 text-xs"
             >
                {isRefreshing.dashboard ? 'Atualizando...' : 'Atualizar Dados'}
             </button>

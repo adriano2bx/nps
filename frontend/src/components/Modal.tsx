@@ -40,17 +40,17 @@ export default function Modal({ isOpen, onClose, title, description, children, s
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: 8 }}
             transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-            className={`relative w-full ${widthClass} bg-white dark:bg-[#0f0f10] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl my-auto`}
+            className={`relative w-full ${widthClass} bg-white dark:bg-surface-card border border-zinc-200 dark:border-surface-border rounded-xl shadow-2xl my-auto`}
           >
             {/* Header */}
-            <div className="flex items-start justify-between px-6 pt-6 pb-4 border-b border-zinc-100 dark:border-zinc-800/80">
+            <div className="flex items-start justify-between px-6 pt-6 pb-4 border-b border-zinc-100 dark:border-surface-border/50">
               <div>
                 <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight">{title}</h2>
                 {description && <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-0.5">{description}</p>}
               </div>
               <button
                 onClick={onClose}
-                className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors p-0.5 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 ml-4"
+                className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors p-0.5 rounded hover:bg-zinc-100 dark:hover:bg-surface-subtle ml-4"
               >
                 <X className="w-4 h-4" />
               </button>
