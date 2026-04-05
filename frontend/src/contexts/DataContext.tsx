@@ -85,7 +85,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setIsRefreshing(prev => ({ ...prev, dashboard: true }));
     try {
       const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
-      const response = await fetch(`${apiBase}/api/dashboard/stats`, {
+      const response = await fetch(`${apiBase}/api/reports/dashboard`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {
@@ -108,7 +108,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     try {
       const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
       const params = new URLSearchParams({ page: String(page), ...filters });
-      const response = await fetch(`${apiBase}/api/dashboard/responses?${params}`, {
+      const response = await fetch(`${apiBase}/api/reports/detailed?${params}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {

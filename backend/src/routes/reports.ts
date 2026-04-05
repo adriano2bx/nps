@@ -247,33 +247,64 @@ router.get('/detailed', authMiddleware, async (req: AuthRequest, res: Response) 
       await setTenantCached(tenantId, countCacheKey, 60, total.toString());
     }
 
-    // 2. Fetch only the necessary 10 sessions for THIS page
-    const sessions = await prisma.surveySession.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: { startedAt: 'desc' },
-      select: {
-        id: true,
-        status: true,
-        startedAt: true,
-        contact: { select: { name: true, phoneNumber: true, isMasked: true } },
-        campaign: { select: { name: true } },
-        responses: {
-          where: { 
-            OR: [
-              { answerValue: { not: null } }, 
-              { AND: [{ answerText: { not: null } }, { answerText: { not: '' } }] }
-            ]
-          },
-          select: { answerValue: true, answerText: true, question: { select: { type: true } } },
-          orderBy: { createdAt: 'desc' }
+    // 2. Fetch both the necessary 10 sessions for THIS page AND global stats for the header
+    const [statsResult, distributionResult, sessions] = await Promise.all([
+      prisma.surveyResponse.aggregate({
+        where: { tenantId, question: { type: 'nps' } },
+        _count: { id: true }
+      }),
+      prisma.surveyResponse.groupBy({
+        by: ['answerValue'],
+        where: { tenantId, question: { type: 'nps' } },
+        _count: { id: true }
+      }),
+      prisma.surveySession.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { startedAt: 'desc' },
+        select: {
+          id: true,
+          status: true,
+          startedAt: true,
+          contact: { select: { name: true, phoneNumber: true, isMasked: true } },
+          campaign: { select: { name: true } },
+          responses: {
+            where: { 
+              OR: [
+                { answerValue: { not: null } }, 
+                { AND: [{ answerText: { not: null } }, { answerText: { not: '' } }] }
+              ]
+            },
+            select: { answerValue: true, answerText: true, question: { select: { type: true } } },
+            orderBy: { createdAt: 'desc' }
+          }
         }
-      }
+      })
+    ]);
+
+    // Calculate Stats for the header cards
+    const sTotal = statsResult._count?.id || 0;
+    let sPromoters = 0;
+    let sDetractors = 0;
+    distributionResult.forEach((item: any) => {
+      const val = Math.round(item.answerValue || 0);
+      const count = item._count?.id || 0;
+      if (val >= 9) sPromoters += count;
+      else if (val <= 6) sDetractors += count;
     });
 
+    const stats = sTotal === 0 ? {
+      score: 0, total: 0, promoterPercentage: 0, detractorPercentage: 0
+    } : {
+      score: Math.round(((sPromoters - sDetractors) / sTotal) * 100),
+      total: sTotal,
+      promoterPercentage: Math.round((sPromoters / sTotal) * 100),
+      detractorPercentage: Math.round((sDetractors / sTotal) * 100)
+    };
+
     const result = {
-      responses: (sessions as any[]).map((s: any) => {
+      data: (sessions as any[]).map((s: any) => {
         // For the list view, we still show the first NPS score found
         const npsResponse = s.responses.find((r: any) => r.answerValue !== null);
         const commentResponse = s.responses.find((r: any) => r.answerText !== null && r.answerText !== '');
@@ -285,7 +316,7 @@ router.get('/detailed', authMiddleware, async (req: AuthRequest, res: Response) 
           campaignName: s.campaign.name,
           score: npsResponse ? npsResponse.answerValue : 0,
           comment: commentResponse ? commentResponse.answerText : (npsResponse?.answerText || ''),
-          createdAt: s.startedAt,
+          date: s.startedAt,
           status: s.status,
           isMasked: s.contact.isMasked
         };
@@ -295,7 +326,8 @@ router.get('/detailed', authMiddleware, async (req: AuthRequest, res: Response) 
         page,
         limit,
         pages: Math.ceil(total / limit)
-      }
+      },
+      stats
     };
 
     await setTenantCached(tenantId, cacheKey, 60, result);
