@@ -368,7 +368,8 @@ function Step1({
   isBaileys,
   isUploading,
   fileInputRef,
-  handleFileUpload
+  handleFileUpload,
+  onOpenTopicModal
 }: { 
   data: GeneralState; 
   onChange: (k: string, v: string) => void; 
