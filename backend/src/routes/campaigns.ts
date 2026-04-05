@@ -13,6 +13,33 @@ const __dirname = path.dirname(__filename);
 
 const router = Router();
 
+/**
+ * Normaliza o tipo de uma pergunta antes de salvar.
+ * Se uma pergunta for do tipo 'list' ou 'choice' mas todas as suas opções
+ * forem números inteiros de 0 a 10, ela é automaticamente reclassificada
+ * como 'nps' para garantir que apareça corretamente no dashboard.
+ */
+function normalizeQuestionType(q: any): { type: string; options: string } {
+  const opts = Array.isArray(q.options) ? q.options : [];
+  let resolvedType = q.type;
+
+  if ((q.type === 'list' || q.type === 'choice') && opts.length > 0) {
+    const allNumeric = opts.every((o: any) => {
+      const n = parseInt(String(o).trim(), 10);
+      return !isNaN(n) && n >= 0 && n <= 10;
+    });
+    if (allNumeric) {
+      resolvedType = 'nps';
+      console.log(`[Campaigns] ✅ Auto-normalizado pergunta '${q.text?.substring(0, 30)}' de '${q.type}' para 'nps' (opções numéricas 0-10 detectadas).`);
+    }
+  }
+
+  return {
+    type: resolvedType,
+    options: resolvedType === 'nps' ? '[]' : JSON.stringify(opts)
+  };
+}
+
 // Multer Storage Configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -135,13 +162,16 @@ router.post('/', authMiddleware, async (req: AuthRequest, res) => {
           resend: resend ? parseInt(resend, 10) : 1,
           status: 'DRAFT',
           questions: {
-            create: (questions || []).map((q: any, i: number) => ({
-              orderIndex: i,
-              type: q.type,
-              text: q.text,
-              required: q.required ?? true,
-              options: JSON.stringify(q.options || [])
-            }))
+            create: (questions || []).map((q: any, i: number) => {
+              const { type, options } = normalizeQuestionType(q);
+              return {
+                orderIndex: i,
+                type,
+                text: q.text,
+                required: q.required ?? true,
+                options
+              };
+            })
           }
         },
         include: {
@@ -291,14 +321,17 @@ router.put('/:id', authMiddleware, async (req: AuthRequest, res) => {
         });
 
         await tx.surveyQuestion.createMany({
-          data: questions.map((q: any, i: number) => ({
-            campaignId: id,
-            orderIndex: i,
-            type: q.type,
-            text: q.text,
-            required: q.required ?? true,
-            options: JSON.stringify(q.options || [])
-          }))
+          data: questions.map((q: any, i: number) => {
+            const { type, options } = normalizeQuestionType(q);
+            return {
+              campaignId: id,
+              orderIndex: i,
+              type,
+              text: q.text,
+              required: q.required ?? true,
+              options
+            };
+          })
         });
       }
 

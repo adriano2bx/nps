@@ -514,6 +514,17 @@ Retorne APENAS um JSON válido e estrito com a chave:
              return;
           }
         }
+
+        // Proteção: se a resposta selecionada for numérica 0-10, promove para answerValue
+        // Cobre casos de perguntas 'list' criadas incorretamente como escala NPS
+        if (answerText !== null) {
+          const numVal = parseFloat(answerText.trim());
+          if (!isNaN(numVal) && numVal >= 0 && numVal <= 10 && String(numVal) === answerText.trim()) {
+            console.log(`[SurveyEngine] 🔁 Promoção automática: answerText '${answerText}' → answerValue ${numVal} (pergunta ${currentQ.type} com valor numérico NPS)`);
+            answerValue = numVal;
+            answerText = null;
+          }
+        }
       } catch (e) {
         answerText = rawText;
       }
