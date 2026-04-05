@@ -56,6 +56,31 @@ class WebhookService {
       console.error('[WebhookService] Error queuing event:', error);
     }
   }
+
+  /**
+   * Directly queues a webhook delivery to a specific URL.
+   * Useful for per-option webhook triggers.
+   */
+  async queueDirectWebhook(url: string, event: string, payload: any, secret?: string) {
+    try {
+      await this.queue.add(`direct:${event}`, {
+        url,
+        secret,
+        event,
+        payload: {
+          event,
+          timestamp: new Date().toISOString(),
+          data: payload
+        }
+      }, {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 5000 }
+      });
+      console.log(`[WebhookService] 🚀 Queued direct delivery to: ${url}`);
+    } catch (error) {
+      console.error('[WebhookService] Error queuing direct webhook:', error);
+    }
+  }
 }
 
 export const webhookService = new WebhookService();

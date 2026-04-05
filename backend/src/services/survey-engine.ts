@@ -603,6 +603,26 @@ Retorne APENAS um JSON válido e estrito com a chave:
         }
         await this.closeSession(session, true);
         return;
+      } else if (action.type === 'webhook' && action.webhookUrl) {
+        // Trigger the direct webhook call
+        await webhookService.queueDirectWebhook(action.webhookUrl, 'option.webhook', {
+          sessionId: session.id,
+          campaignId: session.campaignId,
+          contact: {
+            id: session.contactId,
+            name: session.contact.name,
+            phone: session.contact.phoneNumber
+          },
+          question: {
+            id: currentQ.id,
+            text: currentQ.text,
+            type: currentQ.type
+          },
+          answer: {
+            value: answerValue,
+            text: answerText
+          }
+        }).catch(e => console.error('[SurveyEngine] Error triggering direct webhook:', e));
       }
     }
 
