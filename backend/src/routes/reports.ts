@@ -74,11 +74,8 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
     // 1. Try to get from Cache
     const cachedData = await redis.get(cacheKey);
     if (cachedData) {
-      console.log(`[Cache Hit] Serving dashboard for tenant: ${tenantId}`);
       return res.json(JSON.parse(cachedData));
     }
-
-    console.log(`[Cache Miss] Fetching fresh dashboard data for tenant: ${tenantId}`);
     
     // Default to All Time unless specified in query
     const { startDate, endDate } = req.query;

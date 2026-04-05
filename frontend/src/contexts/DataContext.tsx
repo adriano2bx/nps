@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from './AuthContext';
 
 interface Contact {
@@ -238,7 +238,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
   }, [token]);
 
-  const value = {
+  const value = useMemo(() => ({
     dashboard,
     reports,
     patients,
@@ -253,7 +253,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     refreshTopics: fetchTopics,
     loading,
     isRefreshing
-  };
+  }), [
+    dashboard, reports, patients, campaigns, channels, topics, 
+    fetchDashboard, fetchReports, fetchPatients, fetchCampaigns, fetchChannels, fetchTopics, 
+    loading, isRefreshing
+  ]);
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }
