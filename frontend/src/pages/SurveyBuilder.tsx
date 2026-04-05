@@ -12,6 +12,7 @@ import {
   Image as ImageIcon, UploadCloud, ShieldCheck, Loader2
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useData } from '../contexts/DataContext';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type QuestionType = 'nps' | 'open' | 'choice' | 'list';
@@ -1589,6 +1590,7 @@ export default function SurveyBuilder() {
   const [isSaving, setIsSaving] = useState(false);
   
   const { token, user } = useAuth();
+  const { refreshCampaigns } = useData();
   const [channels, setChannels] = useState<WhatsAppChannel[]>([]);
 
   useEffect(() => {
@@ -1731,6 +1733,7 @@ export default function SurveyBuilder() {
       }
 
       alert('✅ Campanha criada com sucesso!');
+      await refreshCampaigns();
       navigate('/surveys');
     } catch (err: any) {
       console.error('Error creating campaign:', err);
@@ -1835,6 +1838,7 @@ export default function SurveyBuilder() {
       });
 
       if (!response.ok) throw new Error('Failed to update');
+      await refreshCampaigns();
       navigate('/surveys');
     } catch (err: any) {
       alert('Erro ao atualizar: ' + err.message);
