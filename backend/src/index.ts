@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import compression from 'compression';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { prisma } from './lib/prisma.js';
 import channelRoutes from './routes/channels.js';
@@ -71,6 +73,19 @@ const tryAcquireLock = async (onAcquired: () => void) => {
 
 const app = express();
 const port = process.env.PORT || 3001;
+
+// Global Security Middlewares
+app.use(helmet());
+
+const globalLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 200, // limit each IP to 200 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Muitas requisições. Tente novamente em 1 minuto.' }
+});
+
+app.use('/api/', globalLimiter); // Apply to all API routes
 
 app.use(cors());
 app.use(compression());

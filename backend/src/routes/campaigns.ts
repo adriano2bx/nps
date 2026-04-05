@@ -7,11 +7,25 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs-extra';
 import { fileURLToPath } from 'url';
+import { z } from 'zod';
+import { validate } from '../middleware/validate.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const router = Router();
+
+// Validation Schemas
+const campaignSchema = z.object({
+  body: z.object({
+    name: z.string().min(2, 'Nome da campanha muito curto'),
+    whatsappChannelId: z.string().uuid().optional().nullable(),
+    questions: z.array(z.object({
+      text: z.string().min(1, 'Texto da pergunta é obrigatório'),
+      type: z.string()
+    })).optional()
+  })
+});
 
 /**
  * Normaliza o tipo de uma pergunta antes de salvar.
@@ -118,7 +132,7 @@ router.get('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   }
 });
 
-router.post('/', authMiddleware, async (req: AuthRequest, res) => {
+router.post('/', authMiddleware, validate(campaignSchema), async (req: AuthRequest, res) => {
   const { 
     name, type, channelId, 
     clinicName, phone, header, footer,
@@ -262,7 +276,7 @@ router.patch('/:id', authMiddleware, async (req: AuthRequest, res) => {
 });
 
 // PUT /api/campaigns/:id - Full update (metadata + questions)
-router.put('/:id', authMiddleware, async (req: AuthRequest, res) => {
+router.put('/:id', authMiddleware, validate(campaignSchema), async (req: AuthRequest, res) => {
   const id = req.params.id as string;
   const tenantId = req.tenantId as string;
   const { 

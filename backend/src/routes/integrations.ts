@@ -1,6 +1,9 @@
 import { Router, Response } from 'express';
+import { z } from 'zod';
+import rateLimit from 'express-rate-limit';
 import { prisma } from '../lib/prisma.js';
 import { apiKeyMiddleware, ApiRequest } from '../middleware/api-key.js';
+import { validate } from '../middleware/validate.js';
 import { webhookService } from '../services/webhook-service.js';
 
 const router = Router();
@@ -11,6 +14,28 @@ const router = Router();
  */
 
 router.use(apiKeyMiddleware);
+
+// Integration Specific Rate Limits
+const triggerLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 30, // limit each IP to 30 triggers per minute
+  message: { error: 'Limite de disparos atingido. Tente novamente em 1 minuto.' }
+});
+
+const metricsLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 60, // limit each IP to 60 metric requests per minute
+  message: { error: 'Muitas requisições de métricas. Tente novamente em 1 minuto.' }
+});
+
+// Validation Schemas
+const triggerSchema = z.object({
+  body: z.object({
+    campaignId: z.string().uuid('ID de campanha inválido'),
+    phoneNumber: z.string().min(8, 'Número de telefone inválido'),
+    contactName: z.string().optional()
+  })
+});
 
 /**
  * @swagger
@@ -87,7 +112,7 @@ router.get('/campaigns', async (req: ApiRequest, res: Response) => {
  *       409:
  *         description: Sessão já aberta para este contato
  */
-router.post('/trigger', async (req: ApiRequest, res: Response) => {
+router.post('/trigger', triggerLimiter, validate(triggerSchema), async (req: ApiRequest, res: Response) => {
   const { campaignId, phoneNumber, contactName } = req.body;
   const tenantId = req.tenantId!;
 
@@ -217,7 +242,7 @@ router.post('/contacts/upsert', async (req: ApiRequest, res: Response) => {
  *       200:
  *         description: Estatísticas de NPS
  */
-router.get('/metrics/nps', async (req: ApiRequest, res: Response) => {
+router.get('/metrics/nps', metricsLimiter, async (req: ApiRequest, res: Response) => {
   const tenantId = req.tenantId!;
 
   try {
@@ -231,8 +256,9 @@ router.get('/metrics/nps', async (req: ApiRequest, res: Response) => {
     
     if (total === 0) return res.json({ nps: 0, total: 0 });
 
-    const promoters = values.filter(v => v >= 9).length;
-    const detractors = values.filter(v => v <= 6).length;
+    // 0-5 Scale Logic
+    const promoters = values.filter(v => v >= 5).length;
+    const detractors = values.filter(v => v <= 3).length;
     const nps = ((promoters - detractors) / total) * 100;
 
     res.json({
