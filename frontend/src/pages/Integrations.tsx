@@ -59,14 +59,16 @@ export default function Integrations() {
     { id: 'contact.optout', label: 'Opt-out (Sair)', icon: AlertTriangle }
   ];
 
+  const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
       
       const [keysRes, hooksRes] = await Promise.all([
-        axios.get('/api/integrations/keys', { headers }),
-        axios.get('/api/integrations/webhooks', { headers })
+        axios.get(`${apiBase}/api/integrations/keys`, { headers }),
+        axios.get(`${apiBase}/api/integrations/webhooks`, { headers })
       ]);
       
       setKeys(keysRes.data);
@@ -83,7 +85,7 @@ export default function Integrations() {
   const handleCreateKey = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('/api/integrations/keys', { name: newKeyName }, {
+      const res = await axios.post(`${apiBase}/api/integrations/keys`, { name: newKeyName }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setGeneratedKey(res.data.key);
@@ -96,7 +98,7 @@ export default function Integrations() {
   const handleCreateWebhook = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('/api/integrations/webhooks', { 
+      const res = await axios.post(`${apiBase}/api/integrations/webhooks`, { 
         url: webhookUrl, 
         events: selectedEvents 
       }, {
@@ -110,14 +112,20 @@ export default function Integrations() {
     }
   };
 
-  const handleDeleteKey = async (id: string) => {
-    if (!confirm('Tem certeza? Isso quebrará as integrações usando esta chave.')) return;
+  const handleDeleteKey = async (id: string, isWebhook = false) => {
+    const msg = isWebhook ? 'Deletar webhook?' : 'Tem certeza? Isso quebrará as integrações usando esta chave.';
+    if (!confirm(msg)) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`/api/integrations/keys/${id}`, {
+      const endpoint = isWebhook ? `${apiBase}/api/integrations/webhooks/${id}` : `${apiBase}/api/integrations/keys/${id}`;
+      await axios.delete(endpoint, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setKeys(keys.filter(k => k.id !== id));
+      if (isWebhook) {
+        setWebhooks(webhooks.filter(w => w.id !== id));
+      } else {
+        setKeys(keys.filter(k => k.id !== id));
+      }
     } catch (err) {
       alert('Erro ao deletar chave');
     }
@@ -226,7 +234,7 @@ export default function Integrations() {
                               <div className={`w-2 h-2 rounded-full ${hook.active ? 'bg-green-500' : 'bg-zinc-400'}`} />
                               <span className="font-mono text-sm text-zinc-700 dark:text-zinc-300 truncate max-w-md">{hook.url}</span>
                            </div>
-                           <button onClick={() => handleDeleteKey(hook.id)} className="text-zinc-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+                           <button onClick={() => handleDeleteKey(hook.id, true)} className="text-zinc-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
                         </div>
                         <div className="flex flex-wrap gap-2">
                            {hook.events.split(',').map(ev => (
@@ -252,7 +260,7 @@ export default function Integrations() {
                 Todas as requisições API requerem o header <strong>X-API-KEY</strong>. 
                 Seus webhooks são assinados com um segredo <strong>HMAC-SHA256</strong> exclusivo.
              </p>
-             <a href="#" className="flex items-center gap-2 text-sm font-bold border-b border-white/20 pb-1 w-fit hover:opacity-80 transition-opacity">
+             <a href="https://documenter.getpostman.com/view/nps-api" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm font-bold border-b border-white/20 pb-1 w-fit hover:opacity-80 transition-opacity">
                 Abrir Documentação Técnica <ExternalLink className="w-3.5 h-3.5" />
              </a>
           </div>
@@ -261,11 +269,11 @@ export default function Integrations() {
             <Code2 className="absolute -right-4 -bottom-4 w-24 h-24 text-white/5 group-hover:rotate-12 transition-transform duration-700" />
             <h4 className="text-sm font-bold flex items-center gap-2 mb-6"><Terminal className="w-4 h-4 text-emerald-500" /> API SDK v1.2</h4>
             <div className="space-y-6 relative z-10">
-              <div className="space-y-2"><span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Base API URL</span><div className="bg-white/5 p-3 rounded-xl text-[11px] font-mono text-emerald-400 break-all border border-white/5 shadow-inner leading-relaxed">https://api.nps.com/v1</div></div>
+              <div className="space-y-2"><span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Base API URL</span><div className="bg-white/5 p-3 rounded-xl text-[11px] font-mono text-emerald-400 break-all border border-white/5 shadow-inner leading-relaxed">{`${apiBase}/api`}</div></div>
               <div className="space-y-2"><span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Gatilho Rápido</span><pre className="bg-white/5 p-4 rounded-xl text-[10px] font-mono text-zinc-400 overflow-x-auto border border-white/5 shadow-inner leading-relaxed">{`curl -X POST /trigger \\
-  -H "Auth: Bearer KEY" \\
+  -H "X-API-KEY: SUA_CHAVE" \\
   -d '{"ph": "55..."}'`}</pre></div>
-              <button className="flex items-center gap-2 text-[10px] font-black text-emerald-500 hover:text-emerald-400 transition-colors pt-2 uppercase tracking-widest">Documentação Completa <ChevronRight className="w-3 h-3" /></button>
+              <a href="https://documenter.getpostman.com/view/nps-api" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-[10px] font-black text-emerald-500 hover:text-emerald-400 transition-colors pt-2 uppercase tracking-widest">Documentação Completa <ChevronRight className="w-3 h-3" /></a>
             </div>
           </div>
         </div>
