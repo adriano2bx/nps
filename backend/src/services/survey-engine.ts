@@ -648,7 +648,6 @@ Retorne APENAS um JSON válido e estrito com a chave:
     }
     
     if (question.type === 'nps') {
-      text += '\n\n_(Responda com uma nota de 0 a 5)_';
       // Prepara lista de 0 a 5 (Se encaixa perfeitamente no limite de 10 itens da Meta)
       buttons = [
         { id: '5', title: '5 - Muito Provável' },

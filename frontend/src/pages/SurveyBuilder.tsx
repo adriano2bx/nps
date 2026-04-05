@@ -694,6 +694,20 @@ Você aceita participar de uma pesquisa rápida de satisfação?`}
           <p className="text-[11px] text-zinc-500 mt-1">Texto completo exibido no balão.</p>
         </div>
 
+        <div>
+          <label className={labelCls}>Rodapé da Mensagem Inicial</label>
+          <EmojiInput value={data.footer} onChange={val => onChange('footer', val)}>
+            <textarea
+              rows={2}
+              className={`${inputCls} resize-none`}
+              placeholder="Ex: Responda SAIR para não receber mais mensagens."
+              value={data.footer}
+              onChange={e => onChange('footer', e.target.value)}
+            />
+          </EmojiInput>
+          <p className="text-[11px] text-zinc-500 mt-1">Instruções de opt-out ou avisos legais.</p>
+        </div>
+
         {/* Botões de Aceite — Ocultos para Baileys (texto puro) */}
         {(
           <div className="grid grid-cols-2 gap-4">
@@ -1023,8 +1037,8 @@ function SurveySimulator({
                     </div>
                   )}
 
-                  {/* List button 4+ */}
-                  {currentQ.type === 'list' && (
+                  {/* List button for 'list' type or 'nps' type */}
+                  {(currentQ.type === 'list' || currentQ.type === 'nps') && (
                     <button onClick={() => setShowList(true)}
                       className="mt-px w-full bg-white dark:bg-[#1f2c34] py-2 px-2.5 text-[12px] font-semibold text-[#00a884] flex items-center justify-center gap-1.5 hover:bg-[#f0faf7] dark:hover:bg-[#00a884]/10 transition-colors border-t border-zinc-200 dark:border-zinc-700/40"
                     >
@@ -1079,29 +1093,35 @@ function SurveySimulator({
                   <button onClick={() => setShowList(false)} className="text-[12px] text-[#00a884] font-bold">FECHAR</button>
                 </div>
                 <div className="overflow-y-auto">
-                  {(currentQ.options ?? []).map((o, i) => {
-                    const opt = typeof o === 'string' ? o : o.label;
-                    return (
-                      <button
-                        key={i}
-                        onMouseEnter={() => setHoveredOption(i)}
-                        onMouseLeave={() => setHoveredOption(null)}
-                        onClick={() => handleSelect(o || `Opção ${i + 1}`)}
-                        className="w-full text-left px-4 py-3.5 flex items-center gap-3 border-b border-zinc-100 dark:border-zinc-700/60 last:border-0 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
-                      >
-                        <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                          hoveredOption === i ? 'border-[#00a884]' : 'border-zinc-400 dark:border-zinc-500'
-                        }`}>
-                          <span className={`w-2.5 h-2.5 rounded-full transition-all ${
-                            hoveredOption === i ? 'bg-[#00a884] scale-100' : 'bg-transparent scale-0'
-                          }`} />
-                        </span>
-                        <span className="text-[13px] text-zinc-700 dark:text-zinc-200 leading-snug">
-                          {opt || `Opção ${i + 1}`}
-                        </span>
-                      </button>
-                    );
-                  })}
+                  {(() => {
+                    const options = currentQ.type === 'nps' 
+                      ? ['5 - Muito Provável', '4', '3', '2', '1', '0 - Nada Provável'] 
+                      : (currentQ.options ?? []);
+                    
+                    return options.map((o, i) => {
+                      const opt = typeof o === 'string' ? o : o.label;
+                      return (
+                        <button
+                          key={i}
+                          onMouseEnter={() => setHoveredOption(i)}
+                          onMouseLeave={() => setHoveredOption(null)}
+                          onClick={() => handleSelect(o || `Opção ${i + 1}`)}
+                          className="w-full text-left px-4 py-3.5 flex items-center gap-3 border-b border-zinc-100 dark:border-zinc-700/60 last:border-0 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
+                        >
+                          <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                            hoveredOption === i ? 'border-[#00a884]' : 'border-zinc-400 dark:border-zinc-500'
+                          }`}>
+                            <span className={`w-2.5 h-2.5 rounded-full transition-all ${
+                              hoveredOption === i ? 'bg-[#00a884] scale-100' : 'bg-transparent scale-0'
+                            }`} />
+                          </span>
+                          <span className="text-[13px] text-zinc-700 dark:text-zinc-200 leading-snug">
+                            {opt || `Opção ${i + 1}`}
+                          </span>
+                        </button>
+                      );
+                    });
+                  })()}
                 </div>
               </div>
             </div>
@@ -2131,7 +2151,7 @@ export default function SurveyBuilder() {
 
   const showSim = step === 0 || (step === 1 && !isMkt);
   const selectedChannel = channels.find(c => c.id === general.channelId);
-  const isBaileys = selectedChannel?.provider === 'BAILEYS';
+  const isBaileys = false; // Definitively disabled - platform uses Meta lists/buttons
 
   // Derive which UI components to show based on step index and type
   const renderStep = () => {
