@@ -674,12 +674,12 @@ Retorne APENAS um JSON válido e estrito com a chave:
     if (question.type === 'nps') {
       // Prepara lista de 0 a 5 (Se encaixa perfeitamente no limite de 10 itens da Meta)
       buttons = [
-        { id: '5', title: '5 - Muito Provável' },
+        { id: '5', title: '5' },
         { id: '4', title: '4' },
         { id: '3', title: '3' },
         { id: '2', title: '2' },
         { id: '1', title: '1' },
-        { id: '0', title: '0 - Nada Provável' },
+        { id: '0', title: '0' },
       ];
     } else if (!buttons) {
       text += '\n\n_(Digite sua resposta)_';

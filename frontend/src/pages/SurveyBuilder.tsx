@@ -1069,7 +1069,7 @@ function SurveySimulator({
                 <div className="overflow-y-auto">
                   {(() => {
                     const options = currentQ.type === 'nps' 
-                      ? ['5 - Muito Provável', '4', '3', '2', '1', '0 - Nada Provável'] 
+                      ? ['5', '4', '3', '2', '1', '0'] 
                       : (currentQ.options ?? []);
                     
                     return options.map((o, i) => {
