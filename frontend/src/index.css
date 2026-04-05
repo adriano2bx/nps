@@ -1,1 +1,82 @@
 @import "tailwindcss";
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: "Outfit", sans-serif;
+  
+  --color-brand-50: #eef2ff;
+  --color-brand-500: #6366f1;
+  --color-brand-600: #4f46e5;
+  --color-brand-700: #4338ca;
+  --color-brand-900: #312e81;
+
+  /* Surfaces */
+  --color-surface-white: #ffffff;
+  --color-surface-dark: #09090b;
+  --color-surface-card: #141416;
+  --color-surface-subtle: #18181b;
+  --color-surface-border: #27272a;
+  --color-surface-ring: #6366f1;
+
+  /* State Colors */
+  --color-danger: #ef4444;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-surface-dark);
+    color: #e4e4e7;
+    @apply transition-colors duration-200;
+  }
+
+  /* Form Elements Base Styling */
+  input[type="text"], input[type="email"], input[type="password"], input[type="tel"], input[type="url"], textarea, select {
+    @apply bg-white dark:bg-surface-subtle border border-zinc-200 dark:border-surface-border rounded-xl px-4 py-2.5 text-sm;
+    @apply text-zinc-900 dark:text-zinc-100 transition-all focus:ring-2 focus:ring-surface-ring/20 focus:border-surface-ring outline-hidden;
+  }
+
+  ::placeholder {
+    @apply text-zinc-400 dark:text-zinc-600;
+  }
+
+  select {
+    color-scheme: light dark;
+  }
+
+  .dark select option {
+    background-color: #18181b;
+    color: #f4f4f5;
+  }
+}
+
+/* CUSTOM UTILITIES AND COMPONENTS */
+
+@utility glass-panel {
+  @apply bg-surface-card/60 backdrop-blur-xl border border-surface-border/50 shadow-2xl;
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-150 active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+}
+
+@utility btn-primary {
+  @apply btn bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-100 shadow-lg shadow-black/5;
+}
+
+@utility btn-secondary {
+  @apply btn bg-white dark:bg-surface-subtle text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-surface-border hover:bg-zinc-50 dark:hover:bg-surface-card;
+}
+
+@utility btn-danger {
+  @apply btn bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 hover:bg-red-500/20;
+}
+
+@utility btn-brand {
+  @apply btn bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-600/20;
+}
+
+@utility btn-ghost {
+  @apply btn bg-transparent text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800;
+}
