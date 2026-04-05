@@ -371,11 +371,11 @@ router.get('/detailed', authMiddleware, async (req: AuthRequest, res: Response) 
         
         return {
           id: s.id,
-          contactName: s.contact.name || 'Anônimo',
-          contactPhone: s.contact.phoneNumber,
-          campaignName: s.campaign.name,
+          name: s.contact.name || 'Anônimo',
+          phone: s.contact.phoneNumber,
+          campaign: s.campaign.name,
           score: npsResponse ? npsResponse.answerValue : 0,
-          comment: commentResponse ? commentResponse.answerText : (npsResponse?.answerText || ''),
+          response: commentResponse ? commentResponse.answerText : (npsResponse?.answerText || ''),
           date: s.startedAt,
           status: s.status,
           isMasked: s.contact.isMasked
