@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 
 interface Contact {
@@ -6,7 +6,6 @@ interface Contact {
   name: string;
   phoneNumber: string;
   optOut: boolean;
-  isMasked: boolean;
   lastActive: string;
   segments: { id: string; name: string; color: string }[];
 }
@@ -20,6 +19,11 @@ interface Campaign {
   _count?: {
     questions: number;
     sessions: number;
+  };
+  topic?: {
+    id: string;
+    name: string;
+    color: string | null;
   };
 }
 
@@ -50,222 +54,213 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const fetchingRefs = React.useRef<Record<string, boolean>>({});
 
   const [dashboard, setDashboard] = useState<any>(null);
-  const [reports, setReports] = useState({ data: [], pagination: { total: 0, page: 1, limit: 10, pages: 1 }, stats: null });
-  const [patients, setPatients] = useState<{ data: Contact[]; pagination: any }>({ data: [], pagination: { total: 0, page: 1, limit: 10, pages: 0 } });
+  const [reports, setReports] = useState<any>({ data: [], pagination: {}, stats: {} });
+  const [patients, setPatients] = useState<any>({ data: [], pagination: {} });
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [topics, setTopics] = useState<{ id: string; name: string; color: string }[]>([]);
-
   const [channels, setChannels] = useState<any[]>([]);
-  
-  const [loading, setLoading] = useState({ 
-    dashboard: true, reports: true, patients: true, campaigns: true, channels: true, topics: true
+  const [topics, setTopics] = useState<any[]>([]);
+
+  const [loading, setLoading] = useState({
+    dashboard: true,
+    reports: true,
+    patients: true,
+    campaigns: true,
+    channels: true,
+    topics: true
   });
-  const [isRefreshing, setIsRefreshing] = useState({ 
-    dashboard: false, reports: false, patients: false, campaigns: false, channels: false, topics: false 
+
+  const [isRefreshing, setIsRefreshing] = useState({
+    dashboard: false,
+    reports: false,
+    patients: false,
+    campaigns: false,
+    channels: false,
+    topics: false
   });
 
-  const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
-
-  const fetchDashboard = useCallback(async () => {
-    if (!token) return;
-    
-    const resourceKey = 'dashboard';
-    if (fetchingRefs.current[resourceKey]) return;
-    fetchingRefs.current[resourceKey] = true;
-
+  const fetchDashboard = async () => {
+    if (!token || fetchingRefs.current.dashboard) return;
+    fetchingRefs.current.dashboard = true;
     setIsRefreshing(prev => ({ ...prev, dashboard: true }));
     try {
-      const res = await fetch(`${apiBase}/api/reports/dashboard`, {
+      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+      const response = await fetch(`${apiBase}/api/dashboard/stats`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (res.ok) {
-        const data = await res.json();
+      if (response.ok) {
+        const data = await response.json();
         setDashboard(data);
-        localStorage.setItem('nps_dashboard_cache', JSON.stringify(data));
       }
     } catch (err) {
-      console.error('DataCtx Dashboard Error:', err);
+      console.error('Failed to fetch dashboard', err);
     } finally {
-      fetchingRefs.current[resourceKey] = false;
       setLoading(prev => ({ ...prev, dashboard: false }));
       setIsRefreshing(prev => ({ ...prev, dashboard: false }));
+      fetchingRefs.current.dashboard = false;
     }
-  }, [token, apiBase]);
+  };
 
-  const fetchReports = useCallback(async (page = 1, filters = { campaign: 'all', scoreCategory: 'all' }) => {
-    if (!token) return;
-
-    const resourceKey = `reports:${page}:${JSON.stringify(filters)}`;
-    if (fetchingRefs.current[resourceKey]) return;
-    fetchingRefs.current[resourceKey] = true;
-
+  const fetchReports = async (page = 1, filters = {}) => {
+    if (!token || fetchingRefs.current.reports) return;
+    fetchingRefs.current.reports = true;
     setIsRefreshing(prev => ({ ...prev, reports: true }));
     try {
-      const queryParams = new URLSearchParams();
-      if (filters && filters.campaign !== 'all') queryParams.append('campaignId', filters.campaign);
-      if (filters && filters.scoreCategory !== 'all') queryParams.append('scoreCategory', filters.scoreCategory);
-      queryParams.append('page', page.toString());
-      queryParams.append('limit', '10');
-
-      // Fetch Detailed and Stats in Parallel
-      const [resDetailed, resStats] = await Promise.all([
-        fetch(`${apiBase}/api/reports/detailed?${queryParams.toString()}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        fetch(`${apiBase}/api/reports/stats?${queryParams.toString()}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-      ]);
-
-      if (resDetailed.ok && resStats.ok) {
-        const dataDetailed = await resDetailed.json();
-        const dataStats = await resStats.json();
-        
-        const mapped = { 
-          data: dataDetailed.responses.map((r: any) => ({
-             id: r.id,
-             name: r.contactName || 'Anônimo',
-             phone: r.contactPhone || '',
-             campaign: r.campaignName || '—',
-             score: r.score ?? 0,
-             response: r.comment || '',
-             date: r.createdAt,
-             isMasked: !!r.isMasked
-          })), 
-          pagination: dataDetailed.pagination,
-          stats: dataStats
-        };
-        setReports(mapped);
-        localStorage.setItem('nps_reports_cache', JSON.stringify(mapped));
+      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+      const params = new URLSearchParams({ page: String(page), ...filters });
+      const response = await fetch(`${apiBase}/api/dashboard/responses?${params}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setReports(data);
       }
     } catch (err) {
-      console.error('DataCtx Reports Error:', err);
+      console.error('Failed to fetch reports', err);
     } finally {
-      fetchingRefs.current[resourceKey] = false;
       setLoading(prev => ({ ...prev, reports: false }));
       setIsRefreshing(prev => ({ ...prev, reports: false }));
+      fetchingRefs.current.reports = false;
     }
-  }, [token, apiBase]);
+  };
 
-  const fetchPatients = useCallback(async (page = 1) => {
-    if (!token) return;
-
-    const resourceKey = `patients:${page}`;
-    if (fetchingRefs.current[resourceKey]) return;
-    fetchingRefs.current[resourceKey] = true;
-
+  const fetchPatients = async (page = 1) => {
+    if (!token || fetchingRefs.current.patients) return;
+    fetchingRefs.current.patients = true;
     setIsRefreshing(prev => ({ ...prev, patients: true }));
     try {
-      const res = await fetch(`${apiBase}/api/contacts?page=${page}&limit=10`, {
+      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+      const response = await fetch(`${apiBase}/api/contacts?page=${page}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (res.ok) {
-        const data = await res.json();
-        const mapped = { data: data.contacts, pagination: data.pagination };
-        setPatients(mapped);
-        localStorage.setItem('nps_patients_cache', JSON.stringify(mapped));
+      if (response.ok) {
+        const data = await response.json();
+        setPatients(data);
       }
     } catch (err) {
-      console.error('DataCtx Patients Error:', err);
+      console.error('Failed to fetch patients', err);
     } finally {
-      fetchingRefs.current[resourceKey] = false;
       setLoading(prev => ({ ...prev, patients: false }));
       setIsRefreshing(prev => ({ ...prev, patients: false }));
+      fetchingRefs.current.patients = false;
     }
-  }, [token, apiBase]);
+  };
 
-  const fetchCampaigns = useCallback(async () => {
-    if (!token) return;
+  const fetchCampaigns = async () => {
+    if (!token || fetchingRefs.current.campaigns) return;
+    fetchingRefs.current.campaigns = true;
     setIsRefreshing(prev => ({ ...prev, campaigns: true }));
     try {
-      const res = await fetch(`${apiBase}/api/campaigns`, {
+      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+      const response = await fetch(`${apiBase}/api/campaigns`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (res.ok) {
-        const data = await res.json();
+      if (response.ok) {
+        const data = await response.json();
         setCampaigns(data);
-        localStorage.setItem('nps_campaigns_cache', JSON.stringify(data));
       }
     } catch (err) {
-      console.error('DataCtx Campaigns Error:', err);
+      console.error('Failed to fetch campaigns', err);
     } finally {
       setLoading(prev => ({ ...prev, campaigns: false }));
       setIsRefreshing(prev => ({ ...prev, campaigns: false }));
+      fetchingRefs.current.campaigns = false;
     }
-  }, [token, apiBase]);
+  };
 
-  const fetchChannels = useCallback(async () => {
-    if (!token) return;
+  const fetchChannels = async () => {
+    if (!token || fetchingRefs.current.channels) return;
+    fetchingRefs.current.channels = true;
     setIsRefreshing(prev => ({ ...prev, channels: true }));
     try {
-      const res = await fetch(`${apiBase}/api/channels`, {
+      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+      const response = await fetch(`${apiBase}/api/channels`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (res.ok) {
-        const data = await res.json();
+      if (response.ok) {
+        const data = await response.json();
         setChannels(data);
-        localStorage.setItem('nps_channels_cache', JSON.stringify(data));
       }
     } catch (err) {
-      console.error('DataCtx Channels Error:', err);
+      console.error('Failed to fetch channels', err);
     } finally {
       setLoading(prev => ({ ...prev, channels: false }));
       setIsRefreshing(prev => ({ ...prev, channels: false }));
+      fetchingRefs.current.channels = false;
     }
-  }, [token, apiBase]);
+  };
 
-  // Initial Boot Sequence: Load all caches FIRST, then fetch fresh data
+  const fetchTopics = async () => {
+    if (!token || fetchingRefs.current.topics) return;
+    fetchingRefs.current.topics = true;
+    setIsRefreshing(prev => ({ ...prev, topics: true }));
+    try {
+      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+      const response = await fetch(`${apiBase}/api/topics`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setTopics(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch topics', err);
+    } finally {
+      setLoading(prev => ({ ...prev, topics: false }));
+      setIsRefreshing(prev => ({ ...prev, topics: false }));
+      fetchingRefs.current.topics = false;
+    }
+  };
+
   useEffect(() => {
     if (token) {
-      // 1. Load Caches
-      const dashCached = localStorage.getItem('nps_dashboard_cache');
-      if (dashCached) setDashboard(JSON.parse(dashCached));
-
-      const reportsCached = localStorage.getItem('nps_reports_cache');
-      if (reportsCached) setReports(JSON.parse(reportsCached));
-
-      const patientsCached = localStorage.getItem('nps_patients_cache');
-      if (patientsCached) setPatients(JSON.parse(patientsCached));
-
-      const campaignsCached = localStorage.getItem('nps_campaigns_cache');
-      if (campaignsCached) setCampaigns(JSON.parse(campaignsCached));
-
-      const channelsCached = localStorage.getItem('nps_channels_cache');
-      if (channelsCached) setChannels(JSON.parse(channelsCached));
-
-      // 2. Fetch Fresh Data (Parallel)
       fetchDashboard();
-      fetchReports(1);
-      fetchPatients(1);
+      fetchReports();
+      fetchPatients();
       fetchCampaigns();
       fetchChannels();
+      fetchTopics();
+    } else {
+      setDashboard(null);
+      setReports({ data: [], pagination: {}, stats: {} });
+      setPatients({ data: [], pagination: {} });
+      setCampaigns([]);
+      setChannels([]);
+      setTopics([]);
+      setLoading({
+        dashboard: false,
+        reports: false,
+        patients: false,
+        campaigns: false,
+        channels: false,
+        topics: false
+      });
     }
-  }, [token, fetchDashboard, fetchReports, fetchPatients, fetchCampaigns, fetchChannels]);
+  }, [token]);
 
-  return (
-    <DataContext.Provider value={{ 
-      dashboard, 
-      reports, 
-      patients,
-      campaigns,
-      channels,
-      topics,
-      refreshDashboard: fetchDashboard,
-      refreshReports: fetchReports,
-      refreshPatients: fetchPatients,
-      refreshCampaigns: fetchCampaigns,
-      refreshChannels: fetchChannels,
-      refreshTopics: fetchTopics,
-      loading,
-      isRefreshing
-    }}>
-      {children}
-    </DataContext.Provider>
-  );
+  const value = {
+    dashboard,
+    reports,
+    patients,
+    campaigns,
+    channels,
+    topics,
+    refreshDashboard: fetchDashboard,
+    refreshReports: fetchReports,
+    refreshPatients: fetchPatients,
+    refreshCampaigns: fetchCampaigns,
+    refreshChannels: fetchChannels,
+    refreshTopics: fetchTopics,
+    loading,
+    isRefreshing
+  };
+
+  return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }
 
-export const useData = () => {
+export function useData() {
   const context = useContext(DataContext);
-  if (context === undefined) throw new Error('useData must be used within a DataProvider');
+  if (context === undefined) {
+    throw new Error('useData must be used within a DataProvider');
+  }
   return context;
-};
+}

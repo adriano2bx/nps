@@ -45,6 +45,7 @@ interface GeneralState {
   name: string;
   channel: string;
   channelId: string;
+  topicId: string;
   clinicName: string;
   phone: string;
   header: string;
@@ -52,13 +53,13 @@ interface GeneralState {
   openingBody: string;
   buttonYes: string;
   buttonNo: string;
-  closingMessage    : string;
-  isHsm             : string;
-  templateName      : string;
-  ctaLabel          : string;
-  ctaLink           : string;
-  supportName       : string;
-  supportPhone      : string;
+  closingMessage: string;
+  isHsm: string;
+  templateName: string;
+  ctaLabel: string;
+  ctaLink: string;
+  supportName: string;
+  supportPhone: string;
 }
 
 interface WhatsAppChannel {
@@ -362,6 +363,8 @@ function Step1({
   plan, 
   onUpgrade, 
   channels, 
+  topics,
+  refreshTopics,
   isBaileys,
   isUploading,
   fileInputRef,
@@ -1840,13 +1843,22 @@ export default function SurveyBuilder() {
   const [isSendingTest, setIsSendingTest] = useState(false);
 
   const [general, setGeneral] = useState<GeneralState>({
-    type: 'survey', // survey | marketing
-    triggerType: 'active', // active | qrcode | bulk
+    type: 'survey',
+    triggerType: 'active',
     mediaPath: '',
-    name: '', channel: '', channelId: '', topicId: '', clinicName: '', phone: '',
-    header: '', footer: 'Responda SAIR para não receber mais mensagens.',
-    openingBody: '', buttonYes: '✅ Sim, aceito', buttonNo: '❌ Não, obrigado',
-    closingMessage: '', isHsm: 'false',
+    name: '',
+    channel: '',
+    channelId: '',
+    topicId: '',
+    clinicName: '',
+    phone: '',
+    header: '',
+    footer: 'Responda SAIR para não receber mais mensagens.',
+    openingBody: '',
+    buttonYes: '✅ Sim, aceito',
+    buttonNo: '❌ Não, obrigado',
+    closingMessage: '',
+    isHsm: 'false',
     templateName: '',
     ctaLabel: '',
     ctaLink: '',
