@@ -6,6 +6,7 @@ interface Contact {
   name: string;
   phoneNumber: string;
   optOut: boolean;
+  isMasked: boolean;
   lastActive: string;
   segments: { id: string; name: string; color: string }[];
 }
