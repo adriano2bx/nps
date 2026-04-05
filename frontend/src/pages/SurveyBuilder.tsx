@@ -784,7 +784,7 @@ Você aceita participar de uma pesquisa rápida de satisfação?`}
 
 // ─── Step 2 constants ─────────────────────────────────────────────────────
 const qTypeLabels: Record<QuestionType, { label: string; icon: any; hint: string }> = {
-  nps:    { label: 'Nota NPS (0-10)', icon: Hash, hint: 'Gera a pontuação NPS principal (0-10).' },
+  nps:    { label: 'Nota NPS (0-5)', icon: Hash, hint: 'Gera a pontuação NPS principal (0-5).' },
   open:   { label: 'Texto Puro', icon: MessageSquareText, hint: 'Campo de texto livre.' },
   choice: { label: 'Botões', icon: MousePointerClick, hint: 'Até 3 botões rápidos.' },
   list:   { label: 'Lista / Menu', icon: ListIcon, hint: 'Gaveta com opções selecionáveis.' },
@@ -835,7 +835,7 @@ function SurveySimulator({
     setShowList(false);
     setHoveredOption(null);
     const botText = currentQ.text || (
-      currentQ.type === 'nps' ? 'De 0 a 10, o quanto você nos recomendaria?' :
+      currentQ.type === 'nps' ? 'De 0 a 5, o quanto você nos recomendaria?' :
       currentQ.type === 'open' ? 'Deixe seu comentário:' : 'Selecione uma opção:'
     );
     const hHeader = activeStep === 0 ? (header || `🏥 ${clinicName || 'Sua Clínica'}`) : undefined;
@@ -991,7 +991,7 @@ function SurveySimulator({
                     <div className="px-2.5 py-2">
                       <p className="text-[12px] text-zinc-800 dark:text-zinc-200 leading-relaxed whitespace-pre-wrap">
                         {currentQ.text || (
-                          currentQ.type === 'nps' ? 'De 0 a 10, o quanto você nos recomendaria?' :
+                          currentQ.type === 'nps' ? 'De 0 a 5, o quanto você nos recomendaria?' :
                           currentQ.type === 'open' ? 'Deixe seu comentário:' : 'Selecione uma opção:'
                         )}
                       </p>
@@ -1118,11 +1118,11 @@ function SurveySimulator({
               
               if (currentQ?.type === 'nps') {
                 const val = parseInt(inputText.trim(), 10);
-                if (isNaN(val) || val < 0 || val > 10) {
+                if (isNaN(val) || val < 0 || val > 5) {
                   setChatHistory(h => [
                     ...h, 
                     { role: 'user', text: inputText }, 
-                    { role: 'bot', text: "Apenas números de 0 a 10 são aceitos. Tente novamente!" }
+                    { role: 'bot', text: "Apenas números de 0 a 5 são aceitos. Tente novamente!" }
                   ]);
                   setInputText('');
                   return;
@@ -1147,7 +1147,7 @@ function SurveySimulator({
                     }`}
                     placeholder={
                       isFinished ? 'Mensagem' :
-                      currentQ?.type === 'nps' ? 'Digite sua nota (0-10)...' :
+                      currentQ?.type === 'nps' ? 'Digite sua nota (0-5)...' :
                       false ? 'Digite sua resposta...' :
                       currentQ?.type === 'open' ? 'Digite sua mensagem...' :
                       'Mensagem'
@@ -1347,7 +1347,7 @@ function Step2({
 
   const buttonTemplates = [
     { id: 'choice', type: 'choice', label: 'Botões', icon: MousePointerClick, defaultOptions: ['Sim', 'Não'], defaultText: 'Você gostou do atendimento?' },
-    { id: 'list_notes', type: 'list', label: 'Lista c/ Notas', icon: Hash, defaultOptions: ['0','1','2','3','4','5','6','7','8','9','10'], defaultText: 'De 0 a 10, o quanto você recomendaria nossa clínica?' },
+    { id: 'list_notes', type: 'list', label: 'Lista c/ Notas', icon: Hash, defaultOptions: ['0','1','2','3','4','5'], defaultText: 'De 0 a 5, o quanto você recomendaria nossa clínica?' },
     { id: 'list_text', type: 'list', label: 'Lista c/ Textos', icon: ListIcon, defaultOptions: ['Péssimo','Ruim','Bom','Excelente'], defaultText: 'Como você avalia nossa clínica de forma geral?' },
     { id: 'open', type: 'open', label: 'Texto Puro', icon: MessageSquareText, defaultText: 'Por favor, deixe seu comentário livre.' }
   ];
@@ -1443,7 +1443,7 @@ function Step2({
                     <label className={labelCls}>Pergunta</label>
                     <input
                       className={inputCls}
-                      placeholder={q.type === 'nps' ? 'De 0 a 10, o quanto você nos recomendaria?' : q.type === 'open' ? 'O que podemos melhorar?' : 'Como avalia o atendimento?'}
+                      placeholder={q.type === 'nps' ? 'De 0 a 5, o quanto você nos recomendaria?' : q.type === 'open' ? 'O que podemos melhorar?' : 'Como avalia o atendimento?'}
                       value={q.text}
                       onChange={e => update(q.id, 'text', e.target.value)}
                     />
@@ -1865,7 +1865,7 @@ export default function SurveyBuilder() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [questions, setQuestions] = useState<Question[]>([
-    { id: 1, type: 'nps', text: 'De 0 a 10, o quanto você recomendaria nossa clínica para um amigo ou familiar?', required: true }
+    { id: 1, type: 'nps', text: 'De 0 a 5, o quanto você recomendaria nossa clínica para um amigo ou familiar?', required: true }
   ]);
   const [dispatch, setDispatch] = useState({
     delay: '60', timeout: '1440',
@@ -1906,7 +1906,7 @@ export default function SurveyBuilder() {
 
   const canNext = () => {
     if (step === 0) {
-      return !!general.name && !!general.channelId && !!general.topicId;
+      return !!general.name && !!general.channelId; // topicId is optional in DB, so making it optional in UI too but it can still be selected
     }
     if (step === 1) return questions.length > 0 && questions.every(q => q.text.trim());
     return true;
@@ -2080,27 +2080,53 @@ export default function SurveyBuilder() {
     setIsSaving(true);
     try {
       const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+      
+      const payload = {
+        name: general.name,
+        type: general.type,
+        channelId: general.channelId || null, 
+        topicId: general.topicId || null,
+        clinicName: general.clinicName,
+        phone: general.phone,
+        header: general.header,
+        footer: general.footer,
+        openingBody: general.openingBody,
+        buttonYes: general.buttonYes,
+        buttonNo: general.buttonNo,
+        closingMessage: general.closingMessage,
+        isHsm: general.isHsm === 'true',
+        triggerType: general.triggerType,
+        templateName: general.templateName,
+        ctaLabel: general.ctaLabel,
+        ctaLink: general.ctaLink,
+        supportName: general.supportName,
+        supportPhone: general.supportPhone,
+        mediaPath: general.mediaPath,
+        ...dispatch,
+        questions: questions.map(q => ({
+          id: q.id,
+          type: q.type,
+          text: q.text,
+          required: q.required,
+          options: q.options || []
+        }))
+      };
+
       const response = await fetch(`${apiBase}/api/campaigns/${id}`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}` 
         },
-        body: JSON.stringify({
-          ...general,
-          topicId: general.topicId || null,
-          ...dispatch,
-          questions: questions.map(q => ({
-            id: q.id,
-            type: q.type,
-            text: q.text,
-            required: q.required,
-            options: q.options || []
-          }))
-        })
+        body: JSON.stringify(payload)
       });
 
-      if (!response.ok) throw new Error('Failed to update');
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Failed to update campaign');
+      }
+      
+      alert('✅ Campanha atualizada com sucesso!');
       await refreshCampaigns();
       navigate('/surveys');
     } catch (err: any) {

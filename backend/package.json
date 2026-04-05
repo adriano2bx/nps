@@ -8,7 +8,8 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "npx prisma migrate deploy && node dist/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:load": "tsx scripts/load-test.ts"
   },
   "keywords": [],
   "author": "",
@@ -30,6 +31,7 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.1.1",
     "openai": "^6.33.0",
+    "p-limit": "^5.0.0",
     "pg": "^8.20.0",
     "pino": "^10.3.1",
     "prisma": "^7.6.0",

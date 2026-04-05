@@ -31,7 +31,7 @@ function normalizeQuestionType(q: any): { type: string; options: string } {
     });
     if (allNumeric) {
       resolvedType = 'nps';
-      console.log(`[Campaigns] ✅ Auto-normalizado pergunta '${q.text?.substring(0, 30)}' de '${q.type}' para 'nps' (opções numéricas 0-10 detectadas).`);
+      console.log(`[Campaigns] ✅ Auto-normalizado pergunta '${q.text?.substring(0, 30)}' de '${q.type}' para 'nps' (opções numéricas 0-5/10 detectadas).`);
     }
   }
 
