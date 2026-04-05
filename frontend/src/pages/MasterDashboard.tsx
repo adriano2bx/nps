@@ -42,6 +42,10 @@ export default function MasterDashboard() {
 
   useEffect(() => {
     fetchStats();
+    
+    // Automatic Refresh every 60 seconds
+    const interval = setInterval(fetchStats, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   const totalCompanies = tenants.length;
