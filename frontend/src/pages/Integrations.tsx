@@ -343,7 +343,7 @@ export default function Integrations() {
                 <Link to="/integrations/docs" className="flex items-center gap-2 text-sm font-bold border-b border-white/20 pb-1 w-fit hover:opacity-80 transition-opacity">
                   Tutorial & Guia Completo <ChevronRight className="w-3.5 h-3.5" />
                 </Link>
-                <a href="/api/docs" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm font-bold border-b border-white/20 pb-1 w-fit hover:opacity-80 transition-opacity">
+                <a href={`${apiBase}/api/docs`} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm font-bold border-b border-white/20 pb-1 w-fit hover:opacity-80 transition-opacity">
                   Swagger OpenAPI <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>

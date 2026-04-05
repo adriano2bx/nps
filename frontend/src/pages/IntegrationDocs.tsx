@@ -19,6 +19,10 @@ import { Link } from 'react-router-dom';
 export default function IntegrationDocs() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  const envApiUrl = import.meta.env.VITE_API_URL;
+  const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const apiBase = envApiUrl || (isDev ? 'http://localhost:3001' : window.location.origin);
+
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
@@ -82,7 +86,7 @@ export default function IntegrationDocs() {
             <span className="font-bold tracking-tight">API Reference <span className="text-zinc-400 font-medium ml-1">v1.0</span></span>
           </div>
           <div className="flex items-center gap-6">
-             <a href="/api/docs" target="_blank" className="text-sm font-medium hover:text-blue-500 transition-colors flex items-center gap-2">
+             <a href={`${apiBase}/api/docs`} target="_blank" className="text-sm font-medium hover:text-blue-500 transition-colors flex items-center gap-2">
                 Swagger <ExternalLink className="w-3.5 h-3.5" />
              </a>
              <Link to="/integrations" className="px-4 py-1.5 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
@@ -142,7 +146,7 @@ export default function IntegrationDocs() {
                <div className="p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-sm">
                   <h4 className="font-bold flex items-center gap-2 mb-2"><Server className="w-4 h-4 text-zinc-400" /> Base URL</h4>
                   <div className="bg-zinc-100 dark:bg-zinc-950 p-4 rounded-xl font-mono text-xs text-blue-500 font-bold">
-                     https://api.healthnps.com.br/api/v1
+                     {apiBase}/api/v1
                   </div>
                </div>
             </div>
@@ -168,7 +172,7 @@ export default function IntegrationDocs() {
                </div>
                <CodeBlock 
                   id="code_trigger"
-                  code={`curl -X POST https://api.healthnps.com.br/api/v1/trigger \\
+                  code={`curl -X POST ${apiBase}/api/v1/trigger \\
   -H "X-API-KEY: SUA_CHAVE" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -200,7 +204,7 @@ export default function IntegrationDocs() {
                </div>
                <CodeBlock 
                   id="code_sync"
-                  code={`fetch('https://api.healthnps.com.br/api/v1/contacts/upsert', {
+                  code={`fetch('${apiBase}/api/v1/contacts/upsert', {
   method: 'POST',
   headers: {
     'X-API-KEY': 'SUA_CHAVE',
@@ -258,7 +262,7 @@ export default function IntegrationDocs() {
             </div>
           </section>
 
-          {/* Tutorial Card */}
+          {/* Final Message Card */}
           <section className="bg-gradient-to-br from-zinc-900 to-black dark:from-zinc-100 dark:to-zinc-200 p-12 rounded-3xl text-white dark:text-zinc-900 relative overflow-hidden">
              <Terminal className="absolute top-0 right-0 w-64 h-64 text-white/5 dark:text-black/5 -translate-y-12 translate-x-12" />
              <div className="relative z-10 max-w-xl space-y-6">
@@ -267,9 +271,9 @@ export default function IntegrationDocs() {
                    Nossa API foi desenhada para ser simples e poderosa. Se precisar de ajuda em implementações complexas, nossa equipe técnica está à disposição.
                 </p>
                 <div className="flex gap-4">
-                   <a href="https://documenter.getpostman.com/view/nps-api" target="_blank" className="px-6 py-3 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white rounded-xl font-bold flex items-center gap-2 hover:scale-105 transition-transform">
-                      Abrir no Postman <ExternalLink className="w-4 h-4" />
-                   </a>
+                   <Link to="/integrations" className="px-6 py-3 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white rounded-xl font-bold transition-transform hover:scale-105">
+                      Voltar para Chaves de API
+                   </Link>
                 </div>
              </div>
           </section>
