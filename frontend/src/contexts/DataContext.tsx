@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 
 interface Contact {
@@ -79,7 +79,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     topics: false
   });
 
-  const fetchDashboard = async () => {
+  const fetchDashboard = useCallback(async () => {
     if (!token || fetchingRefs.current.dashboard) return;
     fetchingRefs.current.dashboard = true;
     setIsRefreshing(prev => ({ ...prev, dashboard: true }));
@@ -99,15 +99,15 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       setIsRefreshing(prev => ({ ...prev, dashboard: false }));
       fetchingRefs.current.dashboard = false;
     }
-  };
+  }, [token]);
 
-  const fetchReports = async (page = 1, filters = {}) => {
+  const fetchReports = useCallback(async (page = 1, filters = {}) => {
     if (!token || fetchingRefs.current.reports) return;
     fetchingRefs.current.reports = true;
     setIsRefreshing(prev => ({ ...prev, reports: true }));
     try {
       const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
-      const params = new URLSearchParams({ page: String(page), ...filters });
+      const params = new URLSearchParams({ page: String(page), ...filters as any });
       const response = await fetch(`${apiBase}/api/reports/detailed?${params}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -122,9 +122,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       setIsRefreshing(prev => ({ ...prev, reports: false }));
       fetchingRefs.current.reports = false;
     }
-  };
+  }, [token]);
 
-  const fetchPatients = async (page = 1) => {
+  const fetchPatients = useCallback(async (page = 1) => {
     if (!token || fetchingRefs.current.patients) return;
     fetchingRefs.current.patients = true;
     setIsRefreshing(prev => ({ ...prev, patients: true }));
@@ -144,9 +144,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       setIsRefreshing(prev => ({ ...prev, patients: false }));
       fetchingRefs.current.patients = false;
     }
-  };
+  }, [token]);
 
-  const fetchCampaigns = async () => {
+  const fetchCampaigns = useCallback(async () => {
     if (!token || fetchingRefs.current.campaigns) return;
     fetchingRefs.current.campaigns = true;
     setIsRefreshing(prev => ({ ...prev, campaigns: true }));
@@ -166,9 +166,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       setIsRefreshing(prev => ({ ...prev, campaigns: false }));
       fetchingRefs.current.campaigns = false;
     }
-  };
+  }, [token]);
 
-  const fetchChannels = async () => {
+  const fetchChannels = useCallback(async () => {
     if (!token || fetchingRefs.current.channels) return;
     fetchingRefs.current.channels = true;
     setIsRefreshing(prev => ({ ...prev, channels: true }));
@@ -188,9 +188,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       setIsRefreshing(prev => ({ ...prev, channels: false }));
       fetchingRefs.current.channels = false;
     }
-  };
+  }, [token]);
 
-  const fetchTopics = async () => {
+  const fetchTopics = useCallback(async () => {
     if (!token || fetchingRefs.current.topics) return;
     fetchingRefs.current.topics = true;
     setIsRefreshing(prev => ({ ...prev, topics: true }));
@@ -210,7 +210,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       setIsRefreshing(prev => ({ ...prev, topics: false }));
       fetchingRefs.current.topics = false;
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     if (token) {

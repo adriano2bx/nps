@@ -63,7 +63,7 @@ export default function Reports() {
 
   useEffect(() => {
     refreshReports(1, filters);
-  }, [filters.campaign, filters.scoreCategory, refreshReports]);
+  }, [filters.campaign, filters.scoreCategory, filters.status, refreshReports]);
 
   const handleAnonymize = async (sessionId: string) => {
     if (!window.confirm('LGPD: Deseja anonimizar permanentemente este contato? A nota será mantida para estatísticas, mas o nome e telefone serão removidos.')) return;
