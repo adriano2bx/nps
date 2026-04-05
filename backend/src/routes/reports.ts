@@ -241,10 +241,10 @@ router.get('/detailed', authMiddleware, async (req: AuthRequest, res: Response) 
     let total: number;
     
     if (totalCached) {
-      total = parseInt(totalCached);
+      total = parseInt(JSON.parse(totalCached));
     } else {
       total = await prisma.surveySession.count({ where });
-      await redis.setex(countCacheKey, 60, total.toString());
+      await setTenantCached(tenantId, countCacheKey, 60, total.toString());
     }
 
     // 2. Fetch only the necessary 10 sessions for THIS page
@@ -356,7 +356,7 @@ router.get('/stats', authMiddleware, async (req: AuthRequest, res: Response) => 
       detractorPercentage: Math.round((sDetractors / sTotal) * 100)
     };
 
-    await setTenantCached(tenantId, cacheKey, 300, stats);
+    await setTenantCached(tenantId, cacheKey, 60, stats);
     res.json(stats);
   } catch (error) {
     console.error('NPS Stats error:', error);

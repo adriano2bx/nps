@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import { prisma } from '../lib/prisma.js';
-import { redis } from '../lib/redis.js';
+import { redis, setTenantCached, invalidateTenantCache } from '../lib/redis.js';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
 
 const router = Router();
@@ -20,8 +20,8 @@ router.get('/', authMiddleware, async (req: AuthRequest, res: Response) => {
       orderBy: { createdAt: 'desc' }
     });
     
-    // 2. Save Cache (60s)
-    await redis.setex(cacheKey, 60, JSON.stringify(channels));
+    // 2. Save Cache (60s) — registered in tenant registry for proper invalidation
+    await setTenantCached(tenantId, cacheKey, 60, channels);
 
     res.json(channels);
   } catch (error: any) {
@@ -55,10 +55,8 @@ router.post('/', authMiddleware, async (req: AuthRequest, res) => {
       }
     });
 
-    // Invalidate All Relevant Caches for this tenant
-    const tId = req.tenantId as string;
-    const keys = await redis.keys(`*:${tId}*`);
-    if (keys.length > 0) await redis.del(...keys);
+    // Invalidate All Relevant Caches for this tenant (Scale Optimized)
+    await invalidateTenantCache(req.tenantId as string);
 
     res.status(201).json(channel);
   } catch (error: any) {
@@ -94,10 +92,8 @@ router.put('/:id', authMiddleware, async (req: AuthRequest, res) => {
       }
     });
 
-    // Invalidate All Relevant Caches for this tenant
-    const tId = req.tenantId as string;
-    const keys = await redis.keys(`*:${tId}*`);
-    if (keys.length > 0) await redis.del(...keys);
+    // Invalidate All Relevant Caches for this tenant (Scale Optimized)
+    await invalidateTenantCache(req.tenantId as string);
 
     res.json(channel);
   } catch (error: any) {
@@ -117,10 +113,8 @@ router.delete('/:id', authMiddleware, async (req: AuthRequest, res) => {
       }
     });
 
-    // Invalidate All Relevant Caches for this tenant
-    const tId = req.tenantId as string;
-    const keys = await redis.keys(`*:${tId}*`);
-    if (keys.length > 0) await redis.del(...keys);
+    // Invalidate All Relevant Caches for this tenant (Scale Optimized)
+    await invalidateTenantCache(req.tenantId as string);
 
     res.status(204).send();
   } catch (error) {

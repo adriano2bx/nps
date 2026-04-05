@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import { prisma } from '../lib/prisma.js';
-import { redis, invalidateTenantCache } from '../lib/redis.js';
+import { redis, setTenantCached, invalidateTenantCache } from '../lib/redis.js';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
 import { surveyQueue } from '../lib/queue.js';
 import multer from 'multer';
@@ -80,8 +80,8 @@ router.get('/', authMiddleware, async (req: AuthRequest, res: Response) => {
       }
     });
 
-    // 2. Save to Cache (60s)
-    await redis.setex(cacheKey, 60, JSON.stringify(campaigns));
+    // 2. Save to Cache (60s) — registered in tenant registry for proper invalidation
+    await setTenantCached(tenantId, cacheKey, 60, campaigns);
 
     res.json(campaigns);
   } catch (error) {

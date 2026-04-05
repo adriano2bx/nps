@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import { prisma } from '../lib/prisma.js';
-import { redis, invalidateTenantCache } from '../lib/redis.js';
+import { redis, setTenantCached, invalidateTenantCache } from '../lib/redis.js';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
 
 const router = Router();
@@ -27,10 +27,10 @@ router.get('/', authMiddleware, async (req: AuthRequest, res) => {
     let total: number;
     
     if (totalCached) {
-      total = parseInt(totalCached);
+      total = parseInt(JSON.parse(totalCached));
     } else {
       total = await prisma.contact.count({ where: { tenantId } });
-      await redis.setex(countCacheKey, 10, total.toString());
+      await setTenantCached(tenantId, countCacheKey, 10, total.toString());
     }
 
     // 3. Fetch data with explicit selection
@@ -77,8 +77,8 @@ router.get('/', authMiddleware, async (req: AuthRequest, res) => {
       }
     };
 
-    // 2. Save to Cache (60s)
-    await redis.setex(cacheKey, 60, JSON.stringify(result));
+    // 2. Save to Cache (60s) — registered in tenant registry for proper invalidation
+    await setTenantCached(tenantId, cacheKey, 60, result);
 
     res.json(result);
   } catch (error) {
