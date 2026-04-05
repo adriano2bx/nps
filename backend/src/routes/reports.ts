@@ -93,7 +93,8 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
         where: {
           tenantId,
           ...filterObj,
-          question: { type: 'nps' }
+          question: { type: 'nps' },
+          answerValue: { not: null }
         },
         _count: { id: true },
         _min: { answerValue: true },
@@ -105,7 +106,8 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
         where: {
           tenantId,
           ...filterObj,
-          question: { type: 'nps' }
+          question: { type: 'nps' },
+          answerValue: { not: null }
         },
         _count: { id: true }
       }),
@@ -130,7 +132,8 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
       prisma.surveyResponse.findMany({
         where: { 
           tenantId,
-          question: { type: 'nps' }
+          question: { type: 'nps' },
+          answerValue: { not: null }
         },
         include: {
           session: { 
@@ -182,7 +185,8 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
       where: {
         tenantId,
         ...filterObj,
-        question: { type: 'nps' }
+        question: { type: 'nps' },
+        answerValue: { not: null }
       },
       select: {
         answerValue: true,
@@ -307,12 +311,12 @@ router.get('/detailed', authMiddleware, async (req: AuthRequest, res: Response) 
     // 2. Fetch both the necessary 10 sessions for THIS page AND global stats for the header
     const [statsResult, distributionResult, sessions] = await Promise.all([
       prisma.surveyResponse.aggregate({
-        where: { tenantId, question: { type: 'nps' } },
+        where: { tenantId, question: { type: 'nps' }, answerValue: { not: null } },
         _count: { id: true }
       }),
       prisma.surveyResponse.groupBy({
         by: ['answerValue'],
-        where: { tenantId, question: { type: 'nps' } },
+        where: { tenantId, question: { type: 'nps' }, answerValue: { not: null } },
         _count: { id: true }
       }),
       prisma.surveySession.findMany({
@@ -406,7 +410,7 @@ router.get('/stats', authMiddleware, async (req: AuthRequest, res: Response) => 
     const cached = await redis.get(cacheKey);
     if (cached) return res.json(JSON.parse(cached));
 
-    const where: any = { tenantId, question: { type: 'nps' } };
+    const where: any = { tenantId, question: { type: 'nps' }, answerValue: { not: null } };
     if (campaignId && campaignId !== 'all') where.session = { campaignId };
     if (startDate || endDate) {
       where.createdAt = {};
@@ -463,7 +467,8 @@ router.get('/nps-stats', authMiddleware, async (req: AuthRequest, res) => {
     const responses = await prisma.surveyResponse.findMany({
       where: {
         tenantId,
-        question: { type: 'nps' }
+        question: { type: 'nps' },
+        answerValue: { not: null }
       },
       select: {
         answerValue: true
@@ -517,7 +522,8 @@ router.get('/distribution', authMiddleware, async (req: AuthRequest, res) => {
     const responses = await prisma.surveyResponse.findMany({
       where: {
         tenantId,
-        question: { type: 'nps' }
+        question: { type: 'nps' },
+        answerValue: { not: null }
       },
       select: {
         answerValue: true
