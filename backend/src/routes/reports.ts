@@ -5,6 +5,66 @@ import { authMiddleware, AuthRequest } from '../middleware/auth.js';
 
 const router = Router();
 
+// GET /api/reports/export
+router.get('/export', authMiddleware, async (req: AuthRequest, res) => {
+  try {
+    const tenantId = req.tenantId as string;
+    const { campaignId, startDate, endDate } = req.query;
+
+    const where: any = { tenantId };
+    if (campaignId && campaignId !== 'all') where.campaignId = campaignId as string;
+    
+    if (startDate || endDate) {
+      where.startedAt = {};
+      if (startDate) where.startedAt.gte = new Date(startDate as string);
+      if (endDate) where.startedAt.lte = new Date(endDate as string);
+    }
+
+    const sessions = await prisma.surveySession.findMany({
+      where,
+      orderBy: { startedAt: 'desc' },
+      include: {
+        contact: true,
+        campaign: { select: { name: true } },
+        responses: {
+          orderBy: { createdAt: 'asc' },
+          include: { question: { select: { type: true } } }
+        }
+      }
+    });
+
+    // CSV Header with BOM for UTF-8 compatibility (Excel Friendly)
+    let csvData = '\uFEFF'; 
+    csvData += 'Data;Status;Campanha;Paciente;Telefone;Nota NPS;Resposta/Comentário\n';
+
+    sessions.forEach((s: any) => {
+      // Find NPS score and any significant text response
+      const npsResp = s.responses.find((r: any) => r.question?.type === 'nps');
+      const textResps = s.responses.filter((r: any) => r.answerText && r.answerText.length > 0 && r.question?.type !== 'nps');
+      const latestText = textResps.length > 0 ? textResps[textResps.length - 1].answerText : (npsResp?.answerText || '');
+
+      const row = [
+        new Date(s.startedAt).toLocaleString('pt-BR'),
+        s.status,
+        s.campaign.name,
+        s.contact.name,
+        s.contact.phoneNumber,
+        npsResp ? npsResp.answerValue : '—',
+        latestText.replace(/[\n\r;]/g, ' ') // Escape CSV separators
+      ];
+      csvData += row.join(';') + '\n';
+    });
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="relatorio_nps_${new Date().toISOString().split('T')[0]}.csv"`);
+    res.status(200).send(csvData);
+
+  } catch (error) {
+    console.error('[Export] Error generating CSV:', error);
+    res.status(500).json({ error: 'Internal Server Error during export' });
+  }
+});
+
 // GET /api/reports/dashboard
 router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
   try {

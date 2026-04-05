@@ -38,6 +38,35 @@ export default function Reports() {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [detail, setDetail] = useState<any>(null);
 
+  const handleExport = async (format: 'csv' | 'xlsx') => {
+    try {
+      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+      const params = new URLSearchParams({ 
+        campaignId: filters.campaign 
+      });
+      
+      const response = await fetch(`${apiBase}/api/reports/export?${params}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (!response.ok) throw new Error('Export failed');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `relatorio_conversas_${new Date().toISOString().split('T')[0]}.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      setIsExporting(false);
+    } catch (err) {
+      console.error('Export error:', err);
+      alert('Não foi possível gerar a exportação neste momento.');
+    }
+  };
+
   const fetchSessionDetail = async (id: string) => {
     setSelectedSession(id);
     setLoadingDetail(true);
@@ -122,12 +151,22 @@ export default function Reports() {
             <button onClick={() => setIsExporting(!isExporting)} className="flex items-center gap-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 px-5 py-2.5 rounded-xl font-semibold text-sm hover:scale-[1.02] transition-all shadow-lg active:scale-95">
               <Download className="w-4 h-4" /> Exportar Dados <ChevronDown className={`w-4 h-4 transition-transform ${isExporting ? 'rotate-180' : ''}`} />
             </button>
-            {isExporting && (
-              <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden z-50">
-                <button className="w-full flex items-center gap-3 px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"><FileSpreadsheet className="w-4 h-4 text-emerald-500" /> Excel (.xlsx)</button>
-                <button className="w-full flex items-center gap-3 px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 border-t border-zinc-100 dark:border-zinc-800 transition-colors"><FileText className="w-4 h-4 text-blue-500" /> CSV (Padrão)</button>
-              </div>
-            )}
+             {isExporting && (
+               <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden z-50">
+                 <button 
+                  onClick={() => handleExport('csv')}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-500" /> Excel (.csv)
+                </button>
+                 <button 
+                  onClick={() => handleExport('csv')}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 border-t border-zinc-100 dark:border-zinc-800 transition-colors"
+                >
+                  <FileText className="w-4 h-4 text-blue-500" /> CSV (Geral)
+                </button>
+               </div>
+             )}
           </div>
         </div>
       </div>
