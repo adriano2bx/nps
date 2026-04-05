@@ -16,7 +16,7 @@ import { useData } from '../contexts/DataContext';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type QuestionType = 'nps' | 'open' | 'choice' | 'list';
-type PlanLevel = 'STARTER' | 'PRO' | 'ENTERPRISE';
+type PlanLevel = 'FREE' | 'STARTER' | 'PRO' | 'ENTERPRISE';
 export interface QuestionAction {
   type: 'next' | 'jump' | 'optout' | 'webhook';
   targetQuestionId?: string | number | 'FINISH';
@@ -1801,35 +1801,20 @@ function Step3({ data, onChange, type, plan, onUpgrade, triggerType }: {
 export default function SurveyBuilder() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
-  const tenantPlan = 'ENTERPRISE';
   const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
   const [upgradeFeature, setUpgradeFeature] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   
   const { token, user } = useAuth();
-  const { refreshCampaigns, topics, refreshTopics } = useData();
-  const [channels, setChannels] = useState<WhatsAppChannel[]>([]);
+  const { refreshCampaigns, topics, refreshTopics, channels } = useData();
+  const tenantPlan = (user?.tenant?.plan as PlanLevel) || 'FREE';
+  const getApiBase = () => import.meta.env.VITE_API_URL ?? (window.location.origin === 'http://localhost:5173' ? 'http://localhost:3001' : window.location.origin);
   const [isTopicModalOpen, setIsTopicModalOpen] = useState(false);
   const [newTopicName, setNewTopicName] = useState('');
   const [isCreatingTopic, setIsCreatingTopic] = useState(false);
 
   useEffect(() => {
-    const fetchChannels = async () => {
-      try {
-        const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
-        const response = await fetch(`${apiBase}/api/channels`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setChannels(data);
-        }
-      } catch (err) {
-        console.error('Failed to fetch channels:', err);
-      }
-    };
     if (token) {
-      fetchChannels();
       refreshTopics(); // Ensure topics are loaded
     }
   }, [token, refreshTopics]);
@@ -1885,7 +1870,7 @@ export default function SurveyBuilder() {
       const formData = new FormData();
       formData.append('image', file);
 
-      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+      const apiBase = getApiBase();
       const response = await fetch(`${apiBase}/api/campaigns/upload`, {
         method: 'POST',
         headers: {
@@ -1915,7 +1900,7 @@ export default function SurveyBuilder() {
   const handleFinish = async () => {
     setIsSaving(true);
     try {
-      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+      const apiBase = getApiBase();
       
       const payload = {
         name: general.name,
@@ -1947,7 +1932,7 @@ export default function SurveyBuilder() {
         }))
       };
 
-      const response = await fetch(`${apiBase}/api/campaigns`, {
+      const response = await fetch(`${getApiBase()}/api/campaigns`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -1978,7 +1963,7 @@ export default function SurveyBuilder() {
     if (id) {
       const fetchCampaign = async () => {
         try {
-          const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+          const apiBase = getApiBase();
           const res = await fetch(`${apiBase}/api/campaigns/${id}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
@@ -2004,7 +1989,7 @@ export default function SurveyBuilder() {
             ctaLink: campaign.ctaLink || '',
             supportName: campaign.supportName || '',
             supportPhone: campaign.supportPhone || '',
-            channel: channels.find(c => c.id === campaign.whatsappChannelId)?.name || campaign.whatsappChannelId || '',
+            channel: '', // Will be synced by the other effect below
             mediaPath: campaign.mediaPath || ''
           });
 
@@ -2033,7 +2018,7 @@ export default function SurveyBuilder() {
       };
       fetchCampaign();
     }
-  }, [id, token, channels]);
+  }, [id, token]); // Removed channels to prevent state reset; sync is handled below
 
   // Sincroniza o nome do canal quando a lista de canais carrega após a campanha
   useEffect(() => {
@@ -2049,7 +2034,7 @@ export default function SurveyBuilder() {
     if (!newTopicName.trim()) return;
     setIsCreatingTopic(true);
     try {
-      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+      const apiBase = getApiBase();
       const res = await fetch(`${apiBase}/api/topics`, {
         method: 'POST',
         headers: { 
@@ -2079,7 +2064,7 @@ export default function SurveyBuilder() {
   const handleUpdate = async () => {
     setIsSaving(true);
     try {
-      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+      const apiBase = getApiBase();
       
       const payload = {
         name: general.name,
@@ -2112,7 +2097,7 @@ export default function SurveyBuilder() {
         }))
       };
 
-      const response = await fetch(`${apiBase}/api/campaigns/${id}`, {
+      const response = await fetch(`${getApiBase()}/api/campaigns/${id}`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -2146,7 +2131,7 @@ export default function SurveyBuilder() {
 
   const showSim = step === 0 || (step === 1 && !isMkt);
   const selectedChannel = channels.find(c => c.id === general.channelId);
-  const isBaileys = false; // Forced to allow list/channels everywhere
+  const isBaileys = selectedChannel?.provider === 'BAILEYS';
 
   // Derive which UI components to show based on step index and type
   const renderStep = () => {
@@ -2293,7 +2278,7 @@ export default function SurveyBuilder() {
              onClick={async () => {
                setIsSendingTest(true);
                try {
-                 const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+                 const apiBase = getApiBase();
                  const messageText = (general.openingBody || 'Olá! Gostaríamos de saber sua opinião.')
                    .replace(/\{nome\}/gi, 'Visitante de Teste');
                  const response = await fetch(`${apiBase}/api/baileys/${general.channelId}/test-send`, {
