@@ -12,12 +12,12 @@ import {
   Zap,
   ExternalLink,
   Info,
-  MoreVertical,
   Activity,
   AlertTriangle,
   Code2,
   Terminal,
-  ChevronRight
+  ChevronRight,
+  MessageSquare
 } from 'lucide-react';
 
 interface ApiKey {
@@ -63,7 +63,7 @@ export default function Integrations() {
 
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('nps_auth_token');
       const headers = { Authorization: `Bearer ${token}` };
       
       const [keysRes, hooksRes] = await Promise.all([
@@ -84,7 +84,7 @@ export default function Integrations() {
 
   const handleCreateKey = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('nps_auth_token');
       const res = await axios.post(`${apiBase}/api/integrations/keys`, { name: newKeyName }, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -97,7 +97,7 @@ export default function Integrations() {
 
   const handleCreateWebhook = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('nps_auth_token');
       const res = await axios.post(`${apiBase}/api/integrations/webhooks`, { 
         url: webhookUrl, 
         events: selectedEvents 
@@ -116,7 +116,7 @@ export default function Integrations() {
     const msg = isWebhook ? 'Deletar webhook?' : 'Tem certeza? Isso quebrará as integrações usando esta chave.';
     if (!confirm(msg)) return;
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('nps_auth_token');
       const endpoint = isWebhook ? `${apiBase}/api/integrations/webhooks/${id}` : `${apiBase}/api/integrations/keys/${id}`;
       await axios.delete(endpoint, {
         headers: { Authorization: `Bearer ${token}` }
@@ -400,15 +400,3 @@ export default function Integrations() {
   );
 }
 
-// Helper icons missing in standard imports if needed or for consistency
-function MessageSquare(props: any) {
-  return (
-    <svg 
-      {...props} 
-      xmlns="http://www.w3.org/2000/svg" 
-      width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-    >
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-    </svg>
-  );
-}
