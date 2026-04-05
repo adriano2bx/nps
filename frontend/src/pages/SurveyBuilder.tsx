@@ -739,9 +739,9 @@ Você aceita participar de uma pesquisa rápida de satisfação?`}
 // ─── Step 2 constants ─────────────────────────────────────────────────────
 const qTypeLabels: Record<QuestionType, { label: string; icon: any; hint: string }> = {
   nps:    { label: 'Nota NPS (0-10)', icon: Hash, hint: 'Gera a pontuação NPS principal (0-10).' },
-  open:   { label: 'Resposta Aberta', icon: MessageSquareText, hint: 'Campo de texto livre.' },
-  choice: { label: 'Botões', icon: MousePointerClick, hint: 'Até 3 botões rápidos na mensagem.' },
-  list:   { label: 'Lista', icon: ListIcon, hint: 'Menu com até 10 opções (gaveta).' },
+  open:   { label: 'Texto Puro', icon: MessageSquareText, hint: 'Campo de texto livre.' },
+  choice: { label: 'Botões', icon: MousePointerClick, hint: 'Até 3 botões rápidos.' },
+  list:   { label: 'Lista / Menu', icon: ListIcon, hint: 'Gaveta com opções selecionáveis.' },
 };
 
 const CONSENT_QUESTION: Question = {
@@ -1139,11 +1139,17 @@ function Step2({
     setDraggedIndex(null);
   };
 
-  const addQuestion = (type: QuestionType) => {
+  const buttonTemplates = [
+    { id: 'choice', type: 'choice', label: 'Botões', icon: MousePointerClick, defaultOptions: ['Sim', 'Não'], defaultText: 'Você gostou do atendimento?' },
+    { id: 'list_notes', type: 'list', label: 'Lista c/ Notas', icon: Hash, defaultOptions: ['0','1','2','3','4','5','6','7','8','9','10'], defaultText: 'De 0 a 10, o quanto você recomendaria nossa clínica?' },
+    { id: 'list_text', type: 'list', label: 'Lista c/ Textos', icon: ListIcon, defaultOptions: ['Péssimo','Ruim','Bom','Excelente'], defaultText: 'Como você avalia nossa clínica de forma geral?' },
+    { id: 'open', type: 'open', label: 'Texto Puro', icon: MessageSquareText, defaultText: 'Por favor, deixe seu comentário livre.' }
+  ];
 
+  const addQuestionTemplate = (tmpl: any) => {
     const newQ: Question = {
-      id: Date.now(), type, text: '', required: true,
-      options: (type === 'choice' || type === 'list') ? ['Opção 1', 'Opção 2'] : undefined
+      id: Date.now(), type: tmpl.type as QuestionType, text: tmpl.defaultText, required: true,
+      options: tmpl.defaultOptions ? [...tmpl.defaultOptions] : undefined
     };
     setQuestions([...questions, newQ]);
   };
@@ -1291,18 +1297,17 @@ function Step2({
 
         {/* Add buttons bar */}
         <div className="grid grid-cols-4 gap-2 pt-2">
-          {(Object.entries(qTypeLabels) as [QuestionType, any][])
-            .map(([type, meta]) => (
+          {buttonTemplates.map((tmpl) => (
             <button
-              key={type}
-              onClick={() => { addQuestion(type); setSimStep(Math.max(0, questions.length)); }}
+              key={tmpl.id}
+              onClick={() => { addQuestionTemplate(tmpl); setSimStep(Math.max(0, questions.length)); }}
               className="flex flex-col items-center gap-2 p-3 bg-white dark:bg-[#0d0d0f] border border-zinc-200 dark:border-zinc-800 rounded-xl hover:border-zinc-400 dark:hover:border-zinc-600 hover:shadow-md transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed group"
             >
               <div className="p-2 rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 group-hover:scale-110 transition-transform">
-                <meta.icon className="w-4 h-4" />
+                <tmpl.icon className="w-4 h-4" />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-tight text-zinc-500">
-                + {meta.label.split(' ')[0]}
+              <span className="text-[10px] whitespace-nowrap font-bold uppercase tracking-tight text-zinc-500">
+                + {tmpl.label}
               </span>
             </button>
           ))}
