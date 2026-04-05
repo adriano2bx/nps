@@ -1673,9 +1673,11 @@ export default function SurveyBuilder() {
   const canNext = () => {
     if (step === 0) {
       if (general.channel === 'whatsapp') {
-        return !!general.name && !!general.channel && !!general.clinicName;
+        return !!general.name && !!general.channelId && !!general.clinicName;
       }
-      return !!general.name && !!general.channel;
+      // Usa channelId (não channel/nome) pois ao editar o nome pode não estar
+      // resetado ainda --- o que importa é ter um canal válido selecionado
+      return !!general.name && !!general.channelId;
     }
     if (step === 1) return questions.length > 0 && questions.every(q => q.text.trim());
     return true;
@@ -1769,7 +1771,7 @@ export default function SurveyBuilder() {
             ctaLink: campaign.ctaLink || '',
             supportName: campaign.supportName || '',
             supportPhone: campaign.supportPhone || '',
-            channel: '',
+            channel: channels.find(c => c.id === campaign.whatsappChannelId)?.name || campaign.whatsappChannelId || '',
             mediaPath: campaign.mediaPath || ''
           });
 
@@ -1798,7 +1800,17 @@ export default function SurveyBuilder() {
       };
       fetchCampaign();
     }
-  }, [id, token]);
+  }, [id, token, channels]);
+
+  // Sincroniza o nome do canal quando a lista de canais carrega após a campanha
+  useEffect(() => {
+    if (id && channels.length > 0 && general.channelId && !general.channel) {
+      const found = channels.find(c => c.id === general.channelId);
+      if (found) {
+        setGeneral(prev => ({ ...prev, channel: found.name }));
+      }
+    }
+  }, [channels, general.channelId, id]);
 
   const handleUpdate = async () => {
     setIsSaving(true);
