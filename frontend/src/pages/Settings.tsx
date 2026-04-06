@@ -95,6 +95,7 @@ export default function Settings() {
   };
 
   const inputCls = "w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-zinc-900/5 dark:focus:ring-white/5 transition-all text-zinc-900 dark:text-zinc-100 placeholder-zinc-400";
+  const readonlyInputCls = `${inputCls} bg-zinc-50/50 dark:bg-surface-subtle/20 cursor-not-allowed border-dashed text-zinc-600 dark:text-zinc-400 font-medium`;
   const labelCls = "block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 ml-1";
   const cardCls = "border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-white dark:bg-surface-card shadow-sm overflow-hidden";
   const cardHeadCls = "px-6 py-4 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-surface-subtle/50 flex justify-between items-center";
@@ -148,11 +149,11 @@ export default function Settings() {
               <div className="p-6 space-y-6">
                 <div className="space-y-1">
                   <label className={labelCls}>Nome Fantasia</label>
-                  <input type="text" defaultValue="Clínica Morumbi Integrada" disabled className="opacity-60 bg-zinc-50 cursor-not-allowed" />
+                  <input type="text" defaultValue="Clínica Morumbi Integrada" disabled className={readonlyInputCls} />
                 </div>
                 <div className="space-y-1">
                   <label className={labelCls}>CNPJ Auditado</label>
-                  <input type="text" defaultValue="00.000.000/0001-00" disabled className="opacity-60 bg-zinc-50 cursor-not-allowed font-mono" />
+                  <input type="text" defaultValue="00.000.000/0001-00" disabled className={`${readonlyInputCls} font-mono`} />
                 </div>
                 <div className="p-4 bg-blue-50/50 dark:bg-blue-500/5 border border-blue-100 dark:border-blue-500/20 rounded-xl flex gap-3 shadow-sm">
                   <Shield className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />

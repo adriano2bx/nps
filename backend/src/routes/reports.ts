@@ -128,10 +128,11 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
           }
         }
       }),
-      // 4. Recent responses (Fixed: Only NPS scores to avoid "white squares")
+      // 4. Recent responses (Fixed: Filter by date range and NPS score)
       prisma.surveyResponse.findMany({
         where: { 
           tenantId,
+          ...filterObj,
           question: { type: 'nps' },
           answerValue: { not: null }
         },
@@ -308,15 +309,31 @@ router.get('/detailed', authMiddleware, async (req: AuthRequest, res: Response) 
       await setTenantCached(tenantId, countCacheKey, 60, total.toString());
     }
 
-    // 2. Fetch both the necessary 10 sessions for THIS page AND global stats for the header
+    // 2. Fetch both the necessary 10 sessions for THIS page AND filtered stats for the header
+    const statsWhere: any = { 
+      tenantId, 
+      question: { type: 'nps' }, 
+      answerValue: { not: null } 
+    };
+    
+    if (campaignId && campaignId !== 'all') {
+      statsWhere.session = { campaignId };
+    }
+    
+    if (startDate || endDate) {
+      statsWhere.createdAt = {}; // or use session: { startedAt: ... } if session-based
+      if (startDate) statsWhere.createdAt.gte = new Date(startDate as string);
+      if (endDate) statsWhere.createdAt.lte = new Date(endDate as string);
+    }
+
     const [statsResult, distributionResult, sessions] = await Promise.all([
       prisma.surveyResponse.aggregate({
-        where: { tenantId, question: { type: 'nps' }, answerValue: { not: null } },
+        where: statsWhere,
         _count: { id: true }
       }),
       prisma.surveyResponse.groupBy({
         by: ['answerValue'],
-        where: { tenantId, question: { type: 'nps' }, answerValue: { not: null } },
+        where: statsWhere,
         _count: { id: true }
       }),
       prisma.surveySession.findMany({

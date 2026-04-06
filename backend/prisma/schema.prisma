@@ -126,19 +126,19 @@ model ContactSegment {
 }
 
 model Contact {
-  id           String           @id @default(uuid())
+  id           String               @id @default(uuid())
   tenantId     String
   name         String
   phoneNumber  String
-  optOut       Boolean          @default(false)
-  invalidPhone Boolean          @default(false)
-  isMasked     Boolean          @default(false)
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-  tenant       Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  optOut       Boolean              @default(false)
+  invalidPhone Boolean              @default(false)
+  isMasked     Boolean              @default(false)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  tenant       Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   topicOptOuts ContactTopicOptOut[]
   sessions     SurveySession[]
-  segments     ContactSegment[] @relation("ContactToSegment")
+  segments     ContactSegment[]     @relation("ContactToSegment")
 
   @@unique([tenantId, phoneNumber])
   @@index([tenantId])
@@ -291,6 +291,7 @@ model CampaignTopic {
 
 model ContactTopicOptOut {
   id        String        @id @default(uuid())
+  tenantId  String
   contactId String
   topicId   String
   createdAt DateTime      @default(now())
@@ -298,4 +299,5 @@ model ContactTopicOptOut {
   topic     CampaignTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
 
   @@unique([contactId, topicId])
+  @@index([tenantId])
 }
