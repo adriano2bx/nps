@@ -61,12 +61,13 @@ class SurveyEngine {
    */
   private async matchOptionWithAI(text: string, options: string[]) {
     const prompt = `Você é um motor de processamento de mensagens. O usuário enviou uma resposta a uma pergunta de múltipla escolha.
-Sua tarefa é identificar qual das opções fornecidas melhor corresponde à intenção do usuário.
+Sua tarefa é identificar qual das opções fornecidas corresponde à intenção do usuário.
+IMPORTANTE: Se a resposta do usuário for ambígua, irrelevante, ou indicar que ele não sabe ou não quer escolher uma das opções (ex: "talvez", "não sei", "tanto faz"), você deve marcar como "invalid": true.
 Retorne APENAS um JSON válido:
 {
   "matchedIndex": número (índice da opção, começando em 0),
   "confidence": número (0 a 1),
-  "invalid": booleano (true se o texto não tiver nada a ver com as opções)
+  "invalid": booleano (true se o texto não for uma decisão clara entre as opções)
 }
 Opções: ${JSON.stringify(options)}`;
 
@@ -162,7 +163,7 @@ Opções: ${JSON.stringify(options)}`;
             if (active.campaign.topicId) {
                 await prisma.contactTopicOptOut.upsert({
                     where: { contactId_topicId: { contactId: active.contactId, topicId: active.campaign.topicId } },
-                    create: { tenantId, contactId: active.contactId, topicId: active.campaign.topicId },
+                    create: { contactId: active.contactId, topicId: active.campaign.topicId },
                     update: {}
                 });
             } else {
@@ -443,7 +444,7 @@ Retorne APENAS um JSON válido com exatas duas chaves booleanas:
       if (session.campaign.topicId) {
          await prisma.contactTopicOptOut.upsert({
              where: { contactId_topicId: { contactId: session.contactId, topicId: session.campaign.topicId } },
-             create: { tenantId: session.tenantId, contactId: session.contactId, topicId: session.campaign.topicId },
+             create: { contactId: session.contactId, topicId: session.campaign.topicId },
              update: {}
          });
       } else {
@@ -512,7 +513,8 @@ Retorne APENAS um JSON válido e estrito com a chave:
         if (selectedIdx === -1) {
           // Não bateu exato? Chama a IA para desambiguação
           const match = await this.matchOptionWithAI(rawText, optionLabels);
-          if (!match.invalid && match.matchedIndex >= 0 && match.matchedIndex < options.length) {
+          // Exige confiança mínima de 0.8 para evitar "chutes" da IA
+          if (!match.invalid && match.matchedIndex >= 0 && match.matchedIndex < options.length && match.confidence >= 0.8) {
             selectedIdx = match.matchedIndex;
           }
         }
@@ -582,7 +584,7 @@ Retorne APENAS um JSON válido e estrito com a chave:
         if (topicId) {
           await prisma.contactTopicOptOut.upsert({
             where: { contactId_topicId: { contactId: session.contactId, topicId } },
-            create: { tenantId: session.tenantId, contactId: session.contactId, topicId },
+            create: { contactId: session.contactId, topicId },
             update: {}
           });
         } else {
