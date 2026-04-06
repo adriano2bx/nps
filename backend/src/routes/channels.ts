@@ -2,6 +2,8 @@ import { Router, Response } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { redis, setTenantCached, invalidateTenantCache } from '../lib/redis.js';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
+import { baileysManager } from '../services/baileys-manager.js';
+import { whatsappMeta } from '../services/whatsapp-meta.js';
 
 const router = Router();
 
@@ -119,6 +121,39 @@ router.delete('/:id', authMiddleware, async (req: AuthRequest, res) => {
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete channel' });
+  }
+});
+
+// POST /api/channels/:id/test-send — Unified Test Dispatch
+router.post('/:id/test-send', authMiddleware, async (req: AuthRequest, res) => {
+  const id = req.params.id as string;
+  const tenantId = req.tenantId as string;
+  const { phone, text } = req.body;
+
+  if (!phone || !text) {
+    return res.status(400).json({ error: 'Missing phone or text' });
+  }
+
+  try {
+    const channel = await prisma.whatsAppChannel.findUnique({
+      where: { id, tenantId }
+    });
+
+    if (!channel) return res.status(404).json({ error: 'Channel not found' });
+
+    if (channel.provider === 'BAILEYS') {
+      await baileysManager.sendMessage(id, tenantId, phone, text);
+    } else if (channel.provider === 'META') {
+      // whatsappMeta expects the full channel object
+      await whatsappMeta.sendMessage(channel, phone, text);
+    } else {
+      return res.status(400).json({ error: 'Provider not supported for test-send' });
+    }
+
+    res.json({ success: true, message: `Test message sent to ${phone}` });
+  } catch (error: any) {
+    console.error('Test Send Error:', error);
+    res.status(500).json({ error: 'Failed to send test message', details: error.message });
   }
 });
 

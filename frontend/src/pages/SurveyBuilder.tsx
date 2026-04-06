@@ -2335,7 +2335,7 @@ export default function SurveyBuilder() {
                  const apiBase = getApiBase();
                  const messageText = (general.openingBody || 'Olá! Gostaríamos de saber sua opinião.')
                    .replace(/\{nome\}/gi, 'Visitante de Teste');
-                 const response = await fetch(`${apiBase}/api/baileys/${general.channelId}/test-send`, {
+                 const response = await fetch(`${apiBase}/api/channels/${general.channelId}/test-send`, {
                    method: 'POST',
                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                    body: JSON.stringify({ phone: testPhone.replace(/\D/g, ''), text: messageText })
