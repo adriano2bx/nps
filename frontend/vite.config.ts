@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-// @ts-expect-error - Tailwind v4 Vite plugin types might not be resolved correctly in some IDE environments
+// @ts-ignore - Tailwind v4 Vite plugin types might not be resolved correctly in some IDE environments
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
