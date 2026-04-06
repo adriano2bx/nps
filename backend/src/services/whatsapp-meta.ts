@@ -192,6 +192,39 @@ class WhatsAppMeta {
     }
   }
 
+  /**
+   * Downloads a media file (like audio) from Meta using its ID.
+   * Required for Speech-to-Text (Voice Messages).
+   */
+  public async downloadMedia(mediaId: string, accessToken: string): Promise<Buffer> {
+    try {
+      // 1. Get Media URL and Metadata
+      const infoResponse = await fetch(`https://graph.facebook.com/v21.0/${mediaId}`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+      
+      const info = await infoResponse.json();
+      if (!info.url) {
+        throw new Error(`Media ID ${mediaId} not found or has no URL.`);
+      }
+
+      // 2. Download the actual binary data
+      const mediaResponse = await fetch(info.url, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+
+      if (!mediaResponse.ok) {
+        throw new Error(`Failed to download media binary: ${mediaResponse.statusText}`);
+      }
+
+      const arrayBuffer = await mediaResponse.arrayBuffer();
+      return Buffer.from(arrayBuffer);
+    } catch (error: any) {
+      logger.error({ error: error.message, mediaId }, '[MetaService] Failed to download media');
+      throw error;
+    }
+  }
+
   private async postToMeta(phoneNumberId: string, accessToken: string, payload: any) {
     try {
       const response = await fetch(this.getApiUrl(phoneNumberId), {

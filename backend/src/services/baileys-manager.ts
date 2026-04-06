@@ -2,7 +2,8 @@ import makeWASocket, {
   DisconnectReason, 
   fetchLatestBaileysVersion, 
   makeCacheableSignalKeyStore,
-  WASocket
+  WASocket,
+  downloadMediaMessage
 } from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
 import QRCode from 'qrcode';
@@ -164,7 +165,24 @@ class BaileysManager {
                          null;
                 };
 
-                const textContent = extractText(msg.message);
+                let textContent = extractText(msg.message);
+
+                // Handle Voice Messages (STT)
+                if (!textContent && msg.message.audioMessage) {
+                  try {
+                    const { sttService } = await import('./stt-service.js');
+                    console.log(`[BaileysManager] 🎙️ Processing audio message from ${msg.key.remoteJid}...`);
+                    const buffer = await downloadMediaMessage(msg, 'buffer', {});
+                    const transcription = await sttService.transcribe(buffer as Buffer, 'voice.ogg');
+                    if (transcription) {
+                      textContent = transcription;
+                      console.log(`[BaileysManager] Transcribed audio successfully: "${textContent}"`);
+                    }
+                  } catch (sttErr: any) {
+                    console.error(`[BaileysManager] STT Error:`, sttErr.message);
+                  }
+                }
+
                 console.log(`[BaileysManager] Incoming message from ${msg.key.remoteJid}. Extracted Text: "${textContent}"`);
 
                 if (textContent) {

@@ -72,8 +72,31 @@ router.post('/meta/:channelId', async (req, res) => {
     const from = msg.from;
     const profileName = body.entry[0].changes[0].value.contacts?.[0]?.profile?.name;
     
-    // Extract text (standard text or interactive button/list reply)
+    // Extract text (standard text, interactive button/list reply, or transcribed audio)
     let text = msg.text?.body || '';
+    
+    // Support for Voice Messages (STT)
+    if (msg.type === 'audio' && msg.audio?.id) {
+      const channel = await prisma.whatsAppChannel.findUnique({ where: { id: channelId } });
+      if (channel?.accessToken) {
+        try {
+          const { sttService } = await import('../services/stt-service.js');
+          const { whatsappMeta } = await import('../services/whatsapp-meta.js');
+          
+          logger.info({ audioId: msg.audio.id, channelId }, '[Webhook] Processing Meta Audio Message...');
+          const buffer = await whatsappMeta.downloadMedia(msg.audio.id, channel.accessToken);
+          const transcription = await sttService.transcribe(buffer, 'voice.ogg');
+          
+          if (transcription) {
+            text = transcription;
+            logger.info({ channelId, from, textLength: text.length }, '[Webhook] Transcribed Meta Audio successfully');
+          }
+        } catch (sttError: any) {
+          logger.error({ sttError: sttError.message, channelId }, '[Webhook] Failed to process Meta audio transcription');
+        }
+      }
+    }
+
     if (msg.type === 'interactive') {
       if (msg.interactive?.button_reply) {
         text = msg.interactive.button_reply.title || msg.interactive.button_reply.id;
@@ -83,8 +106,8 @@ router.post('/meta/:channelId', async (req, res) => {
     }
 
     if (!text) {
-      logger.info({ msgType: msg.type, from }, '[Webhook] No text content found in Meta message');
-      return res.status(200).send('No text content');
+      logger.info({ msgType: msg.type, from }, '[Webhook] No processable content found in Meta message');
+      return res.status(200).send('No content');
     }
 
     logger.info({ channelId, from, text, msgType: msg.type, profileName }, '[Webhook] Processing Meta Message');
