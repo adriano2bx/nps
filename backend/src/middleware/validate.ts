@@ -13,11 +13,12 @@ export const validate = (schema: z.ZodSchema) =>
       req.query = validatedData.query;
       req.params = validatedData.params;
       return next();
-    } catch (error) {
-      if (error instanceof ZodError) {
+    } catch (error: any) {
+      if (error instanceof ZodError || error.name === 'ZodError') {
+        const issues = error.issues || [];
         return res.status(400).json({
           error: 'Erro de Validação',
-          details: error.issues.map((e: any) => ({
+          details: issues.map((e: any) => ({
             path: e.path.join('.'),
             message: e.message
           }))
@@ -27,7 +28,8 @@ export const validate = (schema: z.ZodSchema) =>
       console.error('[Validation Error]:', error);
       return res.status(500).json({ 
         error: 'Internal Server Error during validation',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error.message || 'Unknown error',
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   };

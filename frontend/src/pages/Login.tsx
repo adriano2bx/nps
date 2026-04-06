@@ -30,7 +30,7 @@ export default function Login() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Falha no login');
+        throw new Error(data.message || data.error || 'Falha no login');
       }
 
       const { token, user } = await response.json();
