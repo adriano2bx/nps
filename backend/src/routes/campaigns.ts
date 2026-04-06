@@ -45,13 +45,14 @@ function normalizeQuestionType(q: any): { type: string; options: string } {
     });
     if (allNumeric) {
       resolvedType = 'nps';
-      console.log(`[Campaigns] ✅ Auto-normalizado pergunta '${q.text?.substring(0, 30)}' de '${q.type}' para 'nps' (opções numéricas 0-5/10 detectadas).`);
+      console.log(`[Campaigns] ✅ Auto-normalizado pergunta '${q.text?.substring(0, 30)}' de '${q.type}' para 'nps'.`);
     }
   }
 
+  // Preserve options regardless of type (important for UI restoration)
   return {
     type: resolvedType,
-    options: resolvedType === 'nps' ? '[]' : JSON.stringify(opts)
+    options: JSON.stringify(opts)
   };
 }
 
@@ -134,14 +135,17 @@ router.get('/', authMiddleware, async (req: AuthRequest, res: Response) => {
 
 router.post('/', authMiddleware, validate(campaignSchema), async (req: AuthRequest, res) => {
   const { 
-    name, type, channelId, 
+    name, type, channelId, whatsappChannelId,
     clinicName, phone, header, footer,
     openingBody, buttonYes, buttonNo, closingMessage,
     isHsm, triggerType, keyword, waNumber, mediaPath,
     templateName, ctaLabel, ctaLink, supportName, supportPhone,
     delay, timeout, windowStart, windowEnd, resend, scheduledAt,
-    questions 
+    questions, topicId
   } = req.body;
+
+  const resolvedChannelId = channelId || whatsappChannelId;
+  const resolvedTopicId = topicId || req.body.topicId;
 
   try {
     const campaign = await prisma.$transaction(async (tx: any) => {
@@ -151,8 +155,8 @@ router.post('/', authMiddleware, validate(campaignSchema), async (req: AuthReque
           tenantId: req.tenantId!,
           name,
           type: type || 'SURVEY',
-          whatsappChannelId: channelId,
-          topicId: req.body.topicId,
+          whatsappChannelId: resolvedChannelId,
+          topicId: resolvedTopicId,
           clinicName,
           phone,
           header,
@@ -280,14 +284,17 @@ router.put('/:id', authMiddleware, validate(campaignSchema), async (req: AuthReq
   const id = req.params.id as string;
   const tenantId = req.tenantId as string;
   const { 
-    name, type, channelId, 
+    name, type, channelId, whatsappChannelId,
     clinicName, phone, header, footer,
     openingBody, buttonYes, buttonNo, closingMessage,
     isHsm, triggerType, keyword, waNumber, mediaPath,
     templateName, ctaLabel, ctaLink, supportName, supportPhone,
     delay, timeout, windowStart, windowEnd, resend, scheduledAt,
-    questions 
+    questions, topicId
   } = req.body;
+
+  const resolvedChannelId = channelId || whatsappChannelId;
+  const resolvedTopicId = topicId || req.body.topicId;
 
   try {
     const campaign = await prisma.$transaction(async (tx: any) => {
@@ -303,8 +310,8 @@ router.put('/:id', authMiddleware, validate(campaignSchema), async (req: AuthReq
         data: {
           name,
           type: type || existing.type,
-          whatsappChannelId: channelId,
-          topicId: req.body.topicId,
+          whatsappChannelId: resolvedChannelId,
+          topicId: resolvedTopicId,
           clinicName,
           phone,
           header,

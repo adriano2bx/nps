@@ -1943,6 +1943,7 @@ export default function SurveyBuilder() {
         ctaLink: general.ctaLink,
         supportName: general.supportName,
         supportPhone: general.supportPhone,
+        mediaPath: general.mediaPath,
         ...dispatch, // include keyword, waNumber, delay, timeout, etc.
         questions: questions.map(q => ({
           id: q.id,
