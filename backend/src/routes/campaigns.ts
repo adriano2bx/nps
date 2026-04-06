@@ -19,10 +19,40 @@ const router = Router();
 const campaignSchema = z.object({
   body: z.object({
     name: z.string().min(2, 'Nome da campanha muito curto'),
+    type: z.string().optional(),
+    channelId: z.string().uuid().optional().nullable(),
     whatsappChannelId: z.string().uuid().optional().nullable(),
+    topicId: z.string().uuid().optional().nullable(),
+    clinicName: z.string().optional().nullable(),
+    phone: z.string().optional().nullable(),
+    header: z.string().optional().nullable(),
+    footer: z.string().optional().nullable(),
+    openingBody: z.string().optional().nullable(),
+    buttonYes: z.string().optional().nullable(),
+    buttonNo: z.string().optional().nullable(),
+    closingMessage: z.string().optional().nullable(),
+    isHsm: z.union([z.boolean(), z.string()]).optional(),
+    triggerType: z.string().optional(),
+    keyword: z.string().optional().nullable(),
+    waNumber: z.string().optional().nullable(),
+    mediaPath: z.string().optional().nullable(),
+    templateName: z.string().optional().nullable(),
+    ctaLabel: z.string().optional().nullable(),
+    ctaLink: z.string().optional().nullable(),
+    supportName: z.string().optional().nullable(),
+    supportPhone: z.string().optional().nullable(),
+    delay: z.union([z.number(), z.string()]).optional(),
+    timeout: z.union([z.number(), z.string()]).optional(),
+    windowStart: z.string().optional().nullable(),
+    windowEnd: z.string().optional().nullable(),
+    resend: z.union([z.number(), z.string()]).optional(),
+    scheduledAt: z.string().optional().nullable(),
     questions: z.array(z.object({
+      id: z.union([z.string(), z.number()]).optional(),
       text: z.string().min(1, 'Texto da pergunta é obrigatório'),
-      type: z.string()
+      type: z.string(),
+      required: z.boolean().optional(),
+      options: z.any().optional()
     })).optional()
   })
 });
@@ -257,25 +287,53 @@ router.delete('/:id', authMiddleware, async (req: AuthRequest, res) => {
 router.patch('/:id', authMiddleware, async (req: AuthRequest, res) => {
   try {
     const id = req.params.id as string;
-    const { status } = req.body;
+    const body = req.body;
+    
+    // Create update object with allowed fields
+    const data: any = {};
+    const allowedFields = [
+      'status', 'name', 'type', 'whatsappChannelId', 'channelId',
+      'clinicName', 'phone', 'header', 'footer', 'openingBody',
+      'buttonYes', 'buttonNo', 'closingMessage', 'isHsm',
+      'triggerType', 'keyword', 'waNumber', 'mediaPath',
+      'templateName', 'ctaLabel', 'ctaLink', 'supportName', 'supportPhone',
+      'delay', 'timeout', 'windowStart', 'windowEnd', 'resend', 'scheduledAt',
+      'topicId'
+    ];
+
+    Object.keys(body).forEach(key => {
+      if (allowedFields.includes(key)) {
+        if (key === 'channelId' || key === 'whatsappChannelId') {
+          data.whatsappChannelId = body.channelId || body.whatsappChannelId;
+        } else if (key === 'isHsm') {
+          data.isHsm = body.isHsm === 'true' || body.isHsm === true;
+        } else if (['delay', 'timeout', 'resend'].includes(key) && body[key] !== null) {
+          data[key] = parseInt(String(body[key]), 10);
+        } else if (key === 'scheduledAt' && body[key]) {
+          data.scheduledAt = new Date(body[key]);
+        } else {
+          data[key] = body[key];
+        }
+      }
+    });
     
     const campaign = await prisma.surveyCampaign.update({
       where: { 
         id,
         tenantId: req.tenantId as string
       },
-      data: { status }
+      data
     });
     
-    console.log(`[Campaigns] ✅ Status updated to ${status} for campaign ${id}`);
+    console.log(`[Campaigns] ✅ Updated campaign ${id} fields: ${Object.keys(data).join(', ')}`);
     
     // Invalidate All Relevant Caches for this tenant (Scale Optimized)
     await invalidateTenantCache(req.tenantId as string);
 
     res.json(campaign);
   } catch (error: any) {
-    console.error(`[Campaigns] ❌ Failed to update status:`, error);
-    res.status(500).json({ error: 'Failed to update campaign status', details: error.message });
+    console.error(`[Campaigns] ❌ Failed to update campaign:`, error);
+    res.status(500).json({ error: 'Failed to update campaign', details: error.message });
   }
 });
 
