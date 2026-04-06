@@ -60,6 +60,29 @@ export default function Surveys() {
     setMenuOpen(null);
   };
 
+  const handleTrigger = async (id: string, name: string) => {
+    if (!window.confirm(`Deseja iniciar o disparo da campanha "${name}"? Isso enviará mensagens para todos os contatos válidos.`)) return;
+    try {
+      const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+      const response = await fetch(`${apiBase}/api/campaigns/${id}/trigger`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const result = await response.json();
+        alert(`✅ Sucesso! ${result.jobCount} disparos foram colocados na fila de processamento.`);
+        refreshCampaigns();
+      } else {
+        const err = await response.json();
+        alert('Erro ao disparar: ' + (err.error || 'Falha no processamento'));
+      }
+    } catch (err: any) {
+      console.error('Error triggering:', err);
+      alert('Falha na conexão ao disparar.');
+    }
+    setMenuOpen(null);
+  };
+
   const handleDelete = async () => {
     if (!deleteTarget) return;
     try {
@@ -185,7 +208,7 @@ export default function Surveys() {
                       </span>
                     </td>
                     <td className="py-5 px-6">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col gap-2">
                         {row.status === 'ACTIVE' ? (
                           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 text-[10px] font-bold uppercase border border-emerald-100 dark:border-emerald-500/20">
                             <PlayCircle className="w-3.5 h-3.5" /> Ativa
@@ -194,6 +217,14 @@ export default function Surveys() {
                           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-50 dark:bg-zinc-800 text-zinc-500 text-[10px] font-bold uppercase border border-zinc-200 dark:border-zinc-700">
                             <PauseCircle className="w-3.5 h-3.5" /> Pausada
                           </div>
+                        )}
+                        {row.status !== 'ACTIVE' && row.triggerType === 'active' && (
+                          <button 
+                            onClick={() => handleTrigger(row.id, row.name)}
+                            className="flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-900 dark:bg-white text-white dark:text-black text-[9px] font-bold uppercase transition-all active:scale-95 shadow-sm"
+                          >
+                            Disparar Agora
+                          </button>
                         )}
                       </div>
                     </td>
@@ -210,6 +241,10 @@ export default function Surveys() {
                           <button onClick={() => toggleActive(row.id, row.status)} className="flex items-center gap-3 w-full px-4 py-2.5 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors text-xs font-semibold">
                             {row.status === 'ACTIVE' ? <PauseOctagon className="w-3.5 h-3.5" /> : <PlayCircle className="w-3.5 h-3.5" />}
                             {row.status === 'ACTIVE' ? 'Pausar Campanha' : 'Ativar Campanha'}
+                          </button>
+                          <button onClick={() => handleTrigger(row.id, row.name)} className="flex items-center gap-3 w-full px-4 py-2.5 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors text-xs font-semibold">
+                            <PlayCircle className="w-3.5 h-3.5 text-emerald-500" />
+                            Disparar Agora (Send)
                           </button>
                           <div className="border-t border-zinc-100 dark:border-zinc-800 my-1" />
                           <button onClick={() => { setDeleteTarget(row); setMenuOpen(null); }} className="flex items-center gap-3 w-full px-4 py-2.5 text-rose-600 dark:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors text-xs font-semibold">

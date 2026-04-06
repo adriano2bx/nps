@@ -52,4 +52,33 @@ router.post('/', async (req: AuthRequest, res: Response) => {
   }
 });
 
+// Delete topic
+router.delete('/:id', async (req: AuthRequest, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const tenantId = req.tenantId as string;
+
+    // 1. Check if in use
+    const usage = await prisma.surveyCampaign.count({
+      where: { tenantId, topicId: id }
+    });
+
+    if (usage > 0) {
+      return res.status(400).json({ 
+        error: 'Esta categoria não pode ser excluída pois está sendo usada em ' + usage + ' campanha(s).' 
+      });
+    }
+
+    // 2. Delete
+    await prisma.campaignTopic.delete({
+      where: { id, tenantId }
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('[Topics Router] DELETE /:id error:', error);
+    res.status(500).json({ error: 'Failed to delete topic' });
+  }
+});
+
 export default router;

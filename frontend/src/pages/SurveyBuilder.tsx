@@ -32,7 +32,7 @@ export interface SurveyOption {
 }
 
 interface Question {
-  id: number;
+  id: number | string;
   type: QuestionType;
   text: string;
   required: boolean;
@@ -1182,7 +1182,7 @@ function ActionConfigModal({
 }: { 
   action?: QuestionAction; 
   questions: Question[]; 
-  currentQuestionId: number;
+  currentQuestionId: number | string;
   onSave: (action: QuestionAction | undefined) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -1380,9 +1380,9 @@ function Step2({
     };
     setQuestions([...questions, newQ]);
   };
-  const update = (id: number, key: keyof Question, value: any) =>
+  const update = (id: number | string, key: keyof Question, value: any) =>
     setQuestions(questions.map(q => q.id === id ? { ...q, [key]: value } : q));
-  const remove = (id: number) => setQuestions(questions.filter(q => q.id !== id));
+  const remove = (id: number | string) => setQuestions(questions.filter(q => q.id !== id));
 
   const addOption = (q: Question) =>
     update(q.id, 'options', [...(q.options ?? []), { label: `Opção ${(q.options?.length ?? 0) + 1}` }]);
@@ -1988,11 +1988,12 @@ export default function SurveyBuilder() {
           const res = await fetch(`${apiBase}/api/campaigns/${id}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
-          const campaign = await res.json();
+          const dataRaw = await res.json();
+          const campaign = dataRaw;
           
           setGeneral({
             name: campaign.name,
-            type: campaign.type.toLowerCase(),
+            type: campaign.type?.toLowerCase() || 'survey',
             triggerType: campaign.triggerType,
             channelId: campaign.whatsappChannelId || '',
             topicId: campaign.topicId || '',
@@ -2025,13 +2026,21 @@ export default function SurveyBuilder() {
           });
 
           if (campaign.questions) {
-            setQuestions(campaign.questions.map((q: any) => ({
-              id: q.id,
-              type: q.type,
-              text: q.text,
-              required: q.required,
-              options: q.options ? JSON.parse(q.options) : []
-            })));
+            setQuestions(campaign.questions.map((q: any) => {
+              let parsedOptions = [];
+              try {
+                parsedOptions = q.options ? (typeof q.options === 'string' ? JSON.parse(q.options) : q.options) : [];
+              } catch (e) {
+                console.warn('[EditMode] Failed to parse options for question', q.id, e);
+              }
+              return {
+                id: q.id,
+                type: q.type,
+                text: q.text,
+                required: q.required,
+                options: parsedOptions
+              };
+            }));
           }
         } catch (err) {
           console.error('Error loading campaign:', err);
@@ -2068,7 +2077,6 @@ export default function SurveyBuilder() {
         const newTopic = await res.json();
         await refreshTopics();
         setGeneral(prev => ({ ...prev, topicId: newTopic.id }));
-        setIsTopicModalOpen(false);
         setNewTopicName('');
       } else {
         const err = await res.json();
@@ -2079,6 +2087,30 @@ export default function SurveyBuilder() {
       alert('Erro de conexão ao criar categoria.');
     } finally {
       setIsCreatingTopic(false);
+    }
+  };
+
+  const handleDeleteTopic = async (topicId: string, topicName: string) => {
+    if (!window.confirm(`Tem certeza que deseja excluir a categoria "${topicName}"?`)) return;
+    
+    try {
+      const apiBase = getApiBase();
+      const res = await fetch(`${apiBase}/api/topics/${topicId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (res.ok) {
+        await refreshTopics();
+        if (general.topicId === topicId) setGeneral(prev => ({ ...prev, topicId: '' }));
+        alert('Categoria excluída com sucesso.');
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Erro ao excluir categoria.');
+      }
+    } catch (err) {
+      console.error('Failed to delete topic', err);
+      alert('Erro de conexão ao excluir categoria.');
     }
   };
 
@@ -2370,43 +2402,72 @@ export default function SurveyBuilder() {
         </div>
       )}
 
-      {/* Topic Creation Modal */}
+      {/* Topic Creation & Management Modal */}
       <Modal 
         isOpen={isTopicModalOpen} 
-        onClose={() => setIsTopicModalOpen(false)} 
-        title="Criar Nova Categoria"
-        size="sm"
+        onClose={() => {
+          setIsTopicModalOpen(false);
+          setNewTopicName('');
+        }} 
+        title="Gerenciar Categorias"
+        size="md"
       >
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 ml-1">
-              Nome da Categoria
-            </label>
-            <input 
-              className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-zinc-900/5 transition-all outline-none"
-              placeholder="Ex: Promoções, Avisos, NPS..."
-              value={newTopicName}
-              onChange={e => setNewTopicName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleCreateTopic()}
-              autoFocus
-            />
-            <p className="text-[10px] text-zinc-500 mt-2 ml-1 italic">
-              Esta categoria será usada para organizar suas campanhas e gerenciar o opt-out dos clientes.
-            </p>
+        <div className="p-6 space-y-6">
+          <div className="space-y-4">
+            <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+              <Plus className="w-3 h-3" /> Adicionar Nova
+            </h4>
+            <div className="flex gap-2">
+              <input 
+                className="flex-1 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-zinc-900/5 transition-all outline-none"
+                placeholder="Ex: Promoções, Avisos, NPS..."
+                value={newTopicName}
+                onChange={e => setNewTopicName(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleCreateTopic()}
+                autoFocus
+              />
+              <button 
+                onClick={handleCreateTopic}
+                disabled={isCreatingTopic || !newTopicName.trim()}
+                className="bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-6 rounded-xl font-bold text-xs shadow-xl active:scale-95 transition-all disabled:opacity-50"
+              >
+                {isCreatingTopic ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Criar'}
+              </button>
+            </div>
           </div>
-          <div className="flex justify-end gap-3 pt-6 border-t border-zinc-100 dark:border-zinc-800/50">
-            <button 
+
+          <div className="space-y-4 pt-2">
+            <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+              Categorias Existentes
+            </h4>
+            <div className="grid grid-cols-1 gap-2 max-h-[200px] overflow-y-auto pr-2">
+              {topics.length === 0 ? (
+                <div className="py-8 text-center border-2 border-dashed border-zinc-100 dark:border-zinc-800 rounded-xl">
+                  <p className="text-[11px] text-zinc-500">Nenhuma categoria criada ainda.</p>
+                </div>
+              ) : (
+                topics.map(t => (
+                  <div key={t.id} className="group flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 rounded-xl transition-all hover:border-zinc-200">
+                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200">{t.name}</span>
+                    <button 
+                      onClick={() => handleDeleteTopic(t.id, t.name)}
+                      className="p-1.5 opacity-0 group-hover:opacity-100 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-all"
+                      title="Excluir Categoria"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800/50 flex justify-end">
+             <button 
               onClick={() => setIsTopicModalOpen(false)}
-              className="px-4 py-2 text-xs font-bold text-zinc-400 hover:text-zinc-600 transition-colors"
+              className="px-6 py-2 text-xs font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded-xl hover:bg-zinc-200"
             >
-              Cancelar
-            </button>
-            <button 
-              onClick={handleCreateTopic}
-              disabled={isCreatingTopic || !newTopicName.trim()}
-              className="flex items-center gap-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-6 py-2.5 rounded-xl font-bold text-xs shadow-xl active:scale-95 transition-all disabled:opacity-50"
-            >
-              {isCreatingTopic ? 'Criando...' : 'Criar Categoria'}
+              Concluído
             </button>
           </div>
         </div>

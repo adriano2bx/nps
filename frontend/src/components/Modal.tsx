@@ -40,7 +40,8 @@ export default function Modal({ isOpen, onClose, title, description, children, s
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: 8 }}
             transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-            className={`relative w-full ${widthClass} bg-white dark:bg-surface-card border border-zinc-200 dark:border-surface-border rounded-xl shadow-2xl my-auto`}
+            onClick={(e) => e.stopPropagation()}
+            className={`relative z-10 w-full ${widthClass} bg-white dark:bg-surface-card border border-zinc-200 dark:border-surface-border rounded-xl shadow-2xl my-auto isolate`}
           >
             {/* Header */}
             <div className="flex items-start justify-between px-6 pt-6 pb-4 border-b border-zinc-100 dark:border-surface-border/50">

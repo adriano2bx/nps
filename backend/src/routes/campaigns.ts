@@ -324,11 +324,11 @@ router.put('/:id', authMiddleware, validate(campaignSchema), async (req: AuthReq
           supportName,
           supportPhone,
           scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
-          delay: delay ? parseInt(delay, 10) : (existing.delay || 60),
-          timeout: timeout ? parseInt(timeout, 10) : (existing.timeout || 1440),
+          delay: (delay !== undefined && delay !== null) ? parseInt(String(delay), 10) : (existing.delay || 60),
+          timeout: (timeout !== undefined && timeout !== null) ? parseInt(String(timeout), 10) : (existing.timeout || 1440),
           windowStart: windowStart || existing.windowStart || '08:00',
           windowEnd: windowEnd || existing.windowEnd || '20:00',
-          resend: resend ? parseInt(resend, 10) : (existing.resend || 1),
+          resend: (resend !== undefined && resend !== null) ? parseInt(String(resend), 10) : (existing.resend || 1),
         }
       });
 
