@@ -9,9 +9,25 @@ export const validate = (schema: z.ZodSchema) =>
         query: req.query,
         params: req.params,
       });
-      req.body = validatedData.body;
-      req.query = validatedData.query;
-      req.params = validatedData.params;
+      if (validatedData.body) req.body = validatedData.body;
+      
+      if (validatedData.query) {
+        Object.defineProperty(req, 'query', {
+          value: validatedData.query,
+          writable: true,
+          configurable: true,
+          enumerable: true
+        });
+      }
+
+      if (validatedData.params) {
+        Object.defineProperty(req, 'params', {
+          value: validatedData.params,
+          writable: true,
+          configurable: true,
+          enumerable: true
+        });
+      }
       return next();
     } catch (error: any) {
       if (error instanceof ZodError || error.name === 'ZodError') {
