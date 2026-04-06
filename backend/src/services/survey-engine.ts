@@ -541,10 +541,10 @@ Retorne APENAS um JSON válido e estrito com a chave:
          return;
       }
       answerValue = aiResponse.score;
-    } else if (currentQ.options) {
+    } else if (currentQ.type === 'choice' || currentQ.type === 'list') {
       // Pergunta de Múltipla Escolha (Botão ou Lista)
       try {
-        const rawOptions = JSON.parse(currentQ.options);
+        const rawOptions = currentQ.options ? JSON.parse(currentQ.options) : [];
         // Normaliza opções para lidar com legado (string[]) e novo (objeto[])
         const options: { label: string, action?: any }[] = rawOptions.map((o: any) => 
           typeof o === 'string' ? { label: o } : o
@@ -552,46 +552,52 @@ Retorne APENAS um JSON válido e estrito com a chave:
         
         const optionLabels = options.map(o => o.label);
         
-        // Tenta bater exatamente primeiro (se o usuário clicou no botão)
-        const exactIdx = options.findIndex((o) => o.label.trim().toLowerCase() === rawText.trim().toLowerCase());
-        
-        let selectedIdx = exactIdx;
-
-        // NATIVE BUTTON PRIORITY: Check by Button ID (Meta/Interactive)
-        if (selectedIdx === -1 && metadata?.buttonId?.startsWith('opt_')) {
-          const optIdx = parseInt(metadata.buttonId.split('_')[1] || '', 10);
-          if (!isNaN(optIdx) && optIdx >= 0 && optIdx < options.length) {
-            selectedIdx = optIdx;
-            console.log(`[SurveyEngine] ⚡ Bypassing AI for Native Option Button ID: ${metadata.buttonId}`);
-          }
-        }
-
-        if (selectedIdx === -1) {
-          // Não bateu exato e não é botão? Chama a IA para desambiguação
-          const match = await this.matchOptionWithAI(rawText, optionLabels);
-          // Exige confiança mínima de 0.8 para evitar "chutes" da IA
-          if (!match.invalid && match.matchedIndex >= 0 && match.matchedIndex < options.length && match.confidence >= 0.8) {
-            selectedIdx = match.matchedIndex;
-          }
-        }
-
-        if (selectedIdx !== -1) {
-          const selectedOption = options[selectedIdx]!;
-          answerText = selectedOption.label;
-          
-          // Se tiver uma ação vinculada a esta opção, guarda para processar após o save
-          if (selectedOption.action) {
-            (session as any).selectedAction = selectedOption.action;
-          }
+        // FAIL-SAFE: If a choice/list question has NO options, treat it as OPEN
+        if (options.length === 0) {
+          console.log(`[SurveyEngine] ⚠️ Question ${currentQ.id} is type ${currentQ.type} but has NO options. Treating as Open.`);
+          answerText = rawText;
         } else {
-           // Resposta inválida para múltipla escolha
-           await this.dispatchMessage(
-              session.campaign.whatsappChannelId,
-              session.tenantId,
-              session.contact.phoneNumber,
-              'Por favor, selecione uma das opções válidas do menu ou botão acima 👆'
-           );
-           return;
+          // Tenta bater exatamente primeiro (se o usuário clicou no botão)
+          const exactIdx = options.findIndex((o) => o.label.trim().toLowerCase() === rawText.trim().toLowerCase());
+          
+          let selectedIdx = exactIdx;
+
+          // NATIVE BUTTON PRIORITY: Check by Button ID (Meta/Interactive)
+          if (selectedIdx === -1 && metadata?.buttonId?.startsWith('opt_')) {
+            const optIdx = parseInt(metadata.buttonId.split('_')[1] || '', 10);
+            if (!isNaN(optIdx) && optIdx >= 0 && optIdx < options.length) {
+              selectedIdx = optIdx;
+              console.log(`[SurveyEngine] ⚡ Bypassing AI for Native Option Button ID: ${metadata.buttonId}`);
+            }
+          }
+
+          if (selectedIdx === -1) {
+            // Não bateu exato e não é botão? Chama a IA para desambiguação
+            const match = await this.matchOptionWithAI(rawText, optionLabels);
+            // Exige confiança mínima de 0.8 para evitar "chutes" da IA
+            if (!match.invalid && match.matchedIndex >= 0 && match.matchedIndex < options.length && match.confidence >= 0.8) {
+              selectedIdx = match.matchedIndex;
+            }
+          }
+
+          if (selectedIdx !== -1) {
+            const selectedOption = options[selectedIdx]!;
+            answerText = selectedOption.label;
+            
+            // Se tiver uma ação vinculada a esta opção, guarda para processar após o save
+            if (selectedOption.action) {
+              (session as any).selectedAction = selectedOption.action;
+            }
+          } else {
+             // Resposta inválida para múltipla escolha
+             await this.dispatchMessage(
+                session.campaign.whatsappChannelId,
+                session.tenantId,
+                session.contact.phoneNumber,
+                'Por favor, selecione uma das opções válidas do menu ou botão acima 👆'
+             );
+             return;
+          }
         }
 
         // Proteção: se a resposta selecionada for numérica 0-10, promove para answerValue
@@ -603,6 +609,7 @@ Retorne APENAS um JSON válido e estrito com a chave:
           }
         }
       } catch (e) {
+        console.error('[SurveyEngine] Error parsing options for choice question:', e);
         answerText = rawText;
       }
     } else {
