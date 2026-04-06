@@ -76,7 +76,7 @@ Opções: ${JSON.stringify(options)}`;
     return result;
   }
 
-  public async handleIncomingMessage(channelId: string, fromPhone: string, text: string, pushName?: string) {
+  public async handleIncomingMessage(channelId: string, fromPhone: string, text: string, pushName?: string, metadata?: { buttonId?: string }) {
     const { logger } = await import('../lib/logger.js');
     
     // Normalize Phone Number (Extract digits before @s.whatsapp.net or @lid)
@@ -209,9 +209,9 @@ Opções: ${JSON.stringify(options)}`;
 
         try {
           if (session.activeStep === 0) {
-            await this.handleConsentStep(session, text);
+            await this.handleConsentStep(session, text, metadata);
           } else {
-            await this.handleQuestionStep(session, text);
+            await this.handleQuestionStep(session, text, metadata);
           }
         } catch (error) {
           console.error(`[SurveyEngine] Erro processando sessão ${session.id}:`, error);
@@ -403,7 +403,7 @@ Opções: ${JSON.stringify(options)}`;
     return result;
   }
 
-  private async handleConsentStep(session: any, rawText: string) {
+  private async handleConsentStep(session: any, rawText: string, metadata?: { buttonId?: string }) {
     
     // Prompt de classificação de intenção
     const prompt = `Você é um classificador de intenção de chatbot. O usuário recebeu um convite para uma pesquisa.
@@ -413,9 +413,14 @@ Retorne APENAS um JSON válido com exatas duas chaves booleanas:
 "invalid": true APENAS se a frase dele for completamente avulsa e não indicar sim nem não (ex: "quem é?", "bom dia", "?" "fdsfsa"). Caso contrário, false.`;
 
     const fallback = () => {
-      const clean = rawText.trim().toLowerCase();
-      const isYes = ['sim', 'quero', 'ss', 's', 'claro', 'pode', 'ok'].includes(clean);
-      const isNo = ['nao', 'não', 'nn', 'n', 'sair', 'parar', 'cancelar', 'recusar'].includes(clean);
+      const clean = (metadata?.buttonId || rawText).trim().toLowerCase();
+      const isYes = ['sim', 'quero', 'ss', 's', 'claro', 'pode', 'ok', 'yes'].includes(clean);
+      const isNo = ['nao', 'não', 'nn', 'n', 'sair', 'parar', 'cancelar', 'recusar', 'no'].includes(clean);
+      
+      // Strict check for button IDs first
+      if (metadata?.buttonId === 'yes') return { participating: true, invalid: false };
+      if (metadata?.buttonId === 'no') return { participating: false, invalid: false };
+
       if (isYes) return { participating: true, invalid: false };
       if (isNo) return { participating: false, invalid: false };
       return { participating: null, invalid: true };
@@ -463,7 +468,7 @@ Retorne APENAS um JSON válido com exatas duas chaves booleanas:
     }
   }
 
-  private async handleQuestionStep(session: any, rawText: string) {
+  private async handleQuestionStep(session: any, rawText: string, metadata?: { buttonId?: string }) {
     const questions = session.campaign.questions;
     const qIndex = session.activeStep - 1;
     
@@ -510,6 +515,15 @@ Retorne APENAS um JSON válido e estrito com a chave:
         const exactIdx = options.findIndex((o) => o.label.trim().toLowerCase() === rawText.trim().toLowerCase());
         
         let selectedIdx = exactIdx;
+
+        // NEW: Check by Button ID (Meta/Interactive)
+        if (selectedIdx === -1 && metadata?.buttonId?.startsWith('opt_')) {
+          const optIdx = parseInt(metadata.buttonId.split('_')[1] || '', 10);
+          if (!isNaN(optIdx) && optIdx >= 0 && optIdx < options.length) {
+            selectedIdx = optIdx;
+          }
+        }
+
         if (selectedIdx === -1) {
           // Não bateu exato? Chama a IA para desambiguação
           const match = await this.matchOptionWithAI(rawText, optionLabels);

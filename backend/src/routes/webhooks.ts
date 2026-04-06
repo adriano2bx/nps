@@ -97,12 +97,13 @@ router.post('/meta/:channelId', async (req, res) => {
       }
     }
 
-    if (msg.type === 'interactive') {
-      if (msg.interactive?.button_reply) {
-        text = msg.interactive.button_reply.title || msg.interactive.button_reply.id;
-      } else if (msg.interactive?.list_reply) {
-        text = msg.interactive.list_reply.title || msg.interactive.list_reply.id;
-      }
+    let buttonId = '';
+    if (msg.interactive?.button_reply) {
+      text = msg.interactive.button_reply.title || msg.interactive.button_reply.id;
+      buttonId = msg.interactive.button_reply.id;
+    } else if (msg.interactive?.list_reply) {
+      text = msg.interactive.list_reply.title || msg.interactive.list_reply.id;
+      buttonId = msg.interactive.list_reply.id;
     }
 
     if (!text) {
@@ -110,10 +111,10 @@ router.post('/meta/:channelId', async (req, res) => {
       return res.status(200).send('No content');
     }
 
-    logger.info({ channelId, from, text, msgType: msg.type, profileName }, '[Webhook] Processing Meta Message');
+    logger.info({ channelId, from, text, buttonId, msgType: msg.type, profileName }, '[Webhook] Processing Meta Message');
     
     // Pass to Survey Engine
-    await surveyEngine.handleIncomingMessage(channelId, from, text, profileName);
+    await surveyEngine.handleIncomingMessage(channelId, from, text, profileName, { buttonId });
 
     return res.status(200).send('OK');
   } catch (error) {
