@@ -78,10 +78,18 @@ const port = process.env.PORT || 3001;
 app.set('trust proxy', true);
 
 // Global Security & Optimization Middlewares
-app.use(cors()); // CORS FIRST to allow preflight
+app.use(cors({
+  origin: '*',
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-API-KEY'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+})); // CORS FIRST to allow preflight
+
 app.use(helmet({
   contentSecurityPolicy: false, // Disable default CSP to allow Cross-Origin (Frontend 5173 -> Backend 3001)
-  crossOriginResourcePolicy: { policy: "cross-origin" }
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginEmbedderPolicy: false
 }));
 app.use(compression());
 app.use(express.json());
@@ -122,8 +130,12 @@ const swaggerOptions = {
     },
     servers: [
       {
+        url: '/',
+        description: 'Servidor Atual (Auto-detect)',
+      },
+      {
         url: process.env.APP_URL || 'http://localhost:3001',
-        description: 'Servidor de Produção',
+        description: 'Servidor Configurado',
       },
     ],
   },

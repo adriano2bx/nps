@@ -12,6 +12,9 @@ export interface ApiRequest extends Request {
  * Optimized with Redis to avoid constant DB lookups for every API call.
  */
 export const apiKeyMiddleware = async (req: ApiRequest, res: Response, next: NextFunction) => {
+  // Skip validation for preflight requests
+  if (req.method === 'OPTIONS') return next();
+
   const apiKey = req.headers['x-api-key'] as string;
 
   if (!apiKey) {
