@@ -57,7 +57,19 @@ class SurveyEngine {
   }
 
   /**
-   * Compara uma resposta de texto livre com uma lista de opções esperadas.
+   * Helper to normalize phone numbers to digits only.
+   * Removes '+', spaces, dashes, etc. and extracts the part before @ in WhatsApp JIDs.
+   */
+  private normalizePhone(phone: string): string {
+    if (!phone) return '';
+    // 1. Extract the number part from a JID if present (e.g., 5511...@s.whatsapp.net)
+    const raw = phone.split(/[@:]/)[0] || phone;
+    // 2. Remove all non-digit characters (including +)
+    return raw.replace(/\D/g, '');
+  }
+
+  /**
+   * Helper to parse options for multiple choice questions via AI.
    */
   private async matchOptionWithAI(text: string, options: string[]) {
     const prompt = `Você é um motor de processamento de mensagens. O usuário enviou uma resposta a uma pergunta de múltipla escolha.
@@ -79,9 +91,8 @@ Opções: ${JSON.stringify(options)}`;
   public async handleIncomingMessage(channelId: string, fromPhone: string, text: string, pushName?: string, metadata?: { buttonId?: string }) {
     const { logger } = await import('../lib/logger.js');
     
-    // Normalize Phone Number (Extract digits before @s.whatsapp.net or @lid)
-    // Matches the part before any @ or : (for LIDs like 5511...:1@lid)
-    const normalizedPhone = fromPhone.split(/[@:]/)[0] || fromPhone;
+    // Universal digits-only normalization
+    const normalizedPhone = this.normalizePhone(fromPhone);
     
     // Resolve Tenant from Channel ID to ensure we always use the current source of truth
     const channel = await prisma.whatsAppChannel.findUnique({
@@ -234,8 +245,8 @@ Opções: ${JSON.stringify(options)}`;
   public async startNewSession(tenantId: string, channelId: string, fromPhone: string, campaign: any, pushName?: string) {
     const { logger } = await import('../lib/logger.js');
     
-    // Normalize Phone (Double check during session start)
-    const normalizedPhone = fromPhone.split(/[@:]/)[0] || fromPhone;
+    // Universal digits-only normalization
+    const normalizedPhone = this.normalizePhone(fromPhone);
 
     // Resolve/Create Contact
     let contact = await prisma.contact.findFirst({
