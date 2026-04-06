@@ -9,7 +9,7 @@ import {
   CheckCircle2, MessageSquareText, Hash, Clock, Send,
   Smartphone, Eye, LayoutTemplate, Zap, Radio, QrCode, Copy, Check,
   Smile, RotateCcw, MoreHorizontal, List as ListIcon, MousePointerClick, Download,
-  Image as ImageIcon, UploadCloud, ShieldCheck, Loader2
+  Image as ImageIcon, UploadCloud, ShieldCheck, Loader2, Terminal, Info
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
@@ -1572,13 +1572,14 @@ function Step2({
 }
 
 // ─── Step 3: Trigger & Dispatch ──────────────────────────────────────────────
-function Step3({ data, onChange, type, plan, onUpgrade, triggerType }: { 
+function Step3({ data, onChange, type, plan, onUpgrade, triggerType, id }: { 
   data: any; 
   onChange: (k: string, v: string) => void; 
   type: string;
   plan: PlanLevel;
   onUpgrade: (feature: string) => void;
   triggerType: string;
+  id?: string;
 }) {
   const inputCls = "w-full bg-white dark:bg-surface-subtle border border-zinc-200 dark:border-surface-border rounded-xl py-2.5 px-4 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:ring-2 focus:ring-surface-ring/20 focus:border-surface-ring outline-hidden transition-all cursor-pointer appearance-none shadow-sm";
   const labelCls = "block text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-1.5";
@@ -1649,6 +1650,25 @@ function Step3({ data, onChange, type, plan, onUpgrade, triggerType }: {
             <h4 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide flex items-center gap-2">
               <Clock className="w-3.5 h-3.5" /> Janela de envio permitida
             </h4>
+
+            {type === 'active' && id && (
+              <div className="p-4 bg-brand-500/5 border border-brand-500/20 rounded-xl mb-2">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Terminal className="w-3.5 h-3.5 text-brand-500" />
+                    <span className="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest">ID da Campanha (API)</span>
+                  </div>
+                  <button 
+                    onClick={() => { navigator.clipboard.writeText(id as string); alert('ID Copiado!'); }}
+                    className="p-1.5 hover:bg-brand-500/10 rounded-md transition-all"
+                  >
+                    <Copy className="w-3.5 h-3.5 text-brand-500" />
+                  </button>
+                </div>
+                <code className="text-xs font-mono text-zinc-500 dark:text-zinc-400 break-all">{id}</code>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelCls}>Horário início</label>
@@ -1844,6 +1864,8 @@ export default function SurveyBuilder() {
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
   const [testPhone, setTestPhone] = useState('');
   const [isSendingTest, setIsSendingTest] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [successCampaign, setSuccessCampaign] = useState<{ id: string, name: string } | null>(null);
 
   const [general, setGeneral] = useState<GeneralState>({
     type: 'survey',
@@ -1968,9 +1990,11 @@ export default function SurveyBuilder() {
         throw new Error(errData.error || 'Erro ao salvar campanha');
       }
 
-      alert('✅ Campanha criada com sucesso!');
+      const saved = await response.json();
       await refreshCampaigns();
-      navigate('/surveys');
+      setSuccessCampaign({ id: saved.id, name: saved.name });
+      setIsSuccessModalOpen(true);
+      // Removed immediate navigate; Success Modal handles completion
     } catch (err: any) {
       console.error('Error creating campaign:', err);
       alert('Erro ao salvar: ' + err.message);
@@ -2165,9 +2189,9 @@ export default function SurveyBuilder() {
         throw new Error(errData.error || 'Failed to update campaign');
       }
       
-      alert('✅ Campanha atualizada com sucesso!');
       await refreshCampaigns();
-      navigate('/surveys');
+      setSuccessCampaign({ id: id as string, name: general.name });
+      setIsSuccessModalOpen(true);
     } catch (err: any) {
       alert('Erro ao atualizar: ' + err.message);
     } finally {
@@ -2206,10 +2230,10 @@ export default function SurveyBuilder() {
       />
     );
     if (step === 1) {
-      if (isMkt) return <Step3 data={dispatch} onChange={updateDispatch} type={general.type} plan={tenantPlan} onUpgrade={(f) => { setUpgradeFeature(f); setIsUpgradeOpen(true); }} triggerType={general.triggerType} />;
+      if (isMkt) return <Step3 data={dispatch} onChange={updateDispatch} type={general.type} plan={tenantPlan} onUpgrade={(f) => { setUpgradeFeature(f); setIsUpgradeOpen(true); }} triggerType={general.triggerType} id={id} />;
       return <Step2 questions={questions} setQuestions={setQuestions} clinicName={general.clinicName} header={general.header} footer={general.footer} simStep={simStep} setSimStep={setSimStep} isBaileys={isBaileys} />;
     }
-    if (step === 2 && !isMkt) return <Step3 data={dispatch} onChange={updateDispatch} type={general.type} plan={tenantPlan} onUpgrade={(f) => { setUpgradeFeature(f); setIsUpgradeOpen(true); }} triggerType={general.triggerType} />;
+    if (step === 2 && !isMkt) return <Step3 data={dispatch} onChange={updateDispatch} type={general.type} plan={tenantPlan} onUpgrade={(f) => { setUpgradeFeature(f); setIsUpgradeOpen(true); }} triggerType={general.triggerType} id={id} />;
     return null;
   };
 
@@ -2338,7 +2362,18 @@ export default function SurveyBuilder() {
                  const response = await fetch(`${apiBase}/api/channels/${general.channelId}/test-send`, {
                    method: 'POST',
                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                   body: JSON.stringify({ phone: testPhone.replace(/\D/g, ''), text: messageText })
+                   body: JSON.stringify({ 
+                      phone: testPhone.replace(/\D/g, ''), 
+                      text: messageText,
+                      buttons: [
+                        { id: 'yes', title: (general.buttonYes || '✅ Sim, aceito').substring(0, 20) },
+                        { id: 'no', title: (general.buttonNo || '❌ Não, obrigado').substring(0, 20) }
+                      ],
+                      header: general.mediaPath 
+                        ? { type: 'image', value: general.mediaPath }
+                        : (general.header ? { type: 'text', value: general.header } : undefined),
+                      footer: general.footer
+                    })
                  });
                  const result = await response.json();
                  if (!response.ok) throw new Error(result.error || result.details || 'Falha ao enviar teste');
@@ -2356,6 +2391,68 @@ export default function SurveyBuilder() {
            >
              {isSendingTest ? 'Enviando...' : 'Disparar Agora'}
            </button>
+        </div>
+      </Modal>
+
+      {/* Success Modal */}
+      <Modal 
+        isOpen={isSuccessModalOpen} 
+        onClose={() => navigate('/surveys')} 
+        title="✨ Campanha Salva com Sucesso!"
+        description="Sua pesquisa já está pronta para receber respostas."
+      >
+        <div className="space-y-6 py-4">
+          <div className="flex flex-col items-center justify-center py-6 text-center">
+            <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mb-4">
+               <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+            </div>
+            <h3 className="text-lg font-bold text-zinc-900 dark:text-white">{successCampaign?.name}</h3>
+            <p className="text-sm text-zinc-500 mt-1">Configurada e ativa no canal selecionado.</p>
+          </div>
+
+          {general.triggerType === 'active' && (
+            <div className="p-5 bg-brand-500/5 border border-brand-500/20 rounded-2xl space-y-4">
+              <div className="flex items-center gap-2">
+                <Terminal className="w-4 h-4 text-brand-500" />
+                <span className="text-xs font-bold uppercase tracking-widest text-brand-600 dark:text-brand-400">Integração via API Pública</span>
+              </div>
+              
+              <div className="space-y-2">
+                <p className="text-[11px] text-zinc-500 leading-relaxed">
+                  Para disparar esta pesquisa automaticamente pelo seu sistema (CRM, ERP, etc), utilize este ID no campo <code>campaignId</code>:
+                </p>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 font-mono text-xs text-zinc-600 dark:text-zinc-300 truncate">
+                    {successCampaign?.id}
+                  </div>
+                  <button 
+                    onClick={() => {
+                        navigator.clipboard.writeText(successCampaign?.id || '');
+                        alert('ID copiado!');
+                    }}
+                    className="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:bg-zinc-50 transition-colors shrink-0"
+                  >
+                    <Copy className="w-4 h-4 text-zinc-500" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                 <p className="text-[10px] text-zinc-400 italic flex items-center gap-1">
+                   <Info className="w-3 h-3" /> Consulte o Swagger da API para detalhes do endpoint <code>/api/v1/trigger</code>.
+                 </p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-center pt-4">
+            <button 
+              onClick={() => navigate('/surveys')}
+              className="px-10 py-3 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-xl font-bold text-sm shadow-xl active:scale-95 transition-all w-full"
+            >
+              Voltar ao Início
+            </button>
+          </div>
         </div>
       </Modal>
 

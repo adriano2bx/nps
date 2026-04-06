@@ -124,31 +124,29 @@ router.delete('/:id', authMiddleware, async (req: AuthRequest, res) => {
   }
 });
 
-// POST /api/channels/:id/test-send — Unified Test Dispatch
+// POST /api/channels/:id/test-send — Unified Test Dispatch (Supports Buttons & Media)
 router.post('/:id/test-send', authMiddleware, async (req: AuthRequest, res) => {
   const id = req.params.id as string;
   const tenantId = req.tenantId as string;
-  const { phone, text } = req.body;
+  const { phone, text, buttons, header, footer } = req.body;
 
   if (!phone || !text) {
     return res.status(400).json({ error: 'Missing phone or text' });
   }
 
   try {
-    const channel = await prisma.whatsAppChannel.findUnique({
-      where: { id, tenantId }
-    });
-
-    if (!channel) return res.status(404).json({ error: 'Channel not found' });
-
-    if (channel.provider === 'BAILEYS') {
-      await baileysManager.sendMessage(id, tenantId, phone, text);
-    } else if (channel.provider === 'META') {
-      // whatsappMeta expects the full channel object
-      await whatsappMeta.sendMessage(channel, phone, text);
-    } else {
-      return res.status(400).json({ error: 'Provider not supported for test-send' });
-    }
+    const { surveyEngine } = await import('../services/survey-engine.js');
+    
+    // Leverage the universal dispatcher for rich media and provider-specific formatting
+    await surveyEngine.dispatchMessage(
+      id,
+      tenantId,
+      phone,
+      text,
+      buttons,
+      header,
+      footer
+    );
 
     res.json({ success: true, message: `Test message sent to ${phone}` });
   } catch (error: any) {

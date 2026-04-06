@@ -332,7 +332,7 @@ Opções: ${JSON.stringify(options)}`;
    * Universal message dispatcher that chooses between Meta and Baileys.
    * Logs every message for status tracking.
    */
-  private async dispatchMessage(
+  public async dispatchMessage(
     channelId: string, 
     tenantId: string, 
     to: string, 
