@@ -426,7 +426,14 @@ Retorne APENAS um JSON válido com exatas duas chaves booleanas:
       return { participating: null, invalid: true };
     };
 
-    const intent = await this.parseIntentWithAI(prompt, rawText, fallback());
+    // NATIVE BUTTON PRIORITY: If we have a clear button ID, bypass AI
+    let intent;
+    if (metadata?.buttonId === 'yes' || metadata?.buttonId === 'no') {
+      intent = fallback();
+      console.log(`[SurveyEngine] ⚡ Bypassing AI for Native Button ID: ${metadata.buttonId}`);
+    } else {
+      intent = await this.parseIntentWithAI(prompt, rawText, fallback());
+    }
 
     if (intent.invalid || intent.participating === null) {
       const body = 'Não entendi sua resposta 🤔.\n\nPor favor, utilize os botões abaixo para confirmar sua participação:';
@@ -516,16 +523,17 @@ Retorne APENAS um JSON válido e estrito com a chave:
         
         let selectedIdx = exactIdx;
 
-        // NEW: Check by Button ID (Meta/Interactive)
+        // NATIVE BUTTON PRIORITY: Check by Button ID (Meta/Interactive)
         if (selectedIdx === -1 && metadata?.buttonId?.startsWith('opt_')) {
           const optIdx = parseInt(metadata.buttonId.split('_')[1] || '', 10);
           if (!isNaN(optIdx) && optIdx >= 0 && optIdx < options.length) {
             selectedIdx = optIdx;
+            console.log(`[SurveyEngine] ⚡ Bypassing AI for Native Option Button ID: ${metadata.buttonId}`);
           }
         }
 
         if (selectedIdx === -1) {
-          // Não bateu exato? Chama a IA para desambiguação
+          // Não bateu exato e não é botão? Chama a IA para desambiguação
           const match = await this.matchOptionWithAI(rawText, optionLabels);
           // Exige confiança mínima de 0.8 para evitar "chutes" da IA
           if (!match.invalid && match.matchedIndex >= 0 && match.matchedIndex < options.length && match.confidence >= 0.8) {
