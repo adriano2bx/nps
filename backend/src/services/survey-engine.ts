@@ -219,22 +219,9 @@ Opções: ${JSON.stringify(options)}`;
       }
     }
 
-    // 3. No Keyword and No Active Session? Try Catch-All (Default QR Code campaign)
-    const qrcodeCampaigns = await prisma.surveyCampaign.findMany({
-      where: {
-        whatsappChannelId: channelId,
-        status: 'ACTIVE',
-        triggerType: 'qrcode'
-      }
-    });
-
-    if (qrcodeCampaigns.length === 1) {
-      const campaign = qrcodeCampaigns[0]!;
-      logger.info({ campaignId: campaign.id }, '[SurveyEngine] Catch-All: Ativando única campanha de QRCode ativa.');
-      return await this.startNewSession(tenantId, channelId, normalizedPhone, campaign, pushName);
-    } else if (qrcodeCampaigns.length > 1) {
-       logger.warn({ count: qrcodeCampaigns.length, cleanInput }, '[SurveyEngine] Múltiplas campanhas de QRCode sem keyword. Desambiguação necessária.');
-    }
+    // 3. No Keyword and No Active Session? 
+    // [REMOVED CATCH-ALL] Campaigns now strictly require an explicit keyword match
+    // to avoid triggering during regular human conversations.
     
     // Final Fallback: Log failure
     console.warn(`[SurveyEngine] ⚠️ No match for "${cleanInput}" on channel ${channelId}.`);
