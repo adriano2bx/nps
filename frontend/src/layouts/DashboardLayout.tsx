@@ -1,10 +1,12 @@
-import { Outlet, NavLink } from 'react-router-dom';
+import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { LayoutDashboard, MessageSquare, Users, Settings, Search, Hexagon, BarChart3, Building2, Activity } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import ThemeToggle from '../components/ThemeToggle';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function DashboardLayout() {
   const { user, logout } = useAuth();
+  const location = useLocation();
 
   const navItems = [
     { icon: LayoutDashboard, label: 'Visão Geral', path: '/dashboard' },
@@ -20,10 +22,15 @@ export default function DashboardLayout() {
     { icon: Building2, label: 'Empresas', path: '/companies' },
   ];
 
+  // Mobile nav filter
+  const mobileNavItems = navItems.filter(item => 
+    ['Visão Geral', 'Pesquisas', 'Relatórios', 'Configurações'].includes(item.label)
+  );
+
   return (
     <div className="min-h-screen flex bg-[#fafafa] dark:bg-surface-dark text-zinc-900 dark:text-zinc-100 transition-colors duration-500 font-sans selection:bg-blue-100 dark:selection:bg-blue-900/30">
       {/* Sidebar - Sharp, Enterprise */}
-      <aside className="w-[240px] border-r border-zinc-200 dark:border-surface-border bg-white dark:bg-surface-subtle flex-col hidden md:flex transition-colors duration-300 sticky top-0 h-screen overflow-y-auto shrink-0">
+      <aside className="w-[240px] border-r border-zinc-200 dark:border-surface-border bg-white dark:bg-surface-subtle flex-col hidden md:flex transition-colors duration-300 sticky top-0 h-screen overflow-y-auto shrink-0 z-30">
         <div className="h-14 flex items-center px-5 border-b border-zinc-200 dark:border-surface-border">
           <div className="w-6 h-6 bg-zinc-900 dark:bg-white flex items-center justify-center rounded-sm mr-2.5">
              <Hexagon className="text-white dark:text-black w-4 h-4" />
@@ -98,35 +105,62 @@ export default function DashboardLayout() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0">
-        <header className="h-14 flex items-center justify-between px-6 border-b border-zinc-200 dark:border-surface-border bg-white dark:bg-surface-dark sticky top-0 z-20 transition-colors duration-300">
+      <main className="flex-1 flex flex-col min-w-0 pb-16 md:pb-0">
+        <header className="h-14 flex items-center justify-between px-6 border-b border-zinc-200 dark:border-surface-border bg-white/80 dark:bg-surface-dark/80 backdrop-blur-md sticky top-0 z-30 transition-colors duration-300">
           <div className="flex items-center text-sm font-medium">
-             <span className="text-zinc-600 dark:text-zinc-400">HealthNPS</span>
-             <span className="text-zinc-300 dark:text-zinc-700 mx-2">/</span>
+             <span className="text-zinc-600 dark:text-zinc-400 hidden sm:inline">HealthNPS</span>
+             <span className="text-zinc-300 dark:text-zinc-700 mx-2 hidden sm:inline">/</span>
              <span className="text-zinc-900 dark:text-zinc-100">
-               {user?.role === 'MASTER_ADMIN' ? 'Administração do Sistema' : 'Visão Geral'}
+               {user?.role === 'MASTER_ADMIN' ? 'Administração' : 'Plataforma'}
              </span>
           </div>
           
           <div className="flex items-center gap-4">
-            <div className="relative hidden lg:block w-64">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
-              <input 
-                type="text" 
-                placeholder="Pesquisar..." 
-                className="w-full bg-zinc-50 dark:bg-surface-subtle border border-zinc-200 dark:border-surface-border rounded-lg py-1.5 pl-8 pr-3 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-surface-ring/20 focus:border-surface-ring transition-all"
-              />
-            </div>
             <ThemeToggle />
           </div>
         </header>
 
-        <div className="flex-1 overflow-auto p-8 relative">
-          <div className="max-w-[1200px] mx-auto">
-            <Outlet />
-          </div>
+        <div className="flex-1 overflow-x-hidden p-4 md:p-8 relative">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="max-w-[1200px] mx-auto"
+            >
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
         </div>
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border-t border-zinc-200 dark:border-surface-border flex items-center justify-around px-4 z-40 md:hidden pb-safe">
+        {mobileNavItems.map((item) => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            className={({ isActive }) =>
+              `flex flex-col items-center gap-1 transition-all duration-200 ${
+                isActive 
+                  ? 'text-zinc-900 dark:text-white scale-110' 
+                  : 'text-zinc-500 dark:text-zinc-500'
+              }`
+            }
+          >
+            <div className={`p-1.5 rounded-xl transition-all ${
+              location.pathname === item.path 
+                ? 'bg-zinc-100 dark:bg-zinc-800' 
+                : ''
+            }`}>
+              <item.icon className="w-5 h-5" />
+            </div>
+            <span className="text-[9px] font-bold uppercase tracking-tight">{item.label}</span>
+          </NavLink>
+        ))}
+      </nav>
     </div>
   );
 }

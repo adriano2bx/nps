@@ -26,6 +26,27 @@
 
 @layer base {
   body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #fafafa;
+    /* Native-feel PWA resets */
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+    user-select: none;
+    touch-action: pan-x pan-y;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Re-enable selection for inputs and text areas */
+  input, textarea {
+    user-select: text;
+  }
+
+  .dark body {
+    background-color: #09090b;
+  }
+
+  body {
     background-color: var(--color-surface-dark);
     color: #e4e4e7;
     @apply transition-colors duration-200;
