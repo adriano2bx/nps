@@ -67,16 +67,10 @@ function normalizeQuestionType(q: any): { type: string; options: string } {
   const opts = Array.isArray(q.options) ? q.options : [];
   let resolvedType = q.type;
 
-  if ((q.type === 'list' || q.type === 'choice') && opts.length > 0) {
-    const allNumeric = opts.every((o: any) => {
-      const label = typeof o === 'string' ? o : o.label;
-      const n = parseInt(String(label || '').trim(), 10);
-      return !isNaN(n) && n >= 0 && n <= 10 && String(n) === String(label || '').trim();
-    });
-    if (allNumeric) {
-      resolvedType = 'nps';
-      console.log(`[Campaigns] ✅ Auto-normalizado pergunta '${q.text?.substring(0, 30)}' de '${q.type}' para 'nps'.`);
-    }
+  // We no longer auto-normalize list/choice to NPS to preserve UI configuration.
+  // NPS is now specifically for the standard rating scale.
+  if (opts.length > 0) {
+    // Ensure options are always a JSON string for the DB
   }
 
   // Preserve options regardless of type (important for UI restoration)
