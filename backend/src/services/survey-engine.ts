@@ -186,9 +186,10 @@ Opções: ${JSON.stringify(options)}`;
     }
 
     // 2. No Keyword match? Check for existing ACTIVE session
+    // RELAXED MATCH: We prioritize the combination of PhoneNumber + ChannelId regardless of tenant strictness
+    // as channelId is already globally unique for the provider.
     const session = await prisma.surveySession.findFirst({
       where: {
-        tenantId,
         status: 'OPEN',
         contact: { phoneNumber: normalizedPhone },
         campaign: { whatsappChannelId: channelId }
@@ -200,6 +201,8 @@ Opções: ${JSON.stringify(options)}`;
     });
 
     if (session) {
+      logger.info({ sessionId: session.id, channelId, normalizedPhone }, '[SurveyEngine] ✅ Active Session matched for inbound message');
+      // Check for Stale Session (Older than 4 hours)
       // Check for Stale Session (Older than 4 hours)
       const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000);
       if (session.startedAt < fourHoursAgo) {
@@ -235,7 +238,27 @@ Opções: ${JSON.stringify(options)}`;
     // [REMOVED CATCH-ALL] Campaigns now strictly require an explicit keyword match
     // to avoid triggering during regular human conversations.
     
-    // Final Fallback: Log failure
+    // Final Fallback: Log failure with EXTREME DIAGNOSIS
+    const openSessionsForContact = await prisma.surveySession.findMany({
+      where: { contact: { phoneNumber: { contains: normalizedPhone.slice(-8) } } },
+      include: { campaign: true, contact: true },
+      take: 5
+    });
+
+    logger.warn({ 
+      channelId, 
+      normalizedPhone, 
+      cleanInput,
+      foundAnySessionsCount: openSessionsForContact.length,
+      diagnosticSessions: openSessionsForContact.map(s => ({ 
+        id: s.id, 
+        status: s.status, 
+        campaignChannelId: s.campaign.whatsappChannelId,
+        contactPhone: s.contact.phoneNumber,
+        tenantId: s.tenantId
+      }))
+    }, `[SurveyEngine] ⚠️ No match found. Diagnostic state logged.`);
+    
     console.warn(`[SurveyEngine] ⚠️ No match for "${cleanInput}" on channel ${channelId}.`);
   }
 

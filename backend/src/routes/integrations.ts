@@ -113,8 +113,11 @@ router.get('/campaigns', async (req: ApiRequest, res: Response) => {
  *         description: Sessão já aberta para este contato
  */
 router.post('/trigger', triggerLimiter, validate(triggerSchema), async (req: ApiRequest, res: Response) => {
-  const { campaignId, phoneNumber, contactName } = req.body;
+  const { campaignId, phoneNumber: rawPhone, contactName } = req.body;
   const tenantId = req.tenantId!;
+
+  // Universal digits-only normalization to ensure match with Inbound Webhook
+  const phoneNumber = rawPhone.split(/[@:]/)[0].replace(/\D/g, '');
 
   try {
     const campaign = await prisma.surveyCampaign.findUnique({
