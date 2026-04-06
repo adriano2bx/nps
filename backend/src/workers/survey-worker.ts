@@ -52,48 +52,11 @@ export const setupSurveyWorker = () => {
 
       const provider = campaign.whatsappChannel?.provider || 'META';
 
-      // 2. Create Survey Session
-      const session = await prisma.surveySession.create({
-        data: {
-          tenantId,
-          campaignId,
-          contactId,
-          status: 'PENDING',
-          startedAt: new Date()
-        }
-      });
-
-      // 3. Dispatch based on Provider
-      if (provider === 'BAILEYS') {
-        if (!campaign.whatsappChannelId) throw new Error('No channel assigned to campaign');
-        
-        const textPayload = (campaign.openingBody || '') + '\n\nResponda SIM para participar ou NÃO para recusar.';
-        await baileysManager.sendMessage(
-          campaign.whatsappChannelId, 
-          tenantId, 
-          contact.phoneNumber, 
-          textPayload
-        );
-        
-        console.log(`[Worker] ✅ Baileys Success: Message sent to ${contact.phoneNumber}`);
-      } else if (provider === 'META') {
-        if (!campaign.whatsappChannel) throw new Error('No channel assigned to campaign');
-        
-        const textPayload = (campaign.openingBody || '') + '\n\nResponda SIM para participar ou NÃO para recusar.';
-        
-        // For Meta, we use plain text for now. 
-        // Note: Official Cloud API allows Buttons (Interactive Messages), which can be added later.
-        await whatsappMeta.sendMessage(
-          campaign.whatsappChannel,
-          contact.phoneNumber,
-          textPayload
-        );
-        
-        console.log(`[Worker] ✅ Meta Success: Message sent to ${contact.phoneNumber}`);
-      }
+      const { surveyEngine } = await import('../services/survey-engine.js');
+      await surveyEngine.startNewSession(tenantId, campaign.whatsappChannelId!, contact.phoneNumber, campaign);
       
-      console.log(`[Worker] ✅ Success: Message triggered for ${contact.name} via ${provider}`);
-      return { success: true, sessionId: session.id };
+      console.log(`[Worker] ✅ Success: Survey flow started for ${contact.name} via ${provider}`);
+      return { success: true };
 
     } catch (error) {
       console.error(`[Worker] ❌ Failed job ${job.id}:`, error);
