@@ -163,7 +163,7 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
     distributionResult.forEach((item: any) => {
       const val = Math.round(item.answerValue || 0);
       const count = item._count?.id || 0;
-      if (val >= 0 && val <= 5) distribution[val] = count;
+      if (val >= 0 && val <= 5) distribution[val] += count;
       
       if (val >= 5) promoters += count;
       else if (val <= 3) detractors += count;
@@ -243,10 +243,10 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
       byCampaign,
       recent: (recentResponses as any[]).map((r: any) => ({
         id: r.id,
-        contactName: r.session?.contact?.name || 'Anônimo',
-        campaignName: r.session?.campaign?.name,
+        contactName: r.session?.contact?.name || 'Paciente',
+        campaignName: r.session?.campaign?.name || 'NPS',
         score: r.answerValue,
-        comment: r.session?.responses?.[0]?.answerText || r.answerText,
+        comment: r.session?.responses?.find((resp: any) => resp.answerText)?.answerText || r.answerText,
         createdAt: r.createdAt
       }))
     };

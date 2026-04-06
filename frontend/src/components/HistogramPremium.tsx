@@ -11,12 +11,15 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     let category = 'Passivo';
     let colorClass = 'text-zinc-500';
     
-    if (score >= 9) {
+    if (score >= 5) {
       category = 'Promotor';
       colorClass = 'text-emerald-500';
-    } else if (score <= 6) {
+    } else if (score <= 3) {
       category = 'Detrator';
       colorClass = 'text-rose-500';
+    } else {
+      category = 'Passivo';
+      colorClass = 'text-zinc-500 font-bold';
     }
 
     return (
@@ -37,8 +40,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export const HistogramPremium: React.FC<HistogramPremiumProps> = ({ data }) => {
-  // Ensure we have all 0-10 scores
-  const fullData = Array.from({ length: 11 }, (_, i) => {
+  // Ensure we have all 0-5 scores
+  const fullData = Array.from({ length: 6 }, (_, i) => {
     const existing = data.find(d => d.score === i);
     return existing || { score: i, count: 0 };
   });
@@ -95,8 +98,8 @@ export const HistogramPremium: React.FC<HistogramPremiumProps> = ({ data }) => {
               animationDuration={200}
             />
 
-            <ReferenceLine x={6.5} stroke="#3f3f46" strokeDasharray="3 3" opacity={0.2} />
-            <ReferenceLine x={8.5} stroke="#3f3f46" strokeDasharray="3 3" opacity={0.2} />
+            <ReferenceLine x={3.5} stroke="#3f3f46" strokeDasharray="3 3" opacity={0.2} />
+            <ReferenceLine x={4.5} stroke="#3f3f46" strokeDasharray="3 3" opacity={0.2} />
 
             <Bar 
               dataKey="count" 
@@ -107,8 +110,8 @@ export const HistogramPremium: React.FC<HistogramPremiumProps> = ({ data }) => {
               {
                 fullData.map((entry, index) => {
                   let fill = "url(#barPassive)";
-                  if (entry.score >= 9) fill = "url(#barPromoter)";
-                  else if (entry.score <= 6) fill = "url(#barDetractor)";
+                  if (entry.score >= 5) fill = "url(#barPromoter)";
+                  else if (entry.score <= 3) fill = "url(#barDetractor)";
                   
                   return (
                     <Cell 

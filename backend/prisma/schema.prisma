@@ -291,7 +291,6 @@ model CampaignTopic {
 
 model ContactTopicOptOut {
   id        String        @id @default(uuid())
-  tenantId  String
   contactId String
   topicId   String
   createdAt DateTime      @default(now())
@@ -299,5 +298,4 @@ model ContactTopicOptOut {
   topic     CampaignTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
 
   @@unique([contactId, topicId])
-  @@index([tenantId])
 }
