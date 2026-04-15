@@ -62,7 +62,7 @@ Todas as entradas críticas da API (Login, Criação de Campanhas, Triggers de A
 
 A plataforma suporta dois motores de comunicação:
 1. **WhatsApp Business Cloud (Meta)**: Integração oficial de alta escala, recomendada para produção.
-2. **Baileys (WebSockets)**: Motor de fallback para conexões via QR Code (legado/autônomo), rodando em processo isolado para estabilidade.
+2. **Meta Cloud API (Official)**: Primary channel for communication, utilizing rich message formats (buttons/lists) and HSM templates.
 
 ---
 

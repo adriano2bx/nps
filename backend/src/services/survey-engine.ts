@@ -2,7 +2,6 @@ import { prisma } from '../lib/prisma.js';
 import { invalidateTenantCache } from '../lib/redis.js';
 import { webhookService } from './webhook-service.js';
 import OpenAI from 'openai';
-import { baileysManager } from './baileys-manager.js';
 import { whatsappMeta } from './whatsapp-meta.js';
 
 // Configura OpenAI (Opcional - se houver chave no .env)
@@ -14,14 +13,10 @@ if (process.env.OPENAI_API_KEY) {
 /**
  * Survey Engine powered by AI
  * Gerencia a máquina de estados de pesquisas e usa OpenAI para
- * correção difusa (fuzzy logic) de textos de clientes via Baileys.
+ * correção difusa (fuzzy logic) de textos de clientes.
  */
 class SurveyEngine {
   
-  // Dynamic import for Baileys
-  private async getBaileys() {
-    return baileysManager;
-  }
 
   // Dynamic import for Meta
   private async getMeta() {
@@ -363,7 +358,7 @@ Opções: ${JSON.stringify(options)}`;
   }
 
   /**
-   * Universal message dispatcher that chooses between Meta and Baileys.
+   * Universal message dispatcher using Meta Cloud API.
    * Logs every message for status tracking.
    */
   public async dispatchMessage(
@@ -385,40 +380,23 @@ Opções: ${JSON.stringify(options)}`;
     if (!channel) throw new Error('Channel not found for dispatch');
 
     let result: any;
-
-    if (channel.provider === 'BAILEYS') {
-      const baileys = await this.getBaileys();
-      let fullText = text;
+    const meta = await this.getMeta();
       
-      // For Baileys, we prepend/append header/footer since it's plain text
-      if (header?.type === 'text') fullText = `*${header.value}*\n\n${fullText}`;
-      if (footer) fullText = `${fullText}\n\n_${footer}_`;
-      
-      if (buttons && buttons.length > 0) {
-        fullText += '\n\n' + buttons.map(b => `*${b.title}*`).join(' | ');
-      }
-      result = await baileys.sendMessage(channelId, tenantId, to, fullText);
-    } else if (channel.provider === 'META') {
-      const meta = await this.getMeta();
-      
-      if (templateName) {
-        result = await meta.sendTemplate(channel, to, templateName);
-      } else if (buttons && buttons.length > 0) {
-        if (buttons.length <= 3) {
-          result = await meta.sendButtons(channel, to, text, buttons, header, footer);
-        } else if (buttons.length <= 10) {
-          const sections = [{ title: 'Opções', rows: buttons }];
-          result = await meta.sendList(channel, to, text, sections, 'Ver Opções', header, footer);
-        }
-      } else {
-        // Standard text message with simulated header/footer if needed
-        let fullText = text;
-        if (header?.type === 'text') fullText = `*${header.value}*\n\n${fullText}`;
-        if (footer) fullText = `${fullText}\n\n_${footer}_`;
-        result = await meta.sendMessage(channel, to, fullText);
+    if (templateName) {
+      result = await meta.sendTemplate(channel, to, templateName);
+    } else if (buttons && buttons.length > 0) {
+      if (buttons.length <= 3) {
+        result = await meta.sendButtons(channel, to, text, buttons, header, footer);
+      } else if (buttons.length <= 10) {
+        const sections = [{ title: 'Opções', rows: buttons }];
+        result = await meta.sendList(channel, to, text, sections, 'Ver Opções', header, footer);
       }
     } else {
-      throw new Error(`Provider ${channel.provider} not supported by SurveyEngine`);
+      // Standard text message with simulated header/footer if needed
+      let fullText = text;
+      if (header?.type === 'text') fullText = `*${header.value}*\n\n${fullText}`;
+      if (footer) fullText = `${fullText}\n\n_${footer}_`;
+      result = await meta.sendMessage(channel, to, fullText);
     }
 
     // LOG MESSAGE FOR TRACKING (Enterprise)
@@ -768,19 +746,6 @@ Retorne APENAS um JSON válido e estrito com a chave:
         
         if (channel?.provider === 'META') {
           await meta.sendCTA(channel, session.contact.phoneNumber, camp.closingMessage, ctaLabel, ctaLink, header, camp.footer || undefined);
-        } else {
-          // Fallback for Baileys
-          await this.dispatchMessage(
-            camp.whatsappChannelId,
-            session.tenantId,
-            session.contact.phoneNumber,
-            `${camp.closingMessage}\n\n🔗 *${ctaLabel}*\n${ctaLink}`,
-            undefined,
-            header,
-            camp.footer || undefined,
-            undefined,
-            session.id
-          );
         }
       } else if (camp.supportName && camp.supportPhone) {
         // Send Contact Card

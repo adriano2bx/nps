@@ -1,7 +1,6 @@
 import { Worker, Job } from 'bullmq';
 import { prisma } from '../lib/prisma.js';
 import { redis } from '../lib/redis.js';
-import { baileysManager } from '../services/baileys-manager.js';
 import { whatsappMeta } from '../services/whatsapp-meta.js';
 
 interface SurveyJobData {
@@ -50,7 +49,7 @@ export const setupSurveyWorker = () => {
         }
       }
 
-      const provider = campaign.whatsappChannel?.provider || 'META';
+      const provider = 'META';
 
       const { surveyEngine } = await import('../services/survey-engine.js');
       await surveyEngine.startNewSession(tenantId, campaign.whatsappChannelId!, contact.phoneNumber, campaign);

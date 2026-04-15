@@ -252,10 +252,10 @@ function UpgradeModal({ isOpen, onClose, requiredPlan }: { isOpen: boolean; onCl
 }
 
 // ─── WaPreviewPhone ── phone frame for Step 1 ─────────────────────────────────
-function WaPreviewPhone({ header, footer, clinicName, body, buttonYes, buttonNo, type, mediaPath, isBaileys }: {
+function WaPreviewPhone({ header, footer, clinicName, body, buttonYes, buttonNo, type, mediaPath }: {
   header: string; footer: string; clinicName: string;
   body: string; buttonYes: string; buttonNo: string;
-  type?: string; mediaPath?: string; isBaileys?: boolean;
+  type?: string; mediaPath?: string;
 }) {
   const [clock] = useState(() => new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
   const [replied, setReplied] = useState<string | null>(null);
@@ -367,7 +367,6 @@ function Step1({
   channels, 
   topics,
   refreshTopics,
-  isBaileys,
   isUploading,
   fileInputRef,
   handleFileUpload,
@@ -380,7 +379,6 @@ function Step1({
   channels: WhatsAppChannel[];
   topics: any[];
   refreshTopics: () => Promise<void>;
-  isBaileys: boolean;
   isUploading: boolean;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
@@ -444,9 +442,9 @@ function Step1({
                 }}
               >
                 <option value="" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Selecione um canal...</option>
-                {channels.filter(c => c.provider !== 'BAILEYS' || c.id === data.channelId).map(channel => (
+                {channels.map(channel => (
                   <option key={channel.id} value={channel.id} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">
-                    {channel.name} {channel.provider === 'BAILEYS' ? '⚡ (Baileys)' : `(${channel.provider})`}
+                    {channel.name} ({channel.provider})
                   </option>
                 ))}
               </select>
@@ -564,7 +562,7 @@ function Step1({
           </div>
         </div>
 
-        {/* Configurações Adicionais (Somente para Pesquisas — Oculto para Baileys) */}
+        {/* Configurações Adicionais (Somente para Pesquisas) */}
         {data.type === 'survey' && data.triggerType !== 'qrcode' && (
           <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 space-y-4 bg-zinc-50/50 dark:bg-zinc-900/20">
             <label className={labelCls}>Tipo de Envio do WhatsApp</label>
@@ -615,20 +613,6 @@ function Step1({
           </div>
         )}
 
-        {/* Baileys text-only mode info */}
-        {isBaileys && (
-          <div className="border border-amber-200 dark:border-amber-500/20 rounded-lg p-4 bg-amber-50/50 dark:bg-amber-500/5">
-            <div className="flex items-start gap-3">
-              <span className="text-lg">⚡</span>
-              <div>
-                <h4 className="text-xs font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wide">Modo Texto Simples (Baileys)</h4>
-                <p className="text-[11px] text-amber-700 dark:text-amber-400/70 mt-1 leading-relaxed">
-                  Canais Baileys enviam apenas texto puro. Botões interativos, listas, templates HSM e mídias não são suportados. Todas as interações serão baseadas em respostas de texto do usuário.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Media Upload (Meta Only) */}
         {(
@@ -710,7 +694,7 @@ Você aceita participar de uma pesquisa rápida de satisfação?`}
           <p className="text-[11px] text-zinc-500 mt-1">Instruções de opt-out ou avisos legais.</p>
         </div>
 
-        {/* Botões de Aceite — Ocultos para Baileys (texto puro) */}
+        {/* Botões de Aceite */}
         {(
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -786,7 +770,7 @@ const CONSENT_QUESTION: Question = {
 
 // ─── Survey Simulator ─────────────────────────────────────────────────────
 function SurveySimulator({
-  questions, clinicName, header, footer, activeStep, setActiveStep, closingMessage, isBaileys
+  questions, clinicName, header, footer, activeStep, setActiveStep, closingMessage
 }: {
   questions: Question[];
   clinicName: string;
@@ -795,7 +779,6 @@ function SurveySimulator({
   activeStep: number;
   setActiveStep: (i: number) => void;
   closingMessage: string;
-  isBaileys?: boolean;
 }) {
   const [showList, setShowList] = useState(false);
   const [hoveredOption, setHoveredOption] = useState<number | null>(null);
@@ -1335,7 +1318,7 @@ function ActionConfigModal({
 }
 
 function Step2({
-  questions, setQuestions, clinicName, header, footer, simStep, setSimStep, isBaileys
+  questions, setQuestions, clinicName, header, footer, simStep, setSimStep
 }: {
   questions: Question[];
   setQuestions: (q: Question[]) => void;
@@ -1344,7 +1327,6 @@ function Step2({
   footer: string;
   simStep: number;
   setSimStep: (n: number) => void;
-  isBaileys?: boolean;
 }) {
 
 
@@ -2209,7 +2191,6 @@ export default function SurveyBuilder() {
 
   const showSim = step === 0 || (step === 1 && !isMkt);
   const selectedChannel = channels.find(c => c.id === general.channelId);
-  const isBaileys = false; // Definitively disabled - platform uses Meta lists/buttons
 
   // Derive which UI components to show based on step index and type
   const renderStep = () => {
@@ -2222,7 +2203,6 @@ export default function SurveyBuilder() {
         channels={channels} 
         topics={topics}
         refreshTopics={refreshTopics}
-        isBaileys={isBaileys}
         isUploading={isUploading}
         fileInputRef={fileInputRef}
         handleFileUpload={handleFileUpload}
@@ -2231,7 +2211,7 @@ export default function SurveyBuilder() {
     );
     if (step === 1) {
       if (isMkt) return <Step3 data={dispatch} onChange={updateDispatch} type={general.type} plan={tenantPlan} onUpgrade={(f) => { setUpgradeFeature(f); setIsUpgradeOpen(true); }} triggerType={general.triggerType} id={id} />;
-      return <Step2 questions={questions} setQuestions={setQuestions} clinicName={general.clinicName} header={general.header} footer={general.footer} simStep={simStep} setSimStep={setSimStep} isBaileys={isBaileys} />;
+      return <Step2 questions={questions} setQuestions={setQuestions} clinicName={general.clinicName} header={general.header} footer={general.footer} simStep={simStep} setSimStep={setSimStep} />;
     }
     if (step === 2 && !isMkt) return <Step3 data={dispatch} onChange={updateDispatch} type={general.type} plan={tenantPlan} onUpgrade={(f) => { setUpgradeFeature(f); setIsUpgradeOpen(true); }} triggerType={general.triggerType} id={id} />;
     return null;
@@ -2476,7 +2456,6 @@ export default function SurveyBuilder() {
                 buttonNo={general.buttonNo}
                 type={general.type}
                 mediaPath={general.mediaPath}
-                isBaileys={isBaileys}
               />
             )}
             {step === 1 && (
@@ -2488,7 +2467,6 @@ export default function SurveyBuilder() {
                 activeStep={simStep}
                 setActiveStep={setSimStep}
                 closingMessage={general.closingMessage}
-                isBaileys={isBaileys}
               />
             )}
           </div>

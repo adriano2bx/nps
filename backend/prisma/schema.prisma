@@ -265,15 +265,6 @@ model SurveyMessageLog {
   @@index([questionId])
 }
 
-model BaileysSession {
-  id        Int    @id @default(autoincrement())
-  channelId String
-  key       String
-  value     String
-
-  @@unique([channelId, key])
-  @@index([channelId])
-}
 
 model CampaignTopic {
   id        String               @id @default(uuid())

@@ -5,7 +5,6 @@ import {
   ChevronRight, Box, Bell, RefreshCcw, Edit2, Link, Link2Off, QrCode
 } from 'lucide-react';
 import Modal from '../components/Modal';
-import BaileysConnectionModal from '../components/BaileysConnectionModal';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
 
@@ -47,7 +46,6 @@ export default function Settings() {
   const [editTarget, setEditTarget] = useState<Channel | null>(null);
   const [form, setForm] = useState(emptyChannel);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
-  const [baileysConnectTarget, setBaileysConnectTarget] = useState<Channel | null>(null);
 
   const handleSave = async () => {
     try {
@@ -211,7 +209,7 @@ export default function Settings() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {channels.filter(c => c.provider !== 'BAILEYS').map((channel) => (
+                {channels.map((channel) => (
                   <div key={channel.id} className={`${cardCls} group hover:border-zinc-300 dark:hover:border-zinc-700 transition-all rounded-3xl`}>
                     <div className={cardHeadCls}>
                       <div className="flex items-center gap-3">
@@ -251,45 +249,13 @@ export default function Settings() {
                         <span className="px-2 py-1 bg-zinc-100 dark:bg-surface-subtle rounded-md font-bold text-[9px] text-zinc-600 dark:text-zinc-400 border border-zinc-200/50 dark:border-surface-border/50 uppercase">{channel.provider}</span>
                       </div>
                       
-                      {channel.provider === 'BAILEYS' ? (
-                        <div className="space-y-4 pt-2">
-                           {channel.status === 'CONNECTED' ? (
-                             <div className="flex flex-col gap-3">
-                                <div className="flex items-center gap-2 px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-[10px] font-bold text-emerald-600">
-                                   <Link className="w-3 h-3" /> WHATSAPP CONECTADO
-                                </div>
-                                <button 
-                                  onClick={() => setBaileysConnectTarget(channel)}
-                                  className="w-full py-2.5 border border-zinc-200 dark:border-zinc-800 rounded-xl text-[10px] font-bold text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-                                >
-                                   GERENCIAR CONEXÃO
-                                </button>
-                             </div>
-                           ) : (
-                             <div className="flex flex-col gap-3">
-                                {channel.status !== 'DISCONNECTED' && (
-                                  <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/10 border border-amber-500/20 rounded-xl text-[10px] font-bold text-amber-600">
-                                     <QrCode className="w-3 h-3" /> AGUARDANDO CONEXÃO
-                                  </div>
-                                )}
-                                <button 
-                                  onClick={() => setBaileysConnectTarget(channel)}
-                                  className="w-full flex items-center justify-center gap-2 py-3 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl text-xs font-bold shadow-lg shadow-zinc-200 dark:shadow-none hover:brightness-110 active:scale-95 transition-all"
-                                >
-                                  <QrCode className="w-4 h-4" /> {channel.status === 'DISCONNECTED' ? 'Conectar Agora' : 'Ver QR Code'}
-                                </button>
-                             </div>
-                           )}
+                      <div className="space-y-1.5">
+                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Identificador</span>
+                        <div className="flex items-center justify-between text-xs text-zinc-600 dark:text-zinc-400 font-mono bg-zinc-50/50 dark:bg-surface-subtle/50 px-3 py-2.5 rounded-xl border border-zinc-100 dark:border-surface-border/50">
+                          {channel.phoneNumberId}
+                          <Check className="w-3.5 h-3.5 text-emerald-500" />
                         </div>
-                      ) : (
-                        <div className="space-y-1.5">
-                          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Identificador</span>
-                          <div className="flex items-center justify-between text-xs text-zinc-600 dark:text-zinc-400 font-mono bg-zinc-50/50 dark:bg-surface-subtle/50 px-3 py-2.5 rounded-xl border border-zinc-100 dark:border-surface-border/50">
-                            {channel.phoneNumberId}
-                            <Check className="w-3.5 h-3.5 text-emerald-500" />
-                          </div>
-                        </div>
-                      )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -318,14 +284,6 @@ export default function Settings() {
           </div>
           <div className="h-px bg-zinc-100 dark:bg-zinc-800" />
           <div className="animate-in slide-in-from-right-4 duration-300">
-             {form.provider === 'BAILEYS' ? (
-                <div className="p-4 bg-zinc-50 dark:bg-surface-subtle border border-zinc-200 dark:border-surface-border rounded-2xl">
-                  <p className="text-xs text-zinc-500 leading-relaxed font-medium">
-                    O canal <strong>Baileys (Web)</strong> não requer chaves de API externas. 
-                    Após salvar, você poderá escanear o QR Code diretamente nesta página para conectar sua conta.
-                  </p>
-                </div>
-              ) : (
                <>
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div className="space-y-1"><label className={labelCls}>Phone ID</label><input className={inputCls} placeholder="ID numérico..." value={form.phoneNumberId} onChange={e => setForm(f => ({ ...f, phoneNumberId: e.target.value }))} /></div>
@@ -355,7 +313,6 @@ export default function Settings() {
                     )}
                  </div>
                </>
-             )}
           </div>
           <div className="flex justify-end gap-3 pt-6 border-t border-zinc-100 dark:border-surface-border/50">
             <button onClick={() => { setCreateOpen(false); setEditTarget(null); }} className="btn-ghost">Cancelar</button>
@@ -376,13 +333,6 @@ export default function Settings() {
         </div>
       </Modal>
 
-      {baileysConnectTarget && (
-        <BaileysConnectionModal 
-          channelId={baileysConnectTarget.id}
-          channelName={baileysConnectTarget.name}
-          onClose={() => { setBaileysConnectTarget(null); refreshChannels(); }}
-        />
-      )}
     </div>
   );
 }

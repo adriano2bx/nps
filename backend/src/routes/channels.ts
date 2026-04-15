@@ -2,7 +2,6 @@ import { Router, Response } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { redis, setTenantCached, invalidateTenantCache } from '../lib/redis.js';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
-import { baileysManager } from '../services/baileys-manager.js';
 import { whatsappMeta } from '../services/whatsapp-meta.js';
 
 const router = Router();

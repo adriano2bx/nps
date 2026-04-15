@@ -12,7 +12,6 @@ import reportRoutes from './routes/reports.js';
 import contactRoutes from './routes/contacts.js';
 import segmentRoutes from './routes/segments.js';
 import tenantRoutes from './routes/tenants.js';
-import baileysRoutes from './routes/baileys.js';
 import webhookRoutes from './routes/webhooks.js';
 import integrationRoutes from './routes/integrations.js';
 import integrationMgmtRoutes from './routes/integrations-mgmt.js';
@@ -20,7 +19,6 @@ import topicRoutes from './routes/topics.js';
 import { setupSurveyWorker } from './workers/survey-worker.js';
 import { setupCleanupWorker } from './workers/cleanup-worker.js';
 import { setupWebhookWorker } from './workers/webhook-worker.js';
-import { baileysManager } from './services/baileys-manager.js';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 
@@ -41,34 +39,7 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
-// --- ROBUST PROCESS LOCK (REDIS) ---
-const PROCESS_LOCK_KEY = 'backend:master_process';
-const LOCK_TTL = 30000; // 30 seconds
-
-let isMaster = false;
-
-const tryAcquireLock = async (onAcquired: () => void) => {
-  const attemptAcquisition = async () => {
-    const acquired = await getLock(PROCESS_LOCK_KEY, LOCK_TTL);
-    if (acquired && !isMaster) {
-      console.log('[ProcessLock] 👑 Successfully acquired master lock. Starting Baileys services.');
-      isMaster = true;
-      onAcquired();
-    } else if (!acquired && !isMaster) {
-       const ownerId = await (await import('./lib/redis.js')).redis.get(`lock:${PROCESS_LOCK_KEY}`);
-       console.warn(`[ProcessLock] 🚨 Another instance is managing sessions (Owner: ${ownerId}). Waiting for takeover...`);
-    }
-    return acquired;
-  };
-
-  // Initial attempt
-  await attemptAcquisition();
-  
-  // Continuous heartbeating and retrying
-  setInterval(async () => {
-     await attemptAcquisition();
-  }, 10000);
-};
+// ----------------------------
 // ----------------------------
 
 const app = express();
@@ -153,7 +124,6 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/segments', segmentRoutes);
 app.use('/api/tenants', tenantRoutes);
-app.use('/api/baileys', baileysRoutes);
 app.use('/api/webhooks', webhookRoutes);
 app.use('/api/v1', integrationRoutes);
 app.use('/api/integrations', integrationMgmtRoutes);
@@ -213,8 +183,4 @@ app.listen(port, async () => {
   setupCleanupWorker();
   setupWebhookWorker();
 
-  // Try to acquire master lock and initialize Baileys
-  await tryAcquireLock(() => {
-    baileysManager.init();
-  });
 });
