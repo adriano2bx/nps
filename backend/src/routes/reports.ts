@@ -166,7 +166,6 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
         where: {
           tenantId,
           ...filterObj,
-          question: { type: 'nps' },
           answerValue: { not: null }
         },
         _count: { id: true },
@@ -179,7 +178,6 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
         where: {
           tenantId,
           ...filterObj,
-          question: { type: 'nps' },
           answerValue: { not: null }
         },
         _count: { id: true }
@@ -194,7 +192,6 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
             where: sessionFilterObj,
             select: {
               responses: {
-                where: { question: { type: 'nps' } },
                 select: { answerValue: true }
               }
             }
@@ -206,7 +203,6 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
         where: { 
           tenantId,
           ...filterObj,
-          question: { type: 'nps' },
           answerValue: { not: null }
         },
         include: {
@@ -242,7 +238,6 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
       where: {
         tenantId,
         ...filterObj,
-        question: { type: 'nps' },
         answerValue: { not: null }
       },
       select: {
@@ -361,7 +356,6 @@ router.get('/detailed', authMiddleware, async (req: AuthRequest, res: Response) 
     // 2. Fetch both the necessary 10 sessions for THIS page AND filtered stats for the header
     const statsWhere: any = { 
       tenantId, 
-      question: { type: 'nps' }, 
       answerValue: { not: null } 
     };
     
@@ -465,7 +459,7 @@ router.get('/stats', authMiddleware, async (req: AuthRequest, res: Response) => 
     const cached = await redis.get(cacheKey);
     if (cached) return res.json(JSON.parse(cached));
 
-    const where: any = { tenantId, question: { type: 'nps' }, answerValue: { not: null } };
+    const where: any = { tenantId, answerValue: { not: null } };
     if (campaignId && campaignId !== 'all') where.session = { campaignId };
     if (startDate || endDate) {
       where.createdAt = {};
@@ -505,7 +499,6 @@ router.get('/nps-stats', authMiddleware, async (req: AuthRequest, res) => {
     const responses = await prisma.surveyResponse.findMany({
       where: {
         tenantId,
-        question: { type: 'nps' },
         answerValue: { not: null }
       },
       select: {
@@ -534,7 +527,6 @@ router.get('/distribution', authMiddleware, async (req: AuthRequest, res) => {
     const responses = await prisma.surveyResponse.findMany({
       where: {
         tenantId,
-        question: { type: 'nps' },
         answerValue: { not: null }
       },
       select: {
