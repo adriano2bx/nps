@@ -3,6 +3,7 @@ import { invalidateTenantCache } from '../lib/redis.js';
 import { webhookService } from './webhook-service.js';
 import OpenAI from 'openai';
 import { whatsappMeta } from './whatsapp-meta.js';
+import { logger } from '../lib/logger.js';
 
 // Configura OpenAI (Opcional - se houver chave no .env)
 let openai: OpenAI | null = null;
@@ -719,6 +720,8 @@ Retorne APENAS um JSON válido e estrito com a chave:
   }
 
   private async closeSession(session: any, forcesNoMessage = false, overrideAction?: any) {
+    logger.info({ sessionId: session.id, forcesNoMessage }, '[SurveyEngine] 🏁 Closing session...');
+    
     await prisma.surveySession.update({
       where: { id: session.id },
       data: { status: 'CLOSED', closedAt: new Date() }
@@ -732,25 +735,42 @@ Retorne APENAS um JSON válido e estrito com a chave:
       closedAt: new Date()
     });
 
-    if (!forcesNoMessage && session.campaign.closingMessage) {
-      const camp = session.campaign;
+    const camp = session.campaign;
+    if (!camp) {
+      logger.error({ sessionId: session.id }, '[SurveyEngine] ❌ Error: Campaign not found in session object during closure');
+      return;
+    }
+
+    logger.info({ 
+      sessionId: session.id, 
+      hasClosingMessage: !!camp.closingMessage,
+      forcesNoMessage 
+    }, '[SurveyEngine] ℹ️ Closure Details');
+
+    if (!forcesNoMessage && camp.closingMessage) {
       const ctaLabel = overrideAction?.ctaLabel || camp.ctaLabel;
       const ctaLink = overrideAction?.ctaLink || camp.ctaLink;
       
+      const channelId = camp.whatsappChannelId || (session as any).channelId;
+      if (!channelId) {
+          logger.error({ sessionId: session.id }, '[SurveyEngine] ❌ No channelId found for closing message');
+          return;
+      }
+
       // ENTERPRISE CHOICE: CTA Button, Contact Card, or Text
       if (ctaLabel && ctaLink) {
+        logger.info({ sessionId: session.id }, '[SurveyEngine] 📱 Sending CTA Closing Message');
         const meta = await this.getMeta();
         const header = camp.header ? { type: 'text' as const, value: camp.header } : undefined;
-        // Check if provider is Meta for official CTA support
-        const channel = await prisma.whatsAppChannel.findUnique({ where: { id: camp.whatsappChannelId } });
+        const channel = await prisma.whatsappChannel.findUnique({ where: { id: channelId } });
         
         if (channel?.provider === 'META') {
           await meta.sendCTA(channel, session.contact.phoneNumber, camp.closingMessage, ctaLabel, ctaLink, header, camp.footer || undefined);
         }
       } else if (camp.supportName && camp.supportPhone) {
-        // Send Contact Card
+        logger.info({ sessionId: session.id }, '[SurveyEngine] 👤 Sending Contact Card Closing Message');
         await this.dispatchMessage(
-          camp.whatsappChannelId,
+          channelId,
           session.tenantId,
           session.contact.phoneNumber,
           camp.closingMessage,
@@ -761,14 +781,14 @@ Retorne APENAS um JSON válido e estrito com a chave:
           session.id
         );
         const meta = await this.getMeta();
-        const channel = await prisma.whatsAppChannel.findUnique({ where: { id: camp.whatsappChannelId } });
+        const channel = await prisma.whatsappChannel.findUnique({ where: { id: channelId } });
         if (channel?.provider === 'META') {
            await meta.sendContact(channel, session.contact.phoneNumber, camp.supportName, camp.supportPhone);
         }
       } else {
-        // Standard Text Message
+        logger.info({ sessionId: session.id }, '[SurveyEngine] 💬 Sending Standard Text Closing Message');
         await this.dispatchMessage(
-          camp.whatsappChannelId,
+          channelId,
           session.tenantId,
           session.contact.phoneNumber,
           camp.closingMessage,
@@ -781,7 +801,7 @@ Retorne APENAS um JSON válido e estrito com a chave:
       }
     } else if (forcesNoMessage) {
       await this.dispatchMessage(
-        session.campaign.whatsappChannelId,
+        session.campaign.whatsappChannelId || (session as any).channelId,
         session.tenantId,
         session.contact.phoneNumber,
         'Certo. Você não receberá mais mensagens dessa pesquisa. Obrigado!',
