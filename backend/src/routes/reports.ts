@@ -5,6 +5,46 @@ import { authMiddleware, AuthRequest } from '../middleware/auth.js';
 
 const router = Router();
 
+// --- NPS CALCULATION HELPERS ---
+const getNpsCategory = (score: number | null): 'PROMOTER' | 'NEUTRAL' | 'DETRACTOR' | 'NONE' => {
+  if (score === null) return 'NONE';
+  const val = Math.round(score);
+  if (val >= 9) return 'PROMOTER';
+  if (val >= 7) return 'NEUTRAL';
+  return 'DETRACTOR'; // Also handles legacy 0
+};
+
+const calculateNpsStats = (responses: { answerValue: number | null }[]) => {
+  const filtered = responses.filter(r => r.answerValue !== null);
+  const total = filtered.length;
+  if (total === 0) {
+    return {
+      score: 0, promoters: 0, passives: 0, detractors: 0, total: 0,
+      promoterPercentage: 0, passivePercentage: 0, detractorPercentage: 0
+    };
+  }
+
+  let promoters = 0;
+  let detractors = 0;
+  let passives = 0;
+
+  filtered.forEach(r => {
+    const cat = getNpsCategory(r.answerValue);
+    if (cat === 'PROMOTER') promoters++;
+    else if (cat === 'DETRACTOR') detractors++;
+    else if (cat === 'NEUTRAL') passives++;
+  });
+
+  return {
+    score: Math.round(((promoters - detractors) / total) * 100),
+    total, promoters, passives, detractors,
+    promoterPercentage: Math.round((promoters / total) * 100),
+    passivePercentage: Math.round((passives / total) * 100),
+    detractorPercentage: Math.round((detractors / total) * 100)
+  };
+};
+
+
 // GET /api/reports/export
 router.get('/export', authMiddleware, async (req: AuthRequest, res) => {
   try {
@@ -154,32 +194,16 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
     ]);
 
     // --- PROCESS NPS STATS & DISTRIBUTION ---
-    const total = statsResult._count?.id || 0;
-    let promoters = 0;
-    let detractors = 0;
-    let passives = 0;
-    const distribution = Array(11).fill(0);
+    const responses = distributionResult.map(item => ({ answerValue: item.answerValue }));
+    const stats = calculateNpsStats(responses as any);
 
+    const distribution = Array(11).fill(0);
     distributionResult.forEach((item: any) => {
       const val = Math.round(item.answerValue || 0);
       const count = item._count?.id || 0;
-      if (val >= 1 && val <= 10) distribution[val] += count;
-      
-      if (val >= 9) promoters += count;
-      else if (val >= 7) passives += count;
-      else detractors += count;
+      if (val >= 0 && val <= 10) distribution[val] += count;
     });
 
-    const stats = total === 0 ? {
-      score: 0, promoters: 0, passives: 0, detractors: 0, total: 0, 
-      promoterPercentage: 0, passivePercentage: 0, detractorPercentage: 0
-    } : {
-      score: Math.round(((promoters - detractors) / total) * 100),
-      total, promoters, passives, detractors, 
-      promoterPercentage: Math.round((promoters / total) * 100),
-      passivePercentage: Math.round((passives / total) * 100),
-      detractorPercentage: Math.round((detractors / total) * 100)
-    };
 
     // --- TIME SERIES ---
     const timeSeriesData = await prisma.surveyResponse.findMany({
@@ -198,11 +222,11 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
     const groups: Record<string, { promoters: number, detractors: number, total: number }> = {};
     (timeSeriesData as any[]).forEach(r => {
       const date = r.createdAt.toISOString().split('T')[0];
-      const val = r.answerValue || 0;
+      const cat = getNpsCategory(r.answerValue);
       const group = groups[date] || { promoters: 0, detractors: 0, total: 0 };
       group.total++;
-      if (val >= 9) group.promoters++;
-      else if (val <= 6) group.detractors++;
+      if (cat === 'PROMOTER') group.promoters++;
+      else if (cat === 'DETRACTOR') group.detractors++;
       groups[date] = group;
     });
 
@@ -215,24 +239,17 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
 
     // --- PROCESS CAMPAIGN STATS ---
     const byCampaign = campaigns.map((c: any) => {
-      let cPromoters = 0;
-      let cDetractors = 0;
-      let cTotal = 0;
+      const campaignResponses: any[] = [];
       c.sessions.forEach((s: any) => {
-        // Iterate over ALL responses in a session that have a numeric score
         s.responses.forEach((r: any) => {
-          if (r.answerValue !== null) {
-            cTotal++;
-            const val = r.answerValue;
-            if (val >= 9) cPromoters++;
-            else if (val <= 6) cDetractors++;
-          }
+          if (r.answerValue !== null) campaignResponses.push(r);
         });
       });
+      const cStats = calculateNpsStats(campaignResponses);
       return {
         name: c.name,
-        total: cTotal,
-        score: cTotal > 0 ? Math.round(((cPromoters - cDetractors) / cTotal) * 100) : 0
+        total: cStats.total,
+        score: cStats.score
       };
     }).filter((c: any) => c.total > 0);
 
@@ -285,7 +302,7 @@ router.get('/detailed', authMiddleware, async (req: AuthRequest, res: Response) 
     if (scoreCategory && scoreCategory !== 'all') {
       const respWhere: any = {};
       if (scoreCategory === 'promoter') respWhere.answerValue = { gte: 9 };
-      else if (scoreCategory === 'neutral') respWhere.answerValue = { in: [7, 8] };
+      else if (scoreCategory === 'neutral') respWhere.answerValue = { gte: 7, lte: 8 };
       else if (scoreCategory === 'detractor') respWhere.answerValue = { lte: 6 };
       
       where.responses = { some: respWhere };
@@ -362,23 +379,13 @@ router.get('/detailed', authMiddleware, async (req: AuthRequest, res: Response) 
     ]);
 
     // Calculate Stats for the header cards
-    const sTotal = statsResult._count?.id || 0;
-    let sPromoters = 0;
-    let sDetractors = 0;
-    distributionResult.forEach((item: any) => {
-      const val = Math.round(item.answerValue || 0);
-      const count = item._count?.id || 0;
-      if (val >= 9) sPromoters += count;
-      else if (val <= 6) sDetractors += count;
-    });
-
-    const stats = sTotal === 0 ? {
-      score: 0, total: 0, promoterPercentage: 0, detractorPercentage: 0
-    } : {
-      score: Math.round(((sPromoters - sDetractors) / sTotal) * 100),
-      total: sTotal,
-      promoterPercentage: Math.round((sPromoters / sTotal) * 100),
-      detractorPercentage: Math.round((sDetractors / sTotal) * 100)
+    const statsResponses = distributionResult.map(item => ({ answerValue: item.answerValue }));
+    const fullStats = calculateNpsStats(statsResponses as any);
+    const stats = {
+      score: fullStats.score,
+      total: fullStats.total,
+      promoterPercentage: fullStats.promoterPercentage,
+      detractorPercentage: fullStats.detractorPercentage
     };
 
     const result = {
@@ -447,24 +454,8 @@ router.get('/stats', authMiddleware, async (req: AuthRequest, res: Response) => 
       })
     ]);
 
-    const sTotal = statsResult._count?.id || 0;
-    let sPromoters = 0;
-    let sDetractors = 0;
-    distributionResult.forEach((item: any) => {
-      const val = Math.round(item.answerValue || 0);
-      const count = item._count?.id || 0;
-      if (val >= 9) sPromoters += count;
-      else if (val <= 6) sDetractors += count;
-    });
-
-    const stats = sTotal === 0 ? {
-      score: 0, total: 0, promoterPercentage: 0, detractorPercentage: 0
-    } : {
-      score: Math.round(((sPromoters - sDetractors) / sTotal) * 100),
-      total: sTotal,
-      promoterPercentage: Math.round((sPromoters / sTotal) * 100),
-      detractorPercentage: Math.round((sDetractors / sTotal) * 100)
-    };
+    const statsResponses = distributionResult.map(item => ({ answerValue: item.answerValue }));
+    const stats = calculateNpsStats(statsResponses as any);
 
     await setTenantCached(tenantId, cacheKey, 60, stats);
     res.json(stats);
@@ -492,33 +483,7 @@ router.get('/nps-stats', authMiddleware, async (req: AuthRequest, res) => {
       }
     });
 
-    const total = responses.length;
-    if (total === 0) {
-      const result = {
-        score: 0, promoters: 0, passives: 0, detractors: 0, total: 0
-      };
-      await setTenantCached(tenantId, cacheKey, 60, result);
-      return res.json(result);
-    }
-
-    let promoters = 0;
-    let detractors = 0;
-    let passives = 0;
-
-    responses.forEach((r: any) => {
-      const val = r.answerValue || 0;
-      if (val >= 9) promoters++;
-      else if (val <= 6) detractors++;
-      else passives++;
-    });
-
-    const result = {
-      score: Math.round(((promoters - detractors) / total) * 100),
-      promoters, passives, detractors, total,
-      promoterPercentage: Math.round((promoters / total) * 100),
-      passivePercentage: Math.round((passives / total) * 100),
-      detractorPercentage: Math.round((detractors / total) * 100)
-    };
+    const result = calculateNpsStats(responses);
 
     await setTenantCached(tenantId, cacheKey, 60, result);
     res.json(result);
@@ -550,7 +515,7 @@ router.get('/distribution', authMiddleware, async (req: AuthRequest, res) => {
     const distribution = Array(11).fill(0);
     responses.forEach((r: any) => {
       const val = Math.round(r.answerValue || 0);
-      if (val >= 1 && val <= 10) distribution[val]++;
+      if (val >= 0 && val <= 10) distribution[val]++;
     });
 
     const result = distribution.map((count, index) => ({ score: index, count }));

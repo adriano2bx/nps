@@ -40,19 +40,25 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export const HistogramPremium: React.FC<HistogramPremiumProps> = ({ data }) => {
-  // Ensure we have all 1-10 scores
-  const fullData = Array.from({ length: 10 }, (_, i) => {
-    const score = i + 1;
+  // Ensure we have all 0-10 scores
+  const fullData = Array.from({ length: 11 }, (_, i) => {
+    const score = i;
     const existing = data.find(d => d.score === score);
     return existing || { score, count: 0 };
   });
+
+  // Filter out 0 only if it has no data, to keep UI clean for new users
+  // but show it if legacy data exists.
+  const displayData = fullData[0].count > 0 ? fullData : fullData.slice(1);
+
 
   return (
     <div className="h-[280px] w-full group">
        <ResponsiveContainer width="100%" height="100%">
           <BarChart 
-            data={fullData} 
+            data={displayData} 
             margin={{ top: 20, right: 0, left: -25, bottom: 0 }}
+
              barGap={2}
           >
             <defs>
@@ -109,7 +115,7 @@ export const HistogramPremium: React.FC<HistogramPremiumProps> = ({ data }) => {
               animationBegin={200}
             >
               {
-                fullData.map((entry, index) => {
+                displayData.map((entry, index) => {
                   let fill = "url(#barPassive)";
                   if (entry.score >= 9) fill = "url(#barPromoter)";
                   else if (entry.score <= 6) fill = "url(#barDetractor)";

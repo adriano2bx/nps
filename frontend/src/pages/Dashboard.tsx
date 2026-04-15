@@ -192,7 +192,7 @@ export default function Dashboard() {
              </div>
              <div className="space-y-1.5">
                 <div className="flex justify-between items-end">
-                   <div className="text-xs font-medium text-red-600 dark:text-red-500">Detratores (1-6)</div>
+                   <div className="text-xs font-medium text-red-600 dark:text-red-500">Detratores (0-6)</div>
                    <div className="text-xs font-mono text-zinc-700 dark:text-zinc-300">{stats?.detractorPercentage || 0}%</div>
                 </div>
                 <div className="h-2 w-full bg-zinc-100 dark:bg-zinc-900 rounded-sm overflow-hidden">
