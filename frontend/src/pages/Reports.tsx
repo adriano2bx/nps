@@ -212,7 +212,7 @@ export default function Reports() {
         {showAdvanced && (
           <div className="bg-white dark:bg-surface-card border border-zinc-200 dark:border-surface-border p-6 rounded-2xl shadow-xl animate-in slide-in-from-top-4 duration-300 grid grid-cols-1 md:grid-cols-3 gap-6">
             <div><label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 ml-1">Campanha Específica</label><select value={filters.campaign} onChange={e => setFilters({...filters, campaign: e.target.value})}><option value="all">Todas as Campanhas</option>{campaigns.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}</select></div>
-            <div><label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 ml-1">Categoria de Nota (NPS)</label><select value={filters.scoreCategory} onChange={e => setFilters({...filters, scoreCategory: e.target.value})}><option value="all">Todos os Scores</option><option value="promoter">Promotores (5)</option><option value="neutral">Neutros (4)</option><option value="detractor">Detratores (0-3)</option></select></div>
+            <div><label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 ml-1">Categoria de Nota (NPS)</label><select value={filters.scoreCategory} onChange={e => setFilters({...filters, scoreCategory: e.target.value})}><option value="all">Todos os Scores</option><option value="promoter">Promotores (9-10)</option><option value="neutral">Neutros (7-8)</option><option value="detractor">Detratores (1-6)</option></select></div>
             <div><label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5 ml-1">Status da Resposta</label><select value={filters.status} onChange={e => setFilters({...filters, status: e.target.value})}><option value="all">Qualquer Status</option><option value="completed">Concluída</option><option value="pending">Pendente</option><option value="expired">Expirada</option></select></div>
             <div className="md:col-span-3 pt-2 flex justify-end"><button onClick={() => setFilters({ campaign: 'all', scoreCategory: 'all', status: 'all' })} className="text-xs font-bold text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 uppercase tracking-widest transition-colors">Limpar Filtros</button></div>
           </div>
@@ -265,7 +265,7 @@ export default function Reports() {
                   <span className="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-[10px] font-bold rounded-md uppercase tracking-wider">{row.campaign}</span>
                 </td>
                 <td className="px-6 py-4 text-center">
-                  <div className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold text-xs shadow-sm ${row.score >= 5 ? 'bg-emerald-500 text-white' : row.score >= 4 ? 'bg-amber-500 text-white' : 'bg-rose-500 text-white'}`}>
+                  <div className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold text-xs shadow-sm ${row.score >= 9 ? 'bg-emerald-500 text-white' : row.score >= 7 ? 'bg-amber-500 text-white' : 'bg-rose-500 text-white'}`}>
                     {row.score}
                   </div>
                 </td>
@@ -343,7 +343,7 @@ export default function Reports() {
                      <div className="flex items-center justify-between gap-4">
                         <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100 leading-relaxed">{r.text || r.value || '—'}</p>
                         {r.type === 'nps' && (
-                          <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-[13px] shadow-lg ${r.value! >= 5 ? 'bg-emerald-500 text-white' : r.value! >= 4 ? 'bg-amber-500 text-white' : 'bg-rose-500 text-white'}`}>
+                          <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-[13px] shadow-lg ${r.value! >= 9 ? 'bg-emerald-500 text-white' : r.value! >= 7 ? 'bg-amber-500 text-white' : 'bg-rose-500 text-white'}`}>
                             {r.value}
                           </div>
                         )}
@@ -363,13 +363,13 @@ export default function Reports() {
                   
                   {detail.history.map((h: any, i: number) => (
                     <div key={i} className="relative flex items-center justify-between group">
-                      <div className={`absolute -left-[1.375rem] w-3 h-3 rounded-full border-2 border-white dark:border-zinc-950 transition-all ${h.score === null ? 'bg-zinc-300 animate-pulse' : h.score >= 5 ? 'bg-emerald-500 scale-110 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : h.score >= 4 ? 'bg-amber-500' : 'bg-rose-500'} group-hover:scale-125 z-10`} />
+                      <div className={`absolute -left-[1.375rem] w-3 h-3 rounded-full border-2 border-white dark:border-zinc-950 transition-all ${h.score === null ? 'bg-zinc-300 animate-pulse' : h.score >= 9 ? 'bg-emerald-500 scale-110 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : h.score >= 7 ? 'bg-amber-500' : 'bg-rose-500'} group-hover:scale-125 z-10`} />
                       <div className="flex-1">
                         <p className="text-xs font-bold text-zinc-700 dark:text-zinc-200">{h.campaignName}</p>
                         <p className="text-[10px] text-zinc-400">{new Date(h.date).toLocaleDateString('pt-BR')}</p>
                       </div>
                       <div className="text-right">
-                         <span className={`text-[10px] font-black uppercase tracking-widest ${h.score === null ? 'text-zinc-300' : h.score >= 5 ? 'text-emerald-500' : h.score >= 4 ? 'text-amber-500' : 'text-rose-500'}`}>
+                         <span className={`text-[10px] font-black uppercase tracking-widest ${h.score === null ? 'text-zinc-300' : h.score >= 9 ? 'text-emerald-500' : h.score >= 7 ? 'text-amber-500' : 'text-rose-500'}`}>
                            {h.score === null ? 'Incompleta' : `Score: ${h.score}`}
                          </span>
                       </div>

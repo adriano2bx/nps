@@ -158,16 +158,16 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
     let promoters = 0;
     let detractors = 0;
     let passives = 0;
-    const distribution = Array(6).fill(0);
+    const distribution = Array(11).fill(0);
 
     distributionResult.forEach((item: any) => {
       const val = Math.round(item.answerValue || 0);
       const count = item._count?.id || 0;
-      if (val >= 0 && val <= 5) distribution[val] += count;
+      if (val >= 1 && val <= 10) distribution[val] += count;
       
-      if (val >= 5) promoters += count;
-      else if (val <= 3) detractors += count;
-      else passives += count;
+      if (val >= 9) promoters += count;
+      else if (val >= 7) passives += count;
+      else detractors += count;
     });
 
     const stats = total === 0 ? {
@@ -201,8 +201,8 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
       const val = r.answerValue || 0;
       const group = groups[date] || { promoters: 0, detractors: 0, total: 0 };
       group.total++;
-      if (val >= 5) group.promoters++;
-      else if (val <= 3) group.detractors++;
+      if (val >= 9) group.promoters++;
+      else if (val <= 6) group.detractors++;
       groups[date] = group;
     });
 
@@ -224,8 +224,8 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
           if (r.answerValue !== null) {
             cTotal++;
             const val = r.answerValue;
-            if (val >= 5) cPromoters++;
-            else if (val <= 3) cDetractors++;
+            if (val >= 9) cPromoters++;
+            else if (val <= 6) cDetractors++;
           }
         });
       });
@@ -284,9 +284,9 @@ router.get('/detailed', authMiddleware, async (req: AuthRequest, res: Response) 
 
     if (scoreCategory && scoreCategory !== 'all') {
       const respWhere: any = {};
-      if (scoreCategory === 'promoter') respWhere.answerValue = { gte: 5 };
-      else if (scoreCategory === 'neutral') respWhere.answerValue = { equals: 4 };
-      else if (scoreCategory === 'detractor') respWhere.answerValue = { lte: 3 };
+      if (scoreCategory === 'promoter') respWhere.answerValue = { gte: 9 };
+      else if (scoreCategory === 'neutral') respWhere.answerValue = { in: [7, 8] };
+      else if (scoreCategory === 'detractor') respWhere.answerValue = { lte: 6 };
       
       where.responses = { some: respWhere };
     }
@@ -368,8 +368,8 @@ router.get('/detailed', authMiddleware, async (req: AuthRequest, res: Response) 
     distributionResult.forEach((item: any) => {
       const val = Math.round(item.answerValue || 0);
       const count = item._count?.id || 0;
-      if (val >= 5) sPromoters += count;
-      else if (val <= 3) sDetractors += count;
+      if (val >= 9) sPromoters += count;
+      else if (val <= 6) sDetractors += count;
     });
 
     const stats = sTotal === 0 ? {
@@ -453,8 +453,8 @@ router.get('/stats', authMiddleware, async (req: AuthRequest, res: Response) => 
     distributionResult.forEach((item: any) => {
       const val = Math.round(item.answerValue || 0);
       const count = item._count?.id || 0;
-      if (val >= 5) sPromoters += count;
-      else if (val <= 3) sDetractors += count;
+      if (val >= 9) sPromoters += count;
+      else if (val <= 6) sDetractors += count;
     });
 
     const stats = sTotal === 0 ? {
@@ -507,8 +507,8 @@ router.get('/nps-stats', authMiddleware, async (req: AuthRequest, res) => {
 
     responses.forEach((r: any) => {
       const val = r.answerValue || 0;
-      if (val >= 5) promoters++;
-      else if (val <= 3) detractors++;
+      if (val >= 9) promoters++;
+      else if (val <= 6) detractors++;
       else passives++;
     });
 
@@ -547,10 +547,10 @@ router.get('/distribution', authMiddleware, async (req: AuthRequest, res) => {
       }
     });
 
-    const distribution = Array(6).fill(0);
+    const distribution = Array(11).fill(0);
     responses.forEach((r: any) => {
       const val = Math.round(r.answerValue || 0);
-      if (val >= 0 && val <= 5) distribution[val]++;
+      if (val >= 1 && val <= 10) distribution[val]++;
     });
 
     const result = distribution.map((count, index) => ({ score: index, count }));

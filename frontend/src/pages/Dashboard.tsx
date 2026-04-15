@@ -208,7 +208,7 @@ export default function Dashboard() {
           <div className="flex-1 flex flex-col gap-6 justify-center">
              <div className="space-y-1.5">
                 <div className="flex justify-between items-end">
-                   <div className="text-xs font-medium text-emerald-600 dark:text-emerald-500">Promotores (5)</div>
+                   <div className="text-xs font-medium text-emerald-600 dark:text-emerald-500">Promotores (9-10)</div>
                    <div className="text-xs font-mono text-zinc-700 dark:text-zinc-300">{stats?.promoterPercentage || 0}%</div>
                 </div>
                 <div className="h-2 w-full bg-zinc-100 dark:bg-zinc-900 rounded-sm overflow-hidden">
@@ -217,7 +217,7 @@ export default function Dashboard() {
              </div>
              <div className="space-y-1.5">
                 <div className="flex justify-between items-end">
-                   <div className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Neutros (4)</div>
+                   <div className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Neutros (7-8)</div>
                    <div className="text-xs font-mono text-zinc-700 dark:text-zinc-300">{stats?.passivePercentage || 0}%</div>
                 </div>
                 <div className="h-2 w-full bg-zinc-100 dark:bg-zinc-900 rounded-sm overflow-hidden">
@@ -226,7 +226,7 @@ export default function Dashboard() {
              </div>
              <div className="space-y-1.5">
                 <div className="flex justify-between items-end">
-                   <div className="text-xs font-medium text-red-600 dark:text-red-500">Detratores (0-3)</div>
+                   <div className="text-xs font-medium text-red-600 dark:text-red-500">Detratores (1-6)</div>
                    <div className="text-xs font-mono text-zinc-700 dark:text-zinc-300">{stats?.detractorPercentage || 0}%</div>
                 </div>
                 <div className="h-2 w-full bg-zinc-100 dark:bg-zinc-900 rounded-sm overflow-hidden">
@@ -248,8 +248,8 @@ export default function Dashboard() {
               ) : recent.slice(0, 5).map((row: any, i: number) => (
                  <div key={i} className="flex items-center gap-4 p-4 hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition-colors group">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-mono text-lg font-black shrink-0 transition-transform group-hover:scale-105 ${
-                      row.score >= 5 ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' : 
-                      row.score >= 4 ? 'bg-zinc-50 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400' : 
+                      row.score >= 9 ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' : 
+                      row.score >= 7 ? 'bg-zinc-50 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400' : 
                       'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400'
                     }`}>
                        {row.score}

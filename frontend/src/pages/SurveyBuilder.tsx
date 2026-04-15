@@ -756,7 +756,7 @@ Você aceita participar de uma pesquisa rápida de satisfação?`}
 
 // ─── Step 2 constants ─────────────────────────────────────────────────────
 const qTypeLabels: Record<QuestionType, { label: string; icon: any; hint: string }> = {
-  nps:    { label: 'Nota NPS (0-5)', icon: Hash, hint: 'Gera a pontuação NPS principal (0-5).' },
+  nps:    { label: 'Nota NPS (1-10)', icon: Hash, hint: 'Gera a pontuação NPS principal (1-10).' },
   open:   { label: 'Texto Puro', icon: MessageSquareText, hint: 'Campo de texto livre.' },
   choice: { label: 'Botões', icon: MousePointerClick, hint: 'Até 3 botões rápidos.' },
   list:   { label: 'Lista / Menu', icon: ListIcon, hint: 'Gaveta com opções selecionáveis.' },
@@ -806,7 +806,7 @@ function SurveySimulator({
     setShowList(false);
     setHoveredOption(null);
     const botText = currentQ.text || (
-      currentQ.type === 'nps' ? 'De 0 a 5, o quanto você nos recomendaria?' :
+      currentQ.type === 'nps' ? 'De 1 a 10, o quanto você nos recomendaria?' :
       currentQ.type === 'open' ? 'Deixe seu comentário:' : 'Selecione uma opção:'
     );
     const hHeader = activeStep === 0 ? (header || `🏥 ${clinicName || 'Sua Clínica'}`) : undefined;
@@ -962,7 +962,7 @@ function SurveySimulator({
                     <div className="px-2.5 py-2">
                       <p className="text-[12px] text-zinc-800 dark:text-zinc-200 leading-relaxed whitespace-pre-wrap">
                         {currentQ.text || (
-                          currentQ.type === 'nps' ? 'De 0 a 5, o quanto você nos recomendaria?' :
+                          currentQ.type === 'nps' ? 'De 1 a 10, o quanto você nos recomendaria?' :
                           currentQ.type === 'open' ? 'Deixe seu comentário:' : 'Selecione uma opção:'
                         )}
                       </p>
@@ -1052,7 +1052,7 @@ function SurveySimulator({
                 <div className="overflow-y-auto">
                   {(() => {
                     const options = currentQ.type === 'nps' 
-                      ? ['5', '4', '3', '2', '1', '0'] 
+                      ? ['10', '9', '8', '7', '6', '5', '4', '3', '2', '1'] 
                       : (currentQ.options ?? []);
                     
                     return options.map((o, i) => {
@@ -1095,11 +1095,11 @@ function SurveySimulator({
               
               if (currentQ?.type === 'nps') {
                 const val = parseInt(inputText.trim(), 10);
-                if (isNaN(val) || val < 0 || val > 5) {
+                if (isNaN(val) || val < 1 || val > 10) {
                   setChatHistory(h => [
                     ...h, 
                     { role: 'user', text: inputText }, 
-                    { role: 'bot', text: "Apenas números de 0 a 5 são aceitos. Tente novamente!" }
+                    { role: 'bot', text: "Apenas números de 1 a 10 são aceitos. Tente novamente!" }
                   ]);
                   setInputText('');
                   return;
@@ -1124,7 +1124,7 @@ function SurveySimulator({
                     }`}
                     placeholder={
                       isFinished ? 'Mensagem' :
-                      currentQ?.type === 'nps' ? 'Digite sua nota (0-5)...' :
+                      currentQ?.type === 'nps' ? 'Digite sua nota (1-10)...' :
                       false ? 'Digite sua resposta...' :
                       currentQ?.type === 'open' ? 'Digite sua mensagem...' :
                       'Mensagem'
@@ -1350,7 +1350,7 @@ function Step2({
 
   const buttonTemplates = [
     { id: 'choice', type: 'choice', label: 'Botões', icon: MousePointerClick, defaultOptions: ['Sim', 'Não'], defaultText: 'Você gostou do atendimento?' },
-    { id: 'list_notes', type: 'list', label: 'Lista c/ Notas', icon: Hash, defaultOptions: ['0','1','2','3','4','5'], defaultText: 'De 0 a 5, o quanto você recomendaria nossa clínica?' },
+    { id: 'list_notes', type: 'list', label: 'Lista c/ Notas', icon: Hash, defaultOptions: ['10','9','8','7','6','5','4','3','2','1'], defaultText: 'De 1 a 10, o quanto você recomendaria nossa clínica?' },
     { id: 'list_text', type: 'list', label: 'Lista c/ Textos', icon: ListIcon, defaultOptions: ['Péssimo','Ruim','Bom','Excelente'], defaultText: 'Como você avalia nossa clínica de forma geral?' },
     { id: 'open', type: 'open', label: 'Texto Puro', icon: MessageSquareText, defaultText: 'Por favor, deixe seu comentário livre.' }
   ];
@@ -1446,7 +1446,7 @@ function Step2({
                     <label className={labelCls}>Pergunta</label>
                     <input
                       className={inputCls}
-                      placeholder={q.type === 'nps' ? 'De 0 a 5, o quanto você nos recomendaria?' : q.type === 'open' ? 'O que podemos melhorar?' : 'Como avalia o atendimento?'}
+                      placeholder={q.type === 'nps' ? 'De 1 a 10, o quanto você nos recomendaria?' : q.type === 'open' ? 'O que podemos melhorar?' : 'Como avalia o atendimento?'}
                       value={q.text}
                       onChange={e => update(q.id, 'text', e.target.value)}
                     />

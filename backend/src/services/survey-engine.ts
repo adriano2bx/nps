@@ -499,23 +499,23 @@ Retorne APENAS um JSON válido com exatas duas chaves booleanas:
     let answerText: string | null = null;
 
     if (currentQ.type === 'nps') {
-      const prompt = `O usuário deve fornecer uma nota de satisfação de 0 a 5. Você lerá o texto dele e extrairá apenas a avaliação numérica pretendida. Ele pode escrever por extenso com erros (ex: "cinco", "zero", "quatro").
+      const prompt = `O usuário deve fornecer uma nota de satisfação de 1 a 10. Você lerá o texto dele e extrairá apenas a avaliação numérica pretendida. Ele pode escrever por extenso com erros (ex: "dez", "um", "sete").
 Retorne APENAS um JSON válido e estrito com a chave:
-"score": o número inteiro representativo extraído da frase (0-5). Valor null se for completamente impossível extrair ou não contiver intenção de nota.`;
+"score": o número inteiro representativo extraído da frase (1-10). Valor null se for completamente impossível extrair ou não contiver intenção de nota.`;
 
       const fallback = () => {
          const val = parseInt(rawText.replace(/\D/g, ''), 10);
-         return { score: (!isNaN(val) && val >= 0 && val <= 5) ? val : null };
+         return { score: (!isNaN(val) && val >= 1 && val <= 10) ? val : null };
       };
 
       const aiResponse = await this.parseIntentWithAI(prompt, rawText, fallback());
 
-      if (aiResponse.score === null || typeof aiResponse.score !== 'number' || aiResponse.score < 0 || aiResponse.score > 5) {
+      if (aiResponse.score === null || typeof aiResponse.score !== 'number' || aiResponse.score < 1 || aiResponse.score > 10) {
          await this.dispatchMessage(
             session.campaign.whatsappChannelId,
             session.tenantId,
             session.contact.phoneNumber,
-            'Não consegui identificar a sua nota.\n\nPor favor, envie um número de *0 a 5* para prosseguirmos.'
+            'Não consegui identificar a sua nota.\n\nPor favor, envie um número de *1 a 10* para prosseguirmos.'
          );
          return;
       }
@@ -703,14 +703,18 @@ Retorne APENAS um JSON válido e estrito com a chave:
     }
     
     if (question.type === 'nps') {
-      // Prepara lista de 0 a 5 (Se encaixa perfeitamente no limite de 10 itens da Meta)
+      // Prepara lista de 1 a 10 (Se encaixa perfeitamente no limite de 10 itens da Meta)
       buttons = [
+        { id: '10', title: '10' },
+        { id: '9', title: '9' },
+        { id: '8', title: '8' },
+        { id: '7', title: '7' },
+        { id: '6', title: '6' },
         { id: '5', title: '5' },
         { id: '4', title: '4' },
         { id: '3', title: '3' },
         { id: '2', title: '2' },
         { id: '1', title: '1' },
-        { id: '0', title: '0' },
       ];
     } else if (!buttons) {
       text += '\n\n_(Digite sua resposta)_';
