@@ -42,7 +42,7 @@ export const setupSurveyWorker = () => {
         return;
       }
       if (campaign.topicId && contact.topicOptOuts) {
-        const isOptedOut = contact.topicOptOuts.some(op => op.topicId === campaign.topicId);
+        const isOptedOut = contact.topicOptOuts.some((op: any) => op.topicId === campaign.topicId);
         if (isOptedOut) {
            console.log(`[Worker] Skip: Contact ${contact.phoneNumber} is Opt-Out for Topic ${campaign.topicId}`);
            return;

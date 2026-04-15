@@ -214,7 +214,7 @@ Opções: ${JSON.stringify(options)}`;
             await prisma.contact.update({
                 where: { id: session.contactId },
                 data: { name: pushName }
-            }).catch(e => console.error('[SurveyEngine] Error auto-updating contact name in existing session:', e));
+            }).catch((e: Error) => console.error('[SurveyEngine] Error auto-updating contact name in existing session:', e));
         }
 
         try {
@@ -246,7 +246,7 @@ Opções: ${JSON.stringify(options)}`;
       normalizedPhone, 
       cleanInput,
       foundAnySessionsCount: openSessionsForContact.length,
-      diagnosticSessions: openSessionsForContact.map(s => ({ 
+      diagnosticSessions: openSessionsForContact.map((s: any) => ({ 
         id: s.id, 
         status: s.status, 
         campaignChannelId: s.campaign.whatsappChannelId,
@@ -410,7 +410,7 @@ Opções: ${JSON.stringify(options)}`;
           waMessageId: result.messages[0].id,
           status: 'SENT'
         }
-      }).catch(e => console.error('[SurveyEngine] Error logging message:', e));
+      }).catch((e: Error) => console.error('[SurveyEngine] Error logging message:', e));
     }
 
     return result;
@@ -762,7 +762,7 @@ Retorne APENAS um JSON válido e estrito com a chave:
         logger.info({ sessionId: session.id }, '[SurveyEngine] 📱 Sending CTA Closing Message');
         const meta = await this.getMeta();
         const header = camp.header ? { type: 'text' as const, value: camp.header } : undefined;
-        const channel = await prisma.whatsappChannel.findUnique({ where: { id: channelId } });
+        const channel = await prisma.whatsAppChannel.findUnique({ where: { id: channelId } });
         
         if (channel?.provider === 'META') {
           await meta.sendCTA(channel, session.contact.phoneNumber, camp.closingMessage, ctaLabel, ctaLink, header, camp.footer || undefined);
@@ -781,7 +781,7 @@ Retorne APENAS um JSON válido e estrito com a chave:
           session.id
         );
         const meta = await this.getMeta();
-        const channel = await prisma.whatsappChannel.findUnique({ where: { id: channelId } });
+        const channel = await prisma.whatsAppChannel.findUnique({ where: { id: channelId } });
         if (channel?.provider === 'META') {
            await meta.sendContact(channel, session.contact.phoneNumber, camp.supportName, camp.supportPhone);
         }

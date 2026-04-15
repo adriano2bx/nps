@@ -58,7 +58,7 @@ router.post('/meta/:channelId', async (req, res) => {
       await prisma.surveyMessageLog.updateMany({
         where: { waMessageId: wamid },
         data: { status }
-      }).catch(e => logger.error({ e, wamid }, '[Webhook] Error updating message status'));
+      }).catch((e: Error) => logger.error({ e, wamid }, '[Webhook] Error updating message status'));
 
       return res.status(200).send('OK');
     }

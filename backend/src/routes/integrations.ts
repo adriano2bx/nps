@@ -254,14 +254,14 @@ router.get('/metrics/nps', metricsLimiter, async (req: ApiRequest, res: Response
       select: { answerValue: true }
     });
 
-    const values = responses.map(r => r.answerValue!);
+    const values = responses.map((r: { answerValue: number | null }) => r.answerValue!);
     const total = values.length;
     
     if (total === 0) return res.json({ nps: 0, total: 0 });
 
     // 0-5 Scale Logic
-    const promoters = values.filter(v => v >= 5).length;
-    const detractors = values.filter(v => v <= 3).length;
+    const promoters = values.filter((v: number) => v >= 5).length;
+    const detractors = values.filter((v: number) => v <= 3).length;
     const nps = ((promoters - detractors) / total) * 100;
 
     res.json({

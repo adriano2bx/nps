@@ -30,7 +30,7 @@ class WebhookService {
 
       if (webhooks.length === 0) return;
 
-      const jobs = webhooks.map(w => ({
+      const jobs = webhooks.map((w: any) => ({
         name: `webhook:${event}`,
         data: {
           webhookId: w.id,
