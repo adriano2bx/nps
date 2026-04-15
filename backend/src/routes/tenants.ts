@@ -31,6 +31,43 @@ const masterAdminOnly = async (req: AuthRequest, res: Response, next: any) => {
   }
 };
 
+// GET /api/tenants/me - Get current tenant info
+router.get('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: req.tenantId }
+    });
+    if (!tenant) return res.status(404).json({ error: 'Tenant not found' });
+    res.json(tenant);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch tenant info' });
+  }
+});
+
+// PUT /api/tenants/me - Update current tenant info (ADMIN only)
+router.put('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    if (!user || (user.role !== 'ADMIN' && user.role !== 'MASTER_ADMIN')) {
+      return res.status(403).json({ error: 'Apenas administradores podem atualizar os dados da clínica' });
+    }
+
+    const { name, cnpj } = req.body;
+    const tenant = await prisma.tenant.update({
+      where: { id: req.tenantId },
+      data: { name, cnpj }
+    });
+
+    // Invalidate caches
+    const keys = await redis.keys(`*:${req.tenantId}*`);
+    if (keys.length > 0) await redis.del(...keys);
+
+    res.json(tenant);
+  } catch (error: any) {
+    res.status(500).json({ error: 'Failed to update clinic info', details: error.message });
+  }
+});
+
 // GET /api/tenants - List all tenants with stats
 router.get('/', authMiddleware, masterAdminOnly, async (req: AuthRequest, res: Response) => {
   try {

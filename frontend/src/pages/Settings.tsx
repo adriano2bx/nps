@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Plus, SmartphoneNfc, Trash2, Globe, Shield, 
   Check, ExternalLink,
@@ -46,6 +46,39 @@ export default function Settings() {
   const [editTarget, setEditTarget] = useState<Channel | null>(null);
   const [form, setForm] = useState(emptyChannel);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const { user } = useAuth();
+
+  // General tab states
+  const [clinicName, setClinicName] = useState(user?.tenant?.name || '');
+  const [clinicCnpj, setClinicCnpj] = useState(user?.tenant?.cnpj || '');
+  const [isSavingClinic, setIsSavingClinic] = useState(false);
+
+  useEffect(() => {
+    if (user?.tenant) {
+      setClinicName(user.tenant.name);
+      setClinicCnpj(user.tenant.cnpj || '');
+    }
+  }, [user]);
+
+  const handleSaveClinic = async () => {
+    setIsSavingClinic(true);
+    try {
+      const response = await fetch(`${VITE_API_URL}/api/tenants/me`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ name: clinicName, cnpj: clinicCnpj })
+      });
+      if (!response.ok) throw new Error('Failed to save clinic info');
+      alert('Informações da clínica atualizadas com sucesso!');
+    } catch (err: any) {
+      alert('Erro ao salvar informações: ' + err.message);
+    } finally {
+      setIsSavingClinic(false);
+    }
+  };
 
   const handleSave = async () => {
     try {
@@ -137,7 +170,7 @@ export default function Settings() {
 
       <div className="grid grid-cols-1 gap-8">
         {activeTab === 'general' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+          <div className="max-w-2xl mx-auto">
             <div className="border border-zinc-200 dark:border-surface-border rounded-2xl bg-white dark:bg-surface-card shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-zinc-100 dark:border-surface-border/50 bg-zinc-50/50 dark:bg-surface-subtle/50 flex justify-between items-center">
                 <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
@@ -147,30 +180,40 @@ export default function Settings() {
               <div className="p-6 space-y-6">
                 <div className="space-y-1">
                   <label className={labelCls}>Nome Fantasia</label>
-                  <input type="text" defaultValue="Clínica Morumbi Integrada" disabled className={readonlyInputCls} />
+                  <input 
+                    type="text" 
+                    value={clinicName} 
+                    onChange={e => setClinicName(e.target.value)}
+                    className={inputCls} 
+                    placeholder="Nome da clínica"
+                  />
                 </div>
                 <div className="space-y-1">
-                  <label className={labelCls}>CNPJ Auditado</label>
-                  <input type="text" defaultValue="00.000.000/0001-00" disabled className={`${readonlyInputCls} font-mono`} />
+                  <label className={labelCls}>CNPJ da Unidade</label>
+                  <input 
+                    type="text" 
+                    value={clinicCnpj} 
+                    onChange={e => setClinicCnpj(e.target.value)}
+                    className={`${inputCls} font-mono`} 
+                    placeholder="00.000.000/0001-00"
+                  />
                 </div>
+
+                <div className="flex justify-end pt-2">
+                  <button 
+                    onClick={handleSaveClinic}
+                    disabled={isSavingClinic || !clinicName}
+                    className="btn-primary px-6 py-2 text-xs"
+                  >
+                    {isSavingClinic ? 'Salvando...' : 'Salvar Alterações'}
+                  </button>
+                </div>
+
                 <div className="p-4 bg-blue-50/50 dark:bg-blue-500/5 border border-blue-100 dark:border-blue-500/20 rounded-xl flex gap-3 shadow-sm">
                   <Shield className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
                   <p className="text-[11px] text-blue-700 dark:text-blue-400 leading-relaxed font-medium">Dados cadastrais são validados periodicamente pelo nosso time de Compliance para garantir a segurança da plataforma e conformidade com as diretrizes da Meta Business.</p>
                 </div>
               </div>
-            </div>
-            
-            <div className="bg-zinc-900 dark:bg-white rounded-3xl p-8 relative overflow-hidden group shadow-2xl">
-               <div className="absolute top-0 right-0 p-8 transform translate-x-4 -translate-y-4 opacity-10 group-hover:scale-110 transition-transform">
-                  <Bell className="w-32 h-32 dark:text-zinc-900 text-white" />
-               </div>
-               <div className="relative z-10 flex flex-col h-full justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold text-white dark:text-zinc-900 mb-2">Suporte Prioritário Enterprise</h3>
-                    <p className="text-sm text-zinc-400 dark:text-zinc-500 leading-relaxed max-w-xs">Você tem acesso a um Gerente de Sucesso exclusivo e tempo de resposta de <span className="text-white dark:text-zinc-900 font-bold underline">15 minutos</span>.</p>
-                  </div>
-                  <button className="mt-8 bg-white dark:bg-zinc-900 text-zinc-950 dark:text-white px-8 py-3 rounded-2xl font-bold text-sm hover:scale-[1.02] transition-all w-fit shadow-xl shadow-black/20">Falar com Gerente</button>
-               </div>
             </div>
           </div>
         )}

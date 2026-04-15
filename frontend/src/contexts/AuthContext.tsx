@@ -10,6 +10,7 @@ interface User {
     name: string;
     slug: string;
     plan: string;
+    cnpj?: string;
   };
 }
 

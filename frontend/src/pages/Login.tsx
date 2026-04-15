@@ -95,7 +95,7 @@ export default function Login() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   className="w-full pl-10"
-                  placeholder="admin@clinica.com.br"
+                  placeholder=""
                 />
               </div>
             </div>
@@ -103,7 +103,6 @@ export default function Login() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">Senha</label>
-                <a href="#" className="text-xs text-brand-600 dark:text-zinc-500 hover:text-brand-500 dark:hover:text-white transition-colors">Esqueceu a senha?</a>
               </div>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400 dark:text-zinc-500 group-focus-within:text-zinc-900 dark:group-focus-within:text-white transition-colors">
@@ -115,7 +114,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   className="w-full pl-10"
-                  placeholder="••••••••"
+                  placeholder=""
                 />
               </div>
             </div>

@@ -3,7 +3,6 @@ import Login from './pages/Login';
 import DashboardLayout from './layouts/DashboardLayout';
 import Dashboard from './pages/Dashboard';
 import Surveys from './pages/Surveys';
-import Users from './pages/Users';
 import Settings from './pages/Settings';
 import SurveyBuilder from './pages/SurveyBuilder';
 import Reports from './pages/Reports';
@@ -43,7 +42,6 @@ function AppContent() {
             <Route path="surveys/new" element={<SurveyBuilder />} />
             <Route path="surveys/edit/:id" element={<SurveyBuilder />} />
             <Route path="reports" element={<Reports />} />
-            <Route path="patients" element={<Users />} />
             <Route path="settings" element={<Settings />} />
             <Route path="integrations" element={<Integrations />} />
             <Route path="integrations/docs" element={<IntegrationDocs />} />

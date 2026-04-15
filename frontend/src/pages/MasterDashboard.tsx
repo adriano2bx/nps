@@ -57,7 +57,7 @@ export default function MasterDashboard() {
     { label: 'Empresas Ativas', value: totalCompanies, icon: Building2, color: 'text-blue-500', bg: 'bg-blue-500/10' },
     { label: 'Workflows Rodando', value: totalActiveWorkflows, icon: Activity, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
     { label: 'Canais Conectados', value: totalChannels, icon: Globe, color: 'text-purple-500', bg: 'bg-purple-500/10' },
-    { label: 'Clientes Enterprise', value: enterpriseCount, icon: ShieldCheck, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+    { label: 'Controle de Tráfego', value: '100%', icon: ShieldCheck, color: 'text-zinc-500', bg: 'bg-zinc-500/10' },
   ];
 
   if (loading) {
@@ -109,7 +109,7 @@ export default function MasterDashboard() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-zinc-50/50 dark:bg-surface-subtle/50 border-b border-zinc-100 dark:border-surface-border/50">
-                    <th className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Empresa / Plano</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Empresa / ID</th>
                     <th className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest text-center">Workflows</th>
                     <th className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest text-center">Canais</th>
                     <th className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest text-center">Usuários</th>
@@ -122,7 +122,7 @@ export default function MasterDashboard() {
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
                           <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{t.name}</span>
-                          <span className="text-[10px] text-zinc-400 font-mono tracking-tighter uppercase">{t.plan} • {t.slug}</span>
+                          <span className="text-[10px] text-zinc-400 font-mono tracking-tighter uppercase">{t.slug}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">

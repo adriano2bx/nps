@@ -16,7 +16,6 @@ import { useData } from '../contexts/DataContext';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type QuestionType = 'nps' | 'open' | 'choice' | 'list';
-type PlanLevel = 'FREE' | 'STARTER' | 'PRO' | 'ENTERPRISE';
 export interface QuestionAction {
   type: 'next' | 'jump' | 'optout' | 'webhook' | 'cta';
   targetQuestionId?: string | number | 'FINISH';
@@ -223,39 +222,6 @@ function EmojiInput({
 
 
 // ─── Upgrade Modal ────────────────────────────────────────────────────────────
-function UpgradeModal({ isOpen, onClose, requiredPlan }: { isOpen: boolean; onClose: () => void; requiredPlan: string }) {
-  if (!isOpen) return null;
-  return createPortal(
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-zinc-950/40 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-[#0d0d0f] w-full max-w-sm rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="p-8 text-center">
-          <div className="w-16 h-16 bg-brand-50 dark:bg-brand-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="text-3xl">🚀</span>
-          </div>
-          <h3 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">Recurso de Elite!</h3>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed mb-8">
-            Para desbloquear o módulo <span className="font-bold text-brand-600 dark:text-brand-400">{requiredPlan}</span> e outras ferramentas avançadas, você precisa realizar o upgrade da sua conta.
-          </p>
-          <div className="space-y-3">
-             <button className="w-full btn-primary py-3">
-                Falar com Consultor (Upgrade)
-             </button>
-             <button onClick={onClose} className="w-full btn-ghost py-2">
-                Agora não, obrigado.
-             </button>
-          </div>
-        </div>
-      </div>
-    </div>,
-    document.body
-  );
-}
-
-// ─── WaPreviewPhone ── phone frame for Step 1 ─────────────────────────────────
-function WaPreviewPhone({ header, footer, clinicName, body, buttonYes, buttonNo, type, mediaPath }: {
-  header: string; footer: string; clinicName: string;
-  body: string; buttonYes: string; buttonNo: string;
-  type?: string; mediaPath?: string;
 }) {
   const [clock] = useState(() => new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
   const [replied, setReplied] = useState<string | null>(null);
@@ -362,8 +328,6 @@ function WaPreviewPhone({ header, footer, clinicName, body, buttonYes, buttonNo,
 function Step1({ 
   data, 
   onChange, 
-  plan, 
-  onUpgrade, 
   channels, 
   topics,
   refreshTopics,
@@ -374,8 +338,6 @@ function Step1({
 }: { 
   data: GeneralState; 
   onChange: (k: string, v: string) => void; 
-  plan: PlanLevel;
-  onUpgrade: (feature: string) => void;
   channels: WhatsAppChannel[];
   topics: any[];
   refreshTopics: () => Promise<void>;
@@ -1384,12 +1346,10 @@ function Step2({
 }
 
 // ─── Step 3: Trigger & Dispatch ──────────────────────────────────────────────
-function Step3({ data, onChange, type, plan, onUpgrade, triggerType, id }: { 
+function Step3({ data, onChange, type, triggerType, id }: { 
   data: any; 
   onChange: (k: string, v: string) => void; 
   type: string;
-  plan: PlanLevel;
-  onUpgrade: (feature: string) => void;
   triggerType: string;
   id?: string;
 }) {
@@ -1538,13 +1498,10 @@ function Step3({ data, onChange, type, plan, onUpgrade, triggerType, id }: {
 export default function SurveyBuilder() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
-  const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
-  const [upgradeFeature, setUpgradeFeature] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   
   const { token, user } = useAuth();
   const { refreshCampaigns, topics, refreshTopics, channels } = useData();
-  const tenantPlan = (user?.tenant?.plan as PlanLevel) || 'FREE';
   const getApiBase = () => import.meta.env.VITE_API_URL ?? (window.location.origin === 'http://localhost:5173' ? 'http://localhost:3001' : window.location.origin);
   const [isTopicModalOpen, setIsTopicModalOpen] = useState(false);
   const [newTopicName, setNewTopicName] = useState('');
@@ -1913,8 +1870,6 @@ export default function SurveyBuilder() {
       <Step1 
         data={general} 
         onChange={updateGeneral} 
-        plan={tenantPlan} 
-        onUpgrade={(f) => { setUpgradeFeature(f); setIsUpgradeOpen(true); }} 
         channels={channels} 
         topics={topics}
         refreshTopics={refreshTopics}
@@ -1925,10 +1880,10 @@ export default function SurveyBuilder() {
       />
     );
     if (step === 1) {
-      if (isMkt) return <Step3 data={dispatch} onChange={updateDispatch} type={general.type} plan={tenantPlan} onUpgrade={(f) => { setUpgradeFeature(f); setIsUpgradeOpen(true); }} triggerType={general.triggerType} id={id} />;
+      if (isMkt) return <Step3 data={dispatch} onChange={updateDispatch} type={general.type} triggerType={general.triggerType} id={id} />;
       return <Step2 questions={questions} setQuestions={setQuestions} clinicName={general.clinicName} header={general.header} footer={general.footer} simStep={simStep} setSimStep={setSimStep} />;
     }
-    if (step === 2 && !isMkt) return <Step3 data={dispatch} onChange={updateDispatch} type={general.type} plan={tenantPlan} onUpgrade={(f) => { setUpgradeFeature(f); setIsUpgradeOpen(true); }} triggerType={general.triggerType} id={id} />;
+    if (step === 2 && !isMkt) return <Step3 data={dispatch} onChange={updateDispatch} type={general.type} triggerType={general.triggerType} id={id} />;
     return null;
   };
 
@@ -2231,7 +2186,6 @@ export default function SurveyBuilder() {
         </div>
       </Modal>
 
-      <UpgradeModal isOpen={isUpgradeOpen} onClose={() => setIsUpgradeOpen(false)} requiredPlan={upgradeFeature} />
     </div>
     </>
   );

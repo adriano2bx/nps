@@ -22,7 +22,7 @@ export default function Companies() {
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
-    plan: 'FREE',
+    plan: 'STANDARD',
     adminEmail: '',
     adminPassword: ''
   });
@@ -72,7 +72,7 @@ export default function Companies() {
       if (response.ok) {
         setIsModalOpen(false);
         setEditingTenant(null);
-        setFormData({ name: '', slug: '', plan: 'FREE', adminEmail: '', adminPassword: '' });
+        setFormData({ name: '', slug: '', plan: 'STANDARD', adminEmail: '', adminPassword: '' });
         fetchTenants();
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido no servidor' }));
@@ -109,7 +109,7 @@ export default function Companies() {
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Gerencie todos os clientes e instâncias da plataforma.</p>
         </div>
         <button 
-          onClick={() => { setEditingTenant(null); setFormData({ name: '', slug: '', plan: 'FREE', adminEmail: '', adminPassword: '' }); setIsModalOpen(true); }}
+          onClick={() => { setEditingTenant(null); setFormData({ name: '', slug: '', plan: 'STANDARD', adminEmail: '', adminPassword: '' }); setIsModalOpen(true); }}
           className="btn-primary"
         >
           <Plus className="w-4 h-4 mr-2" /> Nova Empresa
@@ -128,16 +128,16 @@ export default function Companies() {
         <div className="p-5 rounded-xl border border-zinc-200 dark:border-surface-border bg-white dark:bg-surface-card shadow-sm">
           <div className="flex items-center gap-3 mb-2">
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
-            <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Plano Enterprise</span>
+            <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Unidades Ativas</span>
           </div>
-          <p className="text-2xl font-bold">{tenants.filter(t => t.plan === 'ENTERPRISE').length}</p>
+          <p className="text-2xl font-bold">{tenants.length}</p>
         </div>
         <div className="p-5 rounded-xl border border-zinc-200 dark:border-surface-border bg-white dark:bg-surface-card shadow-sm">
           <div className="flex items-center gap-3 mb-2">
             <Zap className="w-4 h-4 text-amber-500" />
-            <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Planos Ativos</span>
+            <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Status do Sistema</span>
           </div>
-          <p className="text-2xl font-bold">{tenants.filter(t => t.plan !== 'FREE').length}</p>
+          <p className="text-2xl font-bold text-emerald-500 text-sm">Operacional</p>
         </div>
       </div>
 
@@ -149,7 +149,6 @@ export default function Companies() {
               <tr className="border-b border-zinc-100 dark:border-surface-border/50 bg-zinc-50/50 dark:bg-surface-subtle/40">
                 <th className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Empresa</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Slug / ID</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Plano</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest text-center">Métricas</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Criada em</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest text-right">Ações</th>
@@ -172,14 +171,6 @@ export default function Companies() {
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400">{tenant.slug}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight ${
-                      tenant.plan === 'ENTERPRISE' ? 'bg-zinc-900 text-white dark:bg-white dark:text-black' :
-                      tenant.plan === 'PRO' ? 'bg-brand-500/10 text-brand-600' : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-500'
-                    }`}>
-                      {tenant.plan}
-                    </span>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-center gap-4 text-[10px] text-zinc-400">
@@ -254,19 +245,6 @@ export default function Companies() {
                   onChange={e => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
                   placeholder="clinica-saude"
                 />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Plano</label>
-                <select 
-                  className="cursor-pointer"
-                  value={formData.plan}
-                  onChange={e => setFormData({ ...formData, plan: e.target.value })}
-                >
-                  <option value="FREE">FREE</option>
-                  <option value="STARTER">STARTER</option>
-                  <option value="PRO">PRO</option>
-                  <option value="ENTERPRISE">ENTERPRISE</option>
-                </select>
               </div>
 
               {!editingTenant && (

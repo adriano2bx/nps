@@ -45,13 +45,6 @@ export default function IntegrationDocs() {
       content: 'Use o endpoint /trigger para iniciar uma conversa de pesquisa com um cliente. Ideal para fluxos pós-venda ou pós-atendimento.'
     },
     { 
-      id: 'contacts', 
-      title: 'Sincronização de Contatos', 
-      icon: MessageSquare, 
-      color: 'text-emerald-500',
-      content: 'Mantenha sua base atualizada usando o /contacts/upsert. Ele lida com criação e atualização de nomes e segmentos automaticamente.'
-    },
-    { 
       id: 'webhooks', 
       title: 'Webhooks & Eventos', 
       icon: Globe, 
@@ -184,41 +177,6 @@ export default function IntegrationDocs() {
             </div>
           </section>
 
-          {/* Contacts API */}
-          <section id="contacts" className="space-y-8">
-            <div className="space-y-4">
-               <div className="flex items-center gap-3">
-                  <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl text-emerald-500">
-                     <MessageSquare className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-3xl font-bold">Sync de Contatos</h3>
-               </div>
-               <p className="text-zinc-500 dark:text-zinc-400 leading-relaxed text-lg">
-                  O endpoint <code className="font-mono text-emerald-500">/contacts/upsert</code> permite enviar atualizações em lote do seu CRM. Se o contato não existir, será criado. Se existir, os campos e segmentos serão atualizados.
-               </p>
-            </div>
-
-            <div className="space-y-4">
-               <div className="flex items-center gap-2 text-xs font-bold uppercase text-zinc-400 px-1">
-                  <Terminal className="w-3.5 h-3.5" /> Exemplo de Sincronização
-               </div>
-               <CodeBlock 
-                  id="code_sync"
-                  code={`fetch('${apiBase}/api/v1/contacts/upsert', {
-  method: 'POST',
-  headers: {
-    'X-API-KEY': 'SUA_CHAVE',
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    name: "João Silva",
-    phoneNumber: "5511988887777",
-    segmentNames: ["Cardiologia", "Plano Gold"]
-  })
-});`}
-               />
-            </div>
-          </section>
 
           {/* Webhooks Section */}
           <section id="webhooks" className="space-y-8">
