@@ -137,28 +137,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 border border-zinc-200 dark:border-surface-border/80 rounded-lg bg-white dark:bg-surface-card p-5 flex flex-col shadow-sm">
-           <div className="flex justify-between items-center mb-6">
-             <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Evolução do NPS</div>
-             <div className="text-xs text-zinc-500 font-mono">Últimos 30 Dias</div>
-           </div>
-           <div className="h-[220px] w-full">
-             <ResponsiveContainer width="100%" height="100%">
-               <AreaChart data={timeSeries.length > 0 ? timeSeries : [{ date: 'Sem dados', score: 0 }]} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
-                 <defs>
-                   <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                     <stop offset="5%" stopColor="#0d9488" stopOpacity={0.3}/>
-                     <stop offset="95%" stopColor="#0d9488" stopOpacity={0}/>
-                   </linearGradient>
-                 </defs>
-                 <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#71717a' }} dy={10} />
-                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#71717a' }} domain={[0, 100]} />
-                 <Tooltip content={<CustomTooltip />} />
-                 <Area type="monotone" name="Global Score" dataKey="score" stroke="#0d9488" strokeWidth={2} fillOpacity={1} fill="url(#colorScore)" />
-               </AreaChart>
-             </ResponsiveContainer>
-           </div>
-        </div>
+             {/* Gráfico de Evolução Removido */}
 
         <div className="lg:col-span-1 border border-zinc-200 dark:border-surface-border/80 rounded-lg bg-white dark:bg-surface-card p-5 flex flex-col shadow-sm">
           <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-6">Velocímetro de Performance</div>
