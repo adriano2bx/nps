@@ -165,20 +165,7 @@ export default function Dashboard() {
           <div className="flex-1 flex flex-col justify-center items-center py-4">
              <NpsGauge score={stats?.score || 0} />
              
-             <div className="w-full mt-8 space-y-3">
-                <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800/80 pb-2">Top Campanhas</div>
-                {byCampaign.slice(0, 3).map((camp: any, i: number) => (
-                   <div key={i} className="flex justify-between items-center">
-                      <span className="text-[11px] text-zinc-600 dark:text-zinc-400 truncate max-w-[120px]">{camp.name}</span>
-                      <div className="flex items-center gap-2">
-                         <div className="w-16 h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                            <div className={`h-full ${camp.score >= 50 ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${Math.max(0, camp.score)}%` }}></div>
-                         </div>
-                         <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-200">{camp.score}</span>
-                      </div>
-                   </div>
-                ))}
-             </div>
+             {/* Removido Top Campanhas */}
           </div>
         </div>
       </div>
