@@ -1575,7 +1575,7 @@ export default function SurveyBuilder() {
     clinicName: '',
     phone: '',
     header: '',
-    footer: 'Responda SAIR para não receber mais mensagens.',
+    footer: '',
     openingBody: '',
     buttonYes: '✅ Sim, aceito',
     buttonNo: '❌ Não, obrigado',
@@ -1590,7 +1590,7 @@ export default function SurveyBuilder() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [questions, setQuestions] = useState<Question[]>([
-    { id: 1, type: 'nps', text: 'De 0 a 5, o quanto você recomendaria nossa clínica para um amigo ou familiar?', required: true }
+    { id: 1, type: 'nps', text: 'De 1 a 10, o quanto você recomendaria nossa clínica para um amigo ou familiar?', required: true }
   ]);
   const [dispatch, setDispatch] = useState({
     delay: '60', timeout: '1440',
