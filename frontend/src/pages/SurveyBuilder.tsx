@@ -221,7 +221,24 @@ function EmojiInput({
 }
 
 
-// ─── Upgrade Modal ────────────────────────────────────────────────────────────
+function WaPreviewPhone({ 
+  header, 
+  footer, 
+  clinicName, 
+  body, 
+  buttonYes, 
+  buttonNo, 
+  type, 
+  mediaPath 
+}: { 
+  header: string; 
+  footer: string; 
+  clinicName: string; 
+  body: string; 
+  buttonYes: string; 
+  buttonNo: string; 
+  type: string; 
+  mediaPath: string; 
 }) {
   const [clock] = useState(() => new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
   const [replied, setReplied] = useState<string | null>(null);
