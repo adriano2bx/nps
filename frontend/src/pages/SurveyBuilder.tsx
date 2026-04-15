@@ -388,280 +388,114 @@ function Step1({
   const labelCls = "block text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-1.5";
 
   return (
-    <div>
-      <div className="space-y-5">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-1">
-            <label className={labelCls}>Nome da Campanha *</label>
-            <input className={inputCls} placeholder="Ex: Satisfação Pós-Atendimento" value={data.name} onChange={e => onChange('name', e.target.value)} />
-          </div>
-          <div className="col-span-1 relative">
-            <label className={labelCls}>Categoria *</label>
-            <div className="relative">
-              <select 
-                className={inputCls} 
-                value={data.topicId || ''} 
-                onChange={async e => {
-                  const val = e.target.value;
-                  if (val === 'CREATE_NEW') {
-                    onOpenTopicModal();
-                    onChange('topicId', ''); // Reset to placeholder while modal is open
-                  } else {
-                    onChange('topicId', val);
-                  }
-                }}
-              >
-                <option value="" className="bg-white dark:bg-zinc-900">Selecione uma Categoria...</option>
-                {topics.map(t => (
-                  <option key={t.id} value={t.id} className="bg-white dark:bg-zinc-900">{t.name}</option>
-                ))}
-                <option value="CREATE_NEW" className="bg-white dark:bg-zinc-900 font-bold text-emerald-600">+ Criar Nova Categoria</option>
-              </select>
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <ChevronRight className="w-4 h-4 text-zinc-400 rotate-90" />
-              </div>
-            </div>
-          </div>
-          <div className="col-span-1">
-            <label className={labelCls}>Plano Atual</label>
-            <div className="flex items-center gap-2 h-10 px-3 border border-zinc-100 dark:border-surface-border/60 rounded-md bg-zinc-50/30 dark:bg-surface-subtle/40">
-               <span className={`w-2 h-2 rounded-full ${plan === 'STARTER' ? 'bg-zinc-400' : plan === 'PRO' ? 'bg-blue-500' : 'bg-purple-500 animate-pulse'}`} />
-               <span className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-widest">{plan}</span>
-            </div>
-          </div>
-          <div className="col-span-2 relative">
-            <label className={labelCls}>Canal Designado *</label>
-            <div className="relative">
-              <select 
-                className={inputCls} 
-                value={data.channelId} 
-                onChange={e => {
-                  const channel = channels.find(c => c.id === e.target.value);
-                  onChange('channelId', e.target.value);
-                  if (channel) onChange('channel', channel.name);
-                }}
-              >
-                <option value="" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Selecione um canal...</option>
-                {channels.map(channel => (
-                  <option key={channel.id} value={channel.id} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">
-                    {channel.name} ({channel.provider})
-                  </option>
-                ))}
-              </select>
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <ChevronRight className="w-4 h-4 text-zinc-400 rotate-90" />
-              </div>
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="col-span-1">
+          <label className={labelCls}>Nome da Campanha *</label>
+          <input className={inputCls} placeholder="Ex: Satisfação Pós-Atendimento" value={data.name} onChange={e => onChange('name', e.target.value)} />
+        </div>
+        <div className="col-span-1 relative">
+          <label className={labelCls}>Categoria *</label>
+          <div className="relative">
+            <select 
+              className={inputCls} 
+              value={data.topicId || ''} 
+              onChange={async e => {
+                const val = e.target.value;
+                if (val === 'CREATE_NEW') {
+                  onOpenTopicModal();
+                  onChange('topicId', ''); 
+                } else {
+                  onChange('topicId', val);
+                }
+              }}
+            >
+              <option value="" className="bg-white dark:bg-zinc-900">Selecione uma Categoria...</option>
+              {topics.map(t => (
+                <option key={t.id} value={t.id} className="bg-white dark:bg-zinc-900">{t.name}</option>
+              ))}
+              <option value="CREATE_NEW" className="bg-white dark:bg-zinc-900 font-bold text-emerald-600">+ Criar Nova Categoria</option>
+            </select>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+              <ChevronRight className="w-4 h-4 text-zinc-400 rotate-90" />
             </div>
           </div>
         </div>
-
-        {/* Tipo da mensagem inicial */}
-        {/* Tipo da Campanha */}
-        <div>
-          <label className={labelCls}>Tipo de Campanha</label>
-          <div className="grid grid-cols-2 gap-3 mt-1">
-            <button
-              type="button"
-              onClick={() => {
-                onChange('type', 'survey');
-                // Se voltar pra survey, o padrão costuma ser interativo (isHsm false)
+        <div className="col-span-2 relative">
+          <label className={labelCls}>Canal Designado *</label>
+          <div className="relative">
+            <select 
+              className={inputCls} 
+              value={data.channelId} 
+              onChange={e => {
+                const channel = channels.find(c => c.id === e.target.value);
+                onChange('channelId', e.target.value);
+                if (channel) onChange('channel', channel.name);
               }}
-              className={`flex flex-col items-start gap-1.5 p-3 rounded-lg border text-left transition-colors ${
-                data.type === 'survey' || !data.type
-                  ? 'border-zinc-900 dark:border-white bg-zinc-50 dark:bg-zinc-800'
-                  : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
-              }`}
             >
-              <div className="flex items-center gap-2">
-                <ListIcon className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-                <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">Pesquisa & NPS</span>
-              </div>
-              <p className="text-[10px] text-zinc-500 dark:text-zinc-500 leading-relaxed">Fluxo conversacional estruturado. Permite adicionar perguntas interativas.</p>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (plan === 'STARTER') return onUpgrade('Marketing & Promoções');
-                onChange('type', 'marketing');
-                onChange('isHsm', 'true'); // Marketing SEMPRE exige HSM (template oficial)
-              }}
-              className={`relative flex flex-col items-start gap-1.5 p-3 rounded-lg border text-left transition-colors ${
-                data.type === 'marketing'
-                  ? 'border-zinc-900 dark:border-white bg-zinc-50 dark:bg-zinc-800'
-                  : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <LayoutTemplate className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-                <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">Marketing / Informativo</span>
-              </div>
-              <p className="text-[10px] text-zinc-500 dark:text-zinc-500 leading-relaxed">Disparo massivo de promoções e alertas via HSM (Apoia Imagem/Vídeo).</p>
-            </button>
+              <option value="" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Selecione um canal...</option>
+              {channels.map(channel => (
+                <option key={channel.id} value={channel.id} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">
+                  {channel.name} ({channel.provider})
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+              <ChevronRight className="w-4 h-4 text-zinc-400 rotate-90" />
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Como a conversa começa? (Trigger Type) */}
-        <div>
-          <label className={labelCls}>Como a Campanha é Acionada?</label>
-          <div className="grid grid-cols-3 gap-3 mt-1">
-            <button
-              type="button"
-              onClick={() => onChange('triggerType', 'active')}
-              className={`flex flex-col items-start gap-1 p-3 rounded-lg border text-left transition-colors ${
-                data.triggerType === 'active' || !data.triggerType
-                  ? 'border-zinc-900 dark:border-white bg-zinc-50 dark:bg-zinc-800'
-                  : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <Zap className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-                <span className="text-[11px] font-semibold text-zinc-800 dark:text-zinc-200">Disparo Ativo</span>
-              </div>
-              <p className="text-[9px] text-zinc-500 leading-tight">Empresa envia.</p>
-            </button>
-            <button
-              type="button"
+      {/* Media Upload - Cover Image */}
+      <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 space-y-4 bg-zinc-50/50 dark:bg-zinc-900/20">
+           <div className="flex items-center justify-between">
+              <h4 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide flex items-center gap-2">
+                Imagem de Capa (Opcional)
+              </h4>
+           </div>
+            <input 
+              type="file" 
+              className="hidden" 
+              ref={fileInputRef} 
+              accept="image/*"
+              onChange={handleFileUpload}
+            />
+            <div 
+              className={`border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl p-8 text-center bg-white dark:bg-zinc-900 transition-colors hover:border-zinc-400 dark:hover:border-zinc-600 cursor-pointer relative overflow-hidden`}
               onClick={() => {
-                onChange('triggerType', 'qrcode');
-                onChange('isHsm', 'false'); // Se o cliente escaneia, a conversa é sempre interativa.
+                fileInputRef.current?.click();
               }}
-              className={`flex flex-col items-start gap-1 p-3 rounded-lg border text-left transition-colors ${
-                data.triggerType === 'qrcode'
-                  ? 'border-zinc-900 dark:border-white bg-zinc-50 dark:bg-zinc-800'
-                  : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
-              }`}
             >
-              <div className="flex items-center gap-2">
-                <QrCode className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-                <span className="text-[11px] font-semibold text-zinc-800 dark:text-zinc-200">QR Code</span>
-              </div>
-              <p className="text-[9px] text-zinc-500 leading-tight">Usuário inicia.</p>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (plan === 'STARTER') return onUpgrade('Disparo em Lote (CSV)');
-                onChange('triggerType', 'bulk');
-                onChange('isHsm', 'true'); // Lote geralmente é HSM fora da janela.
-              }}
-              className={`relative flex flex-col items-start gap-1 p-3 rounded-lg border text-left transition-colors ${
-                data.triggerType === 'bulk'
-                  ? 'border-zinc-900 dark:border-white bg-zinc-50 dark:bg-zinc-800'
-                  : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <UploadCloud className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-                <span className="text-[11px] font-semibold text-zinc-800 dark:text-zinc-200">Em Lote</span>
-                {plan === 'STARTER' && (
-                  <span className="absolute top-1 right-1 px-1 py-0 bg-blue-500 text-white rounded-[2px] text-[7px] font-bold uppercase">PRO</span>
-                )}
-              </div>
-              <p className="text-[9px] text-zinc-500 leading-tight">Planilha CSV.</p>
-            </button>
-          </div>
-        </div>
-
-        {/* Configurações Adicionais (Somente para Pesquisas) */}
-        {data.type === 'survey' && data.triggerType !== 'qrcode' && (
-          <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 space-y-4 bg-zinc-50/50 dark:bg-zinc-900/20">
-            <label className={labelCls}>Tipo de Envio do WhatsApp</label>
-            <div className="grid grid-cols-2 gap-3 mt-1">
-              <button
-                type="button"
-                onClick={() => onChange('isHsm', 'false')}
-                className={`flex flex-col items-start gap-1.5 p-3 rounded-lg border text-left transition-colors ${
-                  data.isHsm === 'false' || !data.isHsm
-                    ? 'border-zinc-900 dark:border-white bg-zinc-50 dark:bg-zinc-800'
-                    : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Zap className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-                  <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">Interativa (24h)</span>
+              {isUploading ? (
+                <div className="flex flex-col items-center py-4 animate-pulse">
+                   <span className="text-zinc-400 mb-2 italic">Enviando imagem...</span>
+                   <div className="w-16 h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="h-full bg-blue-500 animate-[loading_1s_infinite]"></div>
+                   </div>
                 </div>
-                <p className="text-[10px] text-zinc-500 dark:text-zinc-500">Ideal para quando o usuário acabou de interagir com a clínica.</p>
-              </button>
-              <button
-                type="button"
-                onClick={() => onChange('isHsm', 'true')}
-                className={`flex flex-col items-start gap-1.5 p-3 rounded-lg border text-left transition-colors ${
-                  data.isHsm === 'true'
-                    ? 'border-zinc-900 dark:border-white bg-zinc-50 dark:bg-zinc-800'
-                    : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <LayoutTemplate className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-                  <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">Template HSM</span>
+              ) : data.mediaPath ? (
+                <div className="group relative">
+                   <img src={data.mediaPath} alt="Preview" className="max-h-48 rounded-lg mx-auto shadow-sm" />
+                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+                      <span className="text-white text-xs font-semibold">Alterar Imagem</span>
+                   </div>
                 </div>
-                <p className="text-[10px] text-zinc-500 dark:text-zinc-500">Obrigatório para iniciar conversas após 24h do último contato.</p>
-              </button>
+              ) : (
+                <>
+                  <div className="w-12 h-12 rounded-full border border-zinc-200 dark:border-zinc-800 flex items-center justify-center mx-auto mb-3">
+                    <span className="text-zinc-400">📷</span>
+                  </div>
+                  <h3 className="text-sm font-semibold text-zinc-900 dark:white mb-1">Upload de Capa</h3>
+                  <p className="text-[11px] text-zinc-500 max-w-xs mx-auto">Clique para selecionar uma imagem (PNG/JPG) para o topo da mensagem inicial.</p>
+                </>
+              )}
             </div>
-            {data.isHsm === 'true' && (
-              <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                <label className={labelCls}>Nome do Template Oficial (Meta)</label>
-                <input 
-                  className={inputCls} 
-                  placeholder="Ex: nps_pesquisa_v1" 
-                  value={data.templateName} 
-                  onChange={e => onChange('templateName', e.target.value)} 
-                />
-                <p className="text-[11px] text-zinc-500 mt-1 italic">Este nome deve corresponder exatamente ao template aprovado no Business Manager.</p>
-              </div>
-            )}
-          </div>
-        )}
+      </div>
 
 
-        {/* Media Upload (Meta Only) */}
-        {(
-          <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 space-y-4 bg-zinc-50/50 dark:bg-zinc-900/20">
-             <div className="flex items-center justify-between">
-                <h4 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide flex items-center gap-2">
-                  Anexar Mídia Oficial (HSM)
-                </h4>
-             </div>
-              <input 
-                type="file" 
-                className="hidden" 
-                ref={fileInputRef} 
-                accept="image/*"
-                onChange={handleFileUpload}
-              />
-              <div 
-                className={`border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl p-8 text-center bg-white dark:bg-zinc-900 transition-colors hover:border-zinc-400 dark:hover:border-zinc-600 cursor-pointer relative overflow-hidden ${plan !== 'ENTERPRISE' ? 'opacity-60 grayscale' : ''}`}
-                onClick={() => {
-                  if (plan !== 'ENTERPRISE') return onUpgrade('Marketing Multimídia');
-                  fileInputRef.current?.click();
-                }}
-              >
-                {isUploading ? (
-                  <div className="flex flex-col items-center py-4 animate-pulse">
-                     <span className="text-zinc-400 mb-2 italic">Enviando mídia...</span>
-                     <div className="w-16 h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-blue-500 animate-[loading_1s_infinite]"></div>
-                     </div>
-                  </div>
-                ) : data.mediaPath ? (
-                  <div className="group relative">
-                     <img src={data.mediaPath} alt="Preview" className="max-h-48 rounded-lg mx-auto shadow-sm" />
-                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
-                        <span className="text-white text-xs font-semibold">Alterar Mídia</span>
-                     </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="w-12 h-12 rounded-full border border-zinc-200 dark:border-zinc-800 flex items-center justify-center mx-auto mb-3">
-                      <span className="text-zinc-400">📷</span>
-                    </div>
-                    <h3 className="text-sm font-semibold text-zinc-900 dark:white mb-1">Upload de Imagem ou Vídeo</h3>
-                    <p className="text-[11px] text-zinc-500 max-w-xs mx-auto">Arraste a mídia ou clique. Essa imagem integrará seu Template Oficial da Meta e passará pela aprovação antes do disparo livre.</p>
-                  </>
-                )}
-              </div>
-          </div>
-        )}
+
+
 
 
         <div>
@@ -694,65 +528,61 @@ Você aceita participar de uma pesquisa rápida de satisfação?`}
           <p className="text-[11px] text-zinc-500 mt-1">Instruções de opt-out ou avisos legais.</p>
         </div>
 
-        {/* Botões de Aceite */}
-        {(
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className={`${labelCls} mb-0`}>Botão de Aceite (SIM)</label>
-                <span className={`text-[10px] font-mono ${(data.buttonYes || '').length >= 20 ? 'text-red-500 font-bold' : 'text-zinc-400'}`}>
-                  {(data.buttonYes || '').length}/20
-                </span>
-              </div>
-              <EmojiInput value={data.buttonYes} onChange={val => onChange('buttonYes', val)}>
-                <input 
-                  maxLength={20}
-                  className={inputCls} 
-                  placeholder="Ex: Sim, participar" 
-                  value={data.buttonYes} 
-                  onChange={e => onChange('buttonYes', e.target.value)} 
-                />
-              </EmojiInput>
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className={`${labelCls} mb-0`}>Botão de Recusa (NÃO)</label>
-                <span className={`text-[10px] font-mono ${(data.buttonNo || '').length >= 20 ? 'text-red-500 font-bold' : 'text-zinc-400'}`}>
-                  {(data.buttonNo || '').length}/20
-                </span>
-              </div>
-              <EmojiInput value={data.buttonNo} onChange={val => onChange('buttonNo', val)}>
-                <input 
-                  maxLength={20}
-                  className={inputCls} 
-                  placeholder="Ex: Não, agora não" 
-                  value={data.buttonNo} 
-                  onChange={e => onChange('buttonNo', e.target.value)} 
-                />
-              </EmojiInput>
-            </div>
-            <p className="col-span-2 text-[10px] text-zinc-400 -mt-2 italic">
-              Limite de 20 caracteres por botão (regra da API Meta).
-            </p>
-          </div>
-        )}
-
-
+      {/* Botões de Aceite */}
+      <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className={labelCls}>Mensagem de Encerramento</label>
-          <textarea
-            rows={2}
-            className={`${inputCls} resize-none`}
-            placeholder="Obrigado pelo seu feedback! Ele nos ajuda a melhorar continuamente nosso atendimento."
-            value={data.closingMessage}
-            onChange={e => onChange('closingMessage', e.target.value)}
-          />
+          <div className="flex items-center justify-between mb-1.5">
+            <label className={`${labelCls} mb-0`}>Botão de Aceite (SIM)</label>
+            <span className={`text-[10px] font-mono ${(data.buttonYes || '').length >= 20 ? 'text-red-500 font-bold' : 'text-zinc-400'}`}>
+              {(data.buttonYes || '').length}/20
+            </span>
+          </div>
+          <EmojiInput value={data.buttonYes} onChange={val => onChange('buttonYes', val)}>
+            <input 
+              maxLength={20}
+              className={inputCls} 
+              placeholder="Ex: Sim, participar" 
+              value={data.buttonYes} 
+              onChange={e => onChange('buttonYes', e.target.value)} 
+            />
+          </EmojiInput>
         </div>
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className={`${labelCls} mb-0`}>Botão de Recusa (NÃO)</label>
+            <span className={`text-[10px] font-mono ${(data.buttonNo || '').length >= 20 ? 'text-red-500 font-bold' : 'text-zinc-400'}`}>
+              {(data.buttonNo || '').length}/20
+            </span>
+          </div>
+          <EmojiInput value={data.buttonNo} onChange={val => onChange('buttonNo', val)}>
+            <input 
+              maxLength={20}
+              className={inputCls} 
+              placeholder="Ex: Não, agora não" 
+              value={data.buttonNo} 
+              onChange={e => onChange('buttonNo', e.target.value)} 
+            />
+          </EmojiInput>
+        </div>
+        <p className="col-span-2 text-[10px] text-zinc-400 -mt-2 italic">
+          Limite de 20 caracteres por botão (regra da API Meta).
+        </p>
       </div>
 
+      <div>
+        <label className={labelCls}>Mensagem de Encerramento</label>
+        <textarea
+          rows={2}
+          className={`${inputCls} resize-none`}
+          placeholder="Obrigado pelo seu feedback! Ele nos ajuda a melhorar continuamente nosso atendimento."
+          value={data.closingMessage}
+          onChange={e => onChange('closingMessage', e.target.value)}
+        />
+      </div>
     </div>
   );
 }
+
 
 // ─── Step 2 constants ─────────────────────────────────────────────────────
 const qTypeLabels: Record<QuestionType, { label: string; icon: any; hint: string }> = {
@@ -1595,226 +1425,110 @@ function Step3({ data, onChange, type, plan, onUpgrade, triggerType, id }: {
 
   return (
     <div className="space-y-5">
-      {/* Configuration based on triggers finalized in Step 1 */}
+      {/* QR Code Configuration Header */}
       <div>
         <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-4">
-           Configurações de {isActive ? 'Disparo Automático' : isBulk ? 'Envio em Lote' : 'Ponto de Captura (QR Code)'}
+           Ponto de Captura (QR Code)
         </h4>
       </div>
 
-      {/* Active & Bulk Dispatch Options */}
-      {(isActive || isBulk) && (
-        <>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelCls}>Atraso antes do envio</label>
-              <select className={inputCls} value={data.delay} onChange={e => onChange('delay', e.target.value)}>
-                <option value="0">Imediato</option>
-                <option value="30">30 minutos</option>
-                <option value="60">1 hora</option>
-                <option value="120">2 horas</option>
-                <option value="1440">24 horas</option>
-              </select>
-              <p className="text-[11px] text-zinc-500 mt-1">Tempo após o atendimento.</p>
-            </div>
-            <div>
-              <label className={labelCls}>Timeout de resposta</label>
-              <select className={inputCls} value={data.timeout} onChange={e => onChange('timeout', e.target.value)}>
-                <option value="1440">24 horas</option>
-                <option value="2880">48 horas</option>
-                <option value="10080">7 dias</option>
-              </select>
-              <p className="text-[11px] text-zinc-500 mt-1">Encerra sessão sem resposta.</p>
-            </div>
-          </div>
-
-          <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 space-y-3 bg-zinc-50/50 dark:bg-zinc-900/20">
-            <h4 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide flex items-center gap-2">
-              <Clock className="w-3.5 h-3.5" /> Janela de envio permitida
-            </h4>
-
-            {type === 'active' && id && (
-              <div className="p-4 bg-brand-500/5 border border-brand-500/20 rounded-xl mb-2">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Terminal className="w-3.5 h-3.5 text-brand-500" />
-                    <span className="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest">ID da Campanha (API)</span>
-                  </div>
-                  <button 
-                    onClick={() => { navigator.clipboard.writeText(id as string); alert('ID Copiado!'); }}
-                    className="p-1.5 hover:bg-brand-500/10 rounded-md transition-all"
-                  >
-                    <Copy className="w-3.5 h-3.5 text-brand-500" />
-                  </button>
-                </div>
-                <code className="text-xs font-mono text-zinc-500 dark:text-zinc-400 break-all">{id}</code>
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className={labelCls}>Horário início</label>
-                <input type="time" className={inputCls} value={data.windowStart || '08:00'} onChange={e => onChange('windowStart', e.target.value)} />
-              </div>
-              <div>
-                <label className={labelCls}>Horário fim</label>
-                <input type="time" className={inputCls} value={data.windowEnd || '20:00'} onChange={e => onChange('windowEnd', e.target.value)} />
-              </div>
-            </div>
-            <p className="text-[11px] text-zinc-500">Mensagens fora deste horário serão enfileiradas para o próximo dia útil.</p>
-          </div>
-
-          <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-4">
-            <label className="flex items-center justify-between cursor-pointer">
-              <div>
-                <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Reenvio único após 24h</span>
-                <p className="text-[11px] text-zinc-500 mt-0.5">Reenvia uma vez se o usuário não responder à pergunta de consentimento.</p>
-              </div>
-              <div className="relative ml-4 shrink-0">
-                <input type="checkbox" className="sr-only peer" defaultChecked onChange={e => onChange('resend', e.target.checked ? '1' : '0')} />
-                <div className="w-10 h-5 bg-zinc-200 dark:bg-zinc-700 peer-checked:bg-zinc-900 dark:peer-checked:bg-white rounded-full transition-colors cursor-pointer"></div>
-                <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-white dark:bg-zinc-900 peer-checked:translate-x-5 rounded-full shadow transition-transform pointer-events-none"></div>
-              </div>
-            </label>
-          </div>
-
-          {/* Upload CSV (If Bulk) */}
-          {isBulk && (
-            <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-5 space-y-3 bg-zinc-50/50 dark:bg-zinc-900/20">
-              <h4 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
-                Importar Planilha (.CSV / .XLSX)
-              </h4>
-              <div className="border border-dashed border-zinc-300 dark:border-zinc-600 rounded-lg p-6 bg-white dark:bg-[#0a0a0a] flex flex-col items-center justify-center cursor-pointer transition-colors hover:border-zinc-400">
-                <UploadCloud className="w-6 h-6 text-zinc-400 mb-2" />
-                <span className="text-xs font-medium text-zinc-900 dark:text-white">Selecione o arquivo da sua máquina</span>
-                <span className="text-[10px] text-zinc-500 mt-1">Colunas recomendadas: Telefone, Nome</span>
-              </div>
-            </div>
-          )}
-
-          {/* Scheduled Dispatch (If Marketing) */}
-          {isMkt && (
-            <div className={`border border-zinc-200 dark:border-zinc-800 rounded-lg p-5 space-y-3 bg-zinc-50/50 dark:bg-zinc-900/20 relative group`}>
-              <div className="flex items-center justify-between">
-                 <h4 className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide flex items-center gap-2">
-                    <Clock className="w-3.5 h-3.5" /> Agendar Disparo Futuro
-                 </h4>
-              </div>
-              <div>
-                <input 
-                  type="datetime-local" 
-                  className={`${inputCls}`}
-                  value={data.scheduledAt || ''} 
-                  onChange={e => onChange('scheduledAt', e.target.value)} 
-                />
-                <p className="text-[11px] text-zinc-500 mt-2">Deixe em branco para disparar imediatamente assim que for engatilhado. Caso contrário, o servidor segurará as mensagens até a data UTC exata informada.</p>
-              </div>
-            </div>
-          )}
-
-        </>
-      )}
-
-      {/* QR Code Mode */}
-      {isQr && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelCls}>Número WhatsApp da Clínica *</label>
-              <input
-                className={inputCls}
-                placeholder="55 11 90000-0000 (com código do país)"
-                value={data.waNumber || ''}
-                onChange={e => onChange('waNumber', e.target.value)}
-              />
-              <p className="text-[11px] text-zinc-500 mt-1">Número que receberá a mensagem do usuário.</p>
-            </div>
-            <div>
-              <label className={labelCls}>Palavra-chave de ativação *</label>
-              <input
-                className={`${inputCls} font-mono uppercase`}
-                placeholder="Ex: PESQUISA"
-                value={data.keyword || ''}
-                onChange={e => onChange('keyword', e.target.value.toUpperCase())}
-              />
-              <p className="text-[11px] text-zinc-500 mt-1">Enviada automaticamente quando o usuário escanear.</p>
-            </div>
-          </div>
-
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelCls}>Timeout de sessão</label>
-            <div className="relative max-w-[200px]">
-              <select className={inputCls} value={data.timeout} onChange={e => onChange('timeout', e.target.value)}>
-                <option value="1440" className="bg-white dark:bg-zinc-900">24 horas</option>
-                <option value="2880" className="bg-white dark:bg-zinc-900">48 horas</option>
-                <option value="10080" className="bg-white dark:bg-zinc-900">7 dias</option>
-              </select>
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <ChevronRight className="w-4 h-4 text-zinc-400 rotate-90" />
-              </div>
-            </div>
-            <p className="text-[11px] text-zinc-500 mt-1">Encerra a sessão sem resposta do usuário.</p>
+            <label className={labelCls}>Número WhatsApp da Clínica *</label>
+            <input
+              className={inputCls}
+              placeholder="55 11 90000-0000 (com código do país)"
+              value={data.waNumber || ''}
+              onChange={e => onChange('waNumber', e.target.value)}
+            />
+            <p className="text-[11px] text-zinc-500 mt-1">Número que receberá a mensagem do usuário.</p>
           </div>
-
-          {/* QR Code Preview */}
-          <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
-            <div className="px-4 py-3 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-2">
-              <QrCode className="w-3.5 h-3.5 text-zinc-500" />
-              <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wide">Pré-visualização do QR Code</span>
-            </div>
-            <div className="p-6 flex flex-col items-center gap-5 bg-white dark:bg-[#0a0a0a]">
-              {hasValidQRData ? (
-                <>
-                  <div className="p-4 bg-white rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm relative group overflow-hidden">
-                    <QRCodeCanvas
-                      id="qr-canvas"
-                      value={waLink}
-                      size={160}
-                      bgColor="#ffffff"
-                      fgColor="#18181b"
-                      level="M"
-                    />
-                    <div className="absolute inset-0 bg-white/90 dark:bg-black/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm">
-                      <button onClick={downloadQRCode} className="bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-xl px-4 py-2 font-medium text-xs rounded-full flex items-center gap-1.5 hover:scale-105 transition-transform active:scale-95">
-                        <Download className="w-3.5 h-3.5" /> Baixar PNG
-                      </button>
-                    </div>
-                  </div>
-                  <div className="text-center space-y-1">
-                    <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Escaneie para iniciar a pesquisa</p>
-                    <p className="text-[11px] text-zinc-500">Abre o WhatsApp e envia a palavra-chave automaticamente</p>
-                  </div>
-                  <div className="w-full flex items-center gap-2">
-                    <div className="flex-1 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md px-3 py-2 font-mono text-[11px] text-zinc-600 dark:text-400 truncate">
-                      {waLink}
-                    </div>
-                    <button
-                      onClick={copyLink}
-                      className={`shrink-0 flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-md border transition-colors ${
-                        copied
-                          ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/30'
-                          : 'bg-zinc-50 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                      }`}
-                    >
-                      {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                      {copied ? 'Copiado!' : 'Copiar'}
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <div className="py-10 flex flex-col items-center gap-3 w-full">
-                  <div className="w-16 h-16 rounded-full bg-zinc-100 dark:bg-[#111] flex items-center justify-center border border-zinc-200 dark:border-zinc-800">
-                    <QrCode className="w-6 h-6 text-zinc-300 dark:text-zinc-700" />
-                  </div>
-                  <p className="text-[11px] text-center text-zinc-500 dark:text-zinc-500 max-w-[200px] leading-relaxed">
-                    Preencha o <strong>Número</strong> e a <strong>Palavra-chave</strong> acima para gerar a URL nativa do QR Code.
-                  </p>
-                </div>
-              )}
-            </div>
+          <div>
+            <label className={labelCls}>Palavra-chave de ativação *</label>
+            <input
+              className={`${inputCls} font-mono uppercase`}
+              placeholder="Ex: PESQUISA"
+              value={data.keyword || ''}
+              onChange={e => onChange('keyword', e.target.value.toUpperCase())}
+            />
+            <p className="text-[11px] text-zinc-500 mt-1">Enviada automaticamente quando o usuário escanear.</p>
           </div>
         </div>
-      )}
+
+        <div>
+          <label className={labelCls}>Timeout de sessão</label>
+          <div className="relative max-w-[200px]">
+            <select className={inputCls} value={data.timeout} onChange={e => onChange('timeout', e.target.value)}>
+              <option value="1440" className="bg-white dark:bg-zinc-900">24 horas</option>
+              <option value="2880" className="bg-white dark:bg-zinc-900">48 horas</option>
+              <option value="10080" className="bg-white dark:bg-zinc-900">7 dias</option>
+            </select>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+              <ChevronRight className="w-4 h-4 text-zinc-400 rotate-90" />
+            </div>
+          </div>
+          <p className="text-[11px] text-zinc-500 mt-1">Encerra a sessão sem resposta do usuário.</p>
+        </div>
+
+        {/* QR Code Preview */}
+        <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
+          <div className="px-4 py-3 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-2">
+            <QrCode className="w-3.5 h-3.5 text-zinc-500" />
+            <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wide">Pré-visualização do QR Code</span>
+          </div>
+          <div className="p-6 flex flex-col items-center gap-5 bg-white dark:bg-[#0a0a0a]">
+            {hasValidQRData ? (
+              <>
+                <div className="p-4 bg-white rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm relative group overflow-hidden">
+                  <QRCodeCanvas
+                    id="qr-canvas"
+                    value={waLink}
+                    size={160}
+                    bgColor="#ffffff"
+                    fgColor="#18181b"
+                    level="M"
+                  />
+                  <div className="absolute inset-0 bg-white/90 dark:bg-black/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm">
+                    <button onClick={downloadQRCode} className="bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-xl px-4 py-2 font-medium text-xs rounded-full flex items-center gap-1.5 hover:scale-105 transition-transform active:scale-95">
+                      <Download className="w-3.5 h-3.5" /> Baixar PNG
+                    </button>
+                  </div>
+                </div>
+                <div className="text-center space-y-1">
+                  <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Escaneie para iniciar a pesquisa</p>
+                  <p className="text-[11px] text-zinc-500">Abre o WhatsApp e envia a palavra-chave automaticamente</p>
+                </div>
+                <div className="w-full flex items-center gap-2">
+                  <div className="flex-1 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md px-3 py-2 font-mono text-[11px] text-zinc-600 dark:text-400 truncate">
+                    {waLink}
+                  </div>
+                  <button
+                    onClick={copyLink}
+                    className={`shrink-0 flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-md border transition-colors ${
+                      copied
+                        ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/30'
+                        : 'bg-zinc-50 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                    }`}
+                  >
+                    {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copied ? 'Copiado!' : 'Copiar'}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="py-10 flex flex-col items-center gap-3 w-full">
+                <div className="w-16 h-16 rounded-full bg-zinc-100 dark:bg-[#111] flex items-center justify-center border border-zinc-200 dark:border-zinc-800">
+                  <QrCode className="w-6 h-6 text-zinc-300 dark:text-zinc-700" />
+                </div>
+                <p className="text-[11px] text-center text-zinc-500 dark:text-zinc-500 max-w-[200px] leading-relaxed">
+                  Preencha o <strong>Número</strong> e a <strong>Palavra-chave</strong> acima para gerar a URL nativa do QR Code.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1851,8 +1565,9 @@ export default function SurveyBuilder() {
 
   const [general, setGeneral] = useState<GeneralState>({
     type: 'survey',
-    triggerType: 'active',
+    triggerType: 'qrcode',
     mediaPath: '',
+
     name: '',
     channel: '',
     channelId: '',
@@ -2390,40 +2105,7 @@ export default function SurveyBuilder() {
             <p className="text-sm text-zinc-500 mt-1">Configurada e ativa no canal selecionado.</p>
           </div>
 
-          {general.triggerType === 'active' && (
-            <div className="p-5 bg-brand-500/5 border border-brand-500/20 rounded-2xl space-y-4">
-              <div className="flex items-center gap-2">
-                <Terminal className="w-4 h-4 text-brand-500" />
-                <span className="text-xs font-bold uppercase tracking-widest text-brand-600 dark:text-brand-400">Integração via API Pública</span>
-              </div>
-              
-              <div className="space-y-2">
-                <p className="text-[11px] text-zinc-500 leading-relaxed">
-                  Para disparar esta pesquisa automaticamente pelo seu sistema (CRM, ERP, etc), utilize este ID no campo <code>campaignId</code>:
-                </p>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 font-mono text-xs text-zinc-600 dark:text-zinc-300 truncate">
-                    {successCampaign?.id}
-                  </div>
-                  <button 
-                    onClick={() => {
-                        navigator.clipboard.writeText(successCampaign?.id || '');
-                        alert('ID copiado!');
-                    }}
-                    className="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:bg-zinc-50 transition-colors shrink-0"
-                  >
-                    <Copy className="w-4 h-4 text-zinc-500" />
-                  </button>
-                </div>
-              </div>
 
-              <div className="pt-2">
-                 <p className="text-[10px] text-zinc-400 italic flex items-center gap-1">
-                   <Info className="w-3 h-3" /> Consulte o Swagger da API para detalhes do endpoint <code>/api/v1/trigger</code>.
-                 </p>
-              </div>
-            </div>
-          )}
 
           <div className="flex justify-center pt-4">
             <button 
