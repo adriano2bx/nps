@@ -78,7 +78,8 @@ router.get('/', authMiddleware, masterAdminOnly, async (req: AuthRequest, res: R
             users: true, 
             contacts: true, 
             campaigns: true,
-            channels: true
+            channels: true,
+            responses: true
           }
         },
         campaigns: {

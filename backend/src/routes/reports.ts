@@ -14,26 +14,29 @@ const getNpsCategory = (score: number | null): 'PROMOTER' | 'NEUTRAL' | 'DETRACT
   return 'DETRACTOR'; // Also handles legacy 0
 };
 
-const calculateNpsStats = (responses: { answerValue: number | null }[]) => {
+const calculateNpsStats = (responses: { answerValue: number | null, _count?: { id: number } }[]) => {
   const filtered = responses.filter(r => r.answerValue !== null);
-  const total = filtered.length;
+  
+  let promoters = 0;
+  let detractors = 0;
+  let passives = 0;
+  let total = 0;
+
+  filtered.forEach(r => {
+    const count = r._count?.id ?? 1;
+    const cat = getNpsCategory(r.answerValue);
+    if (cat === 'PROMOTER') promoters += count;
+    else if (cat === 'DETRACTOR') detractors += count;
+    else if (cat === 'NEUTRAL') passives += count;
+    total += count;
+  });
+
   if (total === 0) {
     return {
       score: 0, promoters: 0, passives: 0, detractors: 0, total: 0,
       promoterPercentage: 0, passivePercentage: 0, detractorPercentage: 0
     };
   }
-
-  let promoters = 0;
-  let detractors = 0;
-  let passives = 0;
-
-  filtered.forEach(r => {
-    const cat = getNpsCategory(r.answerValue);
-    if (cat === 'PROMOTER') promoters++;
-    else if (cat === 'DETRACTOR') detractors++;
-    else if (cat === 'NEUTRAL') passives++;
-  });
 
   return {
     score: Math.round(((promoters - detractors) / total) * 100),
@@ -224,8 +227,7 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
     ]);
 
     // --- PROCESS NPS STATS & DISTRIBUTION ---
-    const responses = distributionResult.map(item => ({ answerValue: item.answerValue }));
-    const stats = calculateNpsStats(responses as any);
+    const stats = calculateNpsStats(distributionResult as any);
 
     const distribution = Array(11).fill(0);
     distributionResult.forEach((item: any) => {
@@ -409,8 +411,7 @@ router.get('/detailed', authMiddleware, async (req: AuthRequest, res: Response) 
     ]);
 
     // Calculate Stats for the header cards
-    const statsResponses = distributionResult.map(item => ({ answerValue: item.answerValue }));
-    const fullStats = calculateNpsStats(statsResponses as any);
+    const fullStats = calculateNpsStats(distributionResult as any);
     const stats = {
       score: fullStats.score,
       total: fullStats.total,
@@ -484,8 +485,7 @@ router.get('/stats', authMiddleware, async (req: AuthRequest, res: Response) => 
       })
     ]);
 
-    const statsResponses = distributionResult.map(item => ({ answerValue: item.answerValue }));
-    const stats = calculateNpsStats(statsResponses as any);
+    const stats = calculateNpsStats(distributionResult as any);
 
     await setTenantCached(tenantId, cacheKey, 60, stats);
     res.json(stats);
