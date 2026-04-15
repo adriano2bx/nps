@@ -68,36 +68,66 @@ router.get('/export', authMiddleware, async (req: AuthRequest, res) => {
         campaign: { select: { name: true } },
         responses: {
           orderBy: { createdAt: 'asc' },
-          include: { question: { select: { type: true } } }
+          include: { question: { select: { type: true, text: true } } }
         }
       }
     });
 
+    // 1. Identify all unique questions across all sessions to build dynamic headers
+    const questionMap = new Map<string, { text: string, type: string }>();
+    sessions.forEach(s => {
+      s.responses.forEach((r: any) => {
+        if (r.question && !questionMap.has(r.questionId)) {
+          questionMap.set(r.questionId, { 
+            text: r.question.text, 
+            type: r.question.type 
+          });
+        }
+      });
+    });
+
+    const questionIds = Array.from(questionMap.keys());
+
+    // 2. Build Header
     // CSV Header with BOM for UTF-8 compatibility (Excel Friendly)
     let csvData = '\uFEFF'; 
-    csvData += 'Data;Paciente;Telefone;Campanha;Nota NPS;Resposta/Comentário;Status\n';
+    const staticHeaders = ['Data', 'Paciente', 'Telefone', 'Campanha', 'Status'];
+    const dynamicHeaders = questionIds.map(id => {
+      const q = questionMap.get(id)!;
+      return `[${q.type.toUpperCase()}] ${q.text}`;
+    });
 
+    csvData += [...staticHeaders, ...dynamicHeaders].join(';') + '\n';
+
+    // 3. Build Rows
     sessions.forEach((s: any) => {
-      // Find NPS score and any significant text response
-      const npsResp = s.responses.find((r: any) => r.question?.type === 'nps');
-      const textResps = s.responses.filter((r: any) => r.answerText && r.answerText.length > 0 && r.question?.type !== 'nps');
-      const latestText = textResps.length > 0 ? textResps[textResps.length - 1].answerText : (npsResp?.answerText || '');
-
       const row = [
         new Date(s.startedAt).toLocaleString('pt-BR'),
         s.contact.name,
         s.contact.phoneNumber,
         s.campaign.name,
-        npsResp ? npsResp.answerValue : '—',
-        latestText.replace(/[\n\r;]/g, ' '), // Escape CSV separators
         s.status
       ];
+
+      // Map each response to its corresponding question column
+      questionIds.forEach(qId => {
+        const resp = s.responses.find((r: any) => r.questionId === qId);
+        if (resp) {
+          // Priority to answerValue (numbers/nps) then answerText
+          const val = resp.answerValue !== null ? resp.answerValue : (resp.answerText || '');
+          row.push(String(val).replace(/[\n\r;]/g, ' '));
+        } else {
+          row.push(''); // Empty if question not present in this session
+        }
+      });
+
       csvData += row.join(';') + '\n';
     });
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename="relatorio_nps_${new Date().toISOString().split('T')[0]}.csv"`);
+    res.setHeader('Content-Disposition', `attachment; filename="relatorio_completo_${new Date().toISOString().split('T')[0]}.csv"`);
     res.status(200).send(csvData);
+
 
   } catch (error) {
     console.error('[Export] Error generating CSV:', error);
