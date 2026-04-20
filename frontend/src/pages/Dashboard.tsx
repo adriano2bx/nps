@@ -183,58 +183,63 @@ export default function Dashboard() {
           {/* TOP CARDS */}
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             
-            <div className="bg-white dark:bg-surface-card rounded-3xl p-6 border border-slate-200 dark:border-surface-border shadow-sm flex flex-col justify-between">
+            <div className="group glass-panel rounded-3xl p-6 flex flex-col justify-between transition-all hover:scale-[1.02] hover:shadow-indigo-500/10">
               <div className="flex items-start justify-between">
-                 <span className="text-slate-500 font-medium text-sm">NPS Geral</span>
-                 <div className="w-8 h-8 rounded-full bg-violet-200 flex items-center justify-center text-violet-700"><Percent className="w-4 h-4" /></div>
+                 <span className="text-slate-400 font-medium text-sm">NPS Geral</span>
+                 <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20 group-hover:bg-indigo-500 group-hover:text-white transition-all"><Percent className="w-5 h-5" /></div>
               </div>
               <div className="mt-4">
-                 <div className="text-4xl font-bold text-slate-800 dark:text-white">{stats.score || 0}</div>
-                 <div className="text-slate-500 text-sm mt-1">{getScoreInterpretation(stats.score || 0)}</div>
+                 <div className="text-4xl font-bold text-white tracking-tight">{stats.score || 0}</div>
+                 <div className="flex items-center gap-2 mt-1">
+                   <div className={`w-2 h-2 rounded-full ${stats.score >= 75 ? 'bg-emerald-500' : stats.score >= 50 ? 'bg-blue-500' : 'bg-orange-500'}`}></div>
+                   <span className="text-slate-500 text-sm">{getScoreInterpretation(stats.score || 0)}</span>
+                 </div>
               </div>
             </div>
 
-            <div className="bg-white dark:bg-surface-card rounded-3xl p-6 border border-slate-200 dark:border-surface-border shadow-sm flex flex-col justify-between">
+            <div className="group glass-panel rounded-3xl p-6 flex flex-col justify-between transition-all hover:scale-[1.02] hover:shadow-sky-500/10">
               <div className="flex items-start justify-between">
-                 <span className="text-slate-500 font-medium text-sm">Total de<br/>respostas</span>
-                 <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sky-600"><Users className="w-4 h-4" /></div>
+                 <span className="text-slate-400 font-medium text-sm">Total de Respostas</span>
+                 <div className="w-10 h-10 rounded-2xl bg-sky-500/10 flex items-center justify-center text-sky-400 border border-sky-500/20 group-hover:bg-sky-500 group-hover:text-white transition-all"><Users className="w-5 h-5" /></div>
               </div>
               <div className="mt-4">
-                 <div className="text-4xl font-bold text-slate-800 dark:text-white">{stats.total || 0}</div>
-                 <div className="text-slate-500 text-sm mt-1 leading-tight">Pacientes<br/>respondentes no<br/>período</div>
+                 <div className="text-4xl font-bold text-white tracking-tight">{stats.total || 0}</div>
+                 <div className="text-slate-500 text-xs mt-1 leading-tight uppercase tracking-widest font-bold opacity-70">Volume total no período</div>
               </div>
             </div>
 
-            <div className="bg-white dark:bg-surface-card rounded-3xl p-6 border border-slate-200 dark:border-surface-border shadow-sm flex flex-col justify-between">
+            <div className="group glass-panel rounded-3xl p-6 flex flex-col justify-between transition-all hover:scale-[1.02] hover:shadow-emerald-500/10">
               <div className="flex items-start justify-between">
-                 <span className="text-slate-500 font-medium text-sm">Promotores</span>
-                 <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600"><Smile className="w-4 h-4" /></div>
+                 <span className="text-slate-400 font-medium text-sm">Promotores</span>
+                 <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20 group-hover:bg-emerald-500 group-hover:text-white transition-all"><Smile className="w-5 h-5" /></div>
               </div>
               <div className="mt-4">
-                 <div className="text-4xl font-bold text-slate-800 dark:text-white">{stats.promoters || 0}</div>
-                 <div className="text-slate-500 text-sm mt-1">Notas 9 e 10</div>
+                 <div className="text-4xl font-bold text-white tracking-tight">{stats.promoters || 0}</div>
+                 <div className="text-slate-500 text-xs mt-1 font-medium italic">Satisfação máxima</div>
               </div>
             </div>
 
-            <div className="bg-white dark:bg-surface-card rounded-3xl p-6 border border-slate-200 dark:border-surface-border shadow-sm flex flex-col justify-between">
+            <div className="group glass-panel rounded-3xl p-6 flex flex-col justify-between transition-all hover:scale-[1.02] hover:shadow-rose-500/10">
               <div className="flex items-start justify-between">
-                 <span className="text-slate-500 font-medium text-sm">Detratores</span>
-                 <div className="w-8 h-8 rounded-full bg-rose-200 flex items-center justify-center text-rose-700"><MessageSquare className="w-4 h-4" /></div>
+                 <span className="text-slate-400 font-medium text-sm">Detratores</span>
+                 <div className="w-10 h-10 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-400 border border-rose-500/20 group-hover:bg-rose-500 group-hover:text-white transition-all"><MessageSquare className="w-5 h-5" /></div>
               </div>
               <div className="mt-4">
-                 <div className="text-4xl font-bold text-slate-800 dark:text-white">{stats.detractors || 0}</div>
-                 <div className="text-slate-500 text-sm mt-1">Notas 0 a 6</div>
+                 <div className="text-4xl font-bold text-white tracking-tight">{stats.detractors || 0}</div>
+                 <div className="text-slate-500 text-xs mt-1 font-medium">Pontos de atenção</div>
               </div>
             </div>
 
-            <div className="bg-white dark:bg-surface-card rounded-3xl p-6 border border-slate-200 dark:border-surface-border shadow-sm flex flex-col justify-between">
+            <div className="group glass-panel rounded-3xl p-6 flex flex-col justify-between transition-all hover:scale-[1.02] hover:shadow-orange-500/10">
               <div className="flex items-start justify-between">
-                 <span className="text-slate-500 font-medium text-sm">Nota média</span>
-                 <div className="w-8 h-8 rounded-full bg-orange-200 flex items-center justify-center text-orange-700"><Star className="w-4 h-4" /></div>
+                 <span className="text-slate-400 font-medium text-sm">Nota Média</span>
+                 <div className="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-400 border border-orange-500/20 group-hover:bg-orange-500 group-hover:text-white transition-all"><Star className="w-5 h-5" /></div>
               </div>
               <div className="mt-4">
-                 <div className="text-4xl font-bold text-slate-800 dark:text-white">{stats.averageScore?.toFixed(1) || '0.0'}</div>
-                 <div className="text-slate-500 text-sm mt-1 leading-tight">+0.5 pts vs<br/>período anterior</div>
+                 <div className="text-4xl font-bold text-white tracking-tight">{stats.averageScore?.toFixed(1) || '0.0'}</div>
+                 <div className="text-slate-500 text-xs mt-1 flex items-center gap-1 font-bold text-emerald-500">
+                    <ArrowUpRight className="w-3 h-3" /> Tendência Positiva
+                 </div>
               </div>
             </div>
 
@@ -484,31 +489,40 @@ function ComplexWidget({ title, desc, badgeText, visualIndex, visualIndexDesc, h
          </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
          {/* BOX 1: INDICE VISUAL */}
-         <div className="bg-slate-50 dark:bg-surface-subtle rounded-3xl p-6 flex flex-col justify-center">
-            <div className="text-xs text-slate-500 mb-2">Índice visual do segmento</div>
-            <div className="text-5xl font-bold text-slate-800 dark:text-white">{visualIndex}%</div>
-            <p className="text-[11px] text-slate-500 mt-4 leading-relaxed">{visualIndexDesc}</p>
+         <div className="bg-zinc-900/40 rounded-3xl p-6 flex flex-col justify-center border border-white/5 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="relative z-10">
+               <div className="text-xs text-slate-500 mb-2 uppercase tracking-[0.2em] font-bold">Índice Visual</div>
+               <div className="text-6xl font-black text-white">{visualIndex}%</div>
+               <p className="text-[11px] text-slate-400 mt-4 leading-relaxed font-medium">{visualIndexDesc}</p>
+            </div>
          </div>
          
          {/* BOX 2: EVOLUCAO */}
-         <div className="bg-slate-50 dark:bg-surface-subtle rounded-3xl p-6 flex flex-col">
-            <div className="text-xs text-slate-500 mb-4">Evolução dentro do período</div>
-            <div className="flex-1 min-h-[100px]">
+         <div className="bg-zinc-900/40 rounded-3xl p-6 flex flex-col border border-white/5">
+            <div className="text-xs text-slate-500 mb-4 uppercase tracking-widest font-bold">Evolução Temporal</div>
+            <div className="flex-1 min-h-[120px]">
                <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={safeHistory}>
-                     <Line type="monotone" dataKey="value" stroke="#8b5cf6" strokeWidth={3} dot={{r: 4, strokeWidth: 2, fill: '#fff'}} />
+                     <defs>
+                        <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
+                           <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                           <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                        </linearGradient>
+                     </defs>
+                     <Line type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={4} dot={false} animationDuration={2000} />
                   </LineChart>
                </ResponsiveContainer>
             </div>
          </div>
          
          {/* BOX 3: ROSCA */}
-         <div className="bg-slate-50 dark:bg-surface-subtle rounded-3xl flex items-center justify-center min-h-[150px]">
+         <div className="bg-zinc-900/40 rounded-3xl flex items-center justify-center min-h-[180px] border border-white/5">
              <ResponsiveContainer width="100%" height="100%">
                <PieChart>
-                  <Pie data={safePie} innerRadius={40} outerRadius={70} paddingAngle={2} dataKey="value" stroke="none">
+                  <Pie data={safePie} innerRadius={50} outerRadius={75} paddingAngle={4} dataKey="value" stroke="none">
                      {safePie.map((entry: any, index: number) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                      ))}
@@ -518,14 +532,14 @@ function ComplexWidget({ title, desc, badgeText, visualIndex, visualIndexDesc, h
          </div>
          
          {/* BOX 4: LEGENDA */}
-         <div className="flex flex-col justify-center space-y-3">
+         <div className="flex flex-col justify-center gap-3">
             {pieLegend.map((lg: any, i: number) => (
-               <div key={i} className="flex items-center justify-between bg-slate-50 dark:bg-surface-subtle rounded-xl p-3 border-none">
-                  <div className="flex items-center gap-2">
-                     <div className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: lg.color}}></div>
-                     <span className="text-xs font-bold text-slate-700 dark:text-zinc-200">{lg.label}</span>
+               <div key={i} className="flex items-center justify-between bg-zinc-900/60 rounded-2xl p-4 border border-white/5 hover:bg-zinc-800 transition-colors">
+                  <div className="flex items-center gap-3">
+                     <div className="w-3 h-3 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.5)]" style={{backgroundColor: lg.color, boxShadow: `0 0 10px ${lg.color}44`}}></div>
+                     <span className="text-xs font-bold text-slate-300">{lg.label}</span>
                   </div>
-                  <span className="text-xs font-bold text-slate-900 dark:text-white">{lg.val}</span>
+                  <span className="text-sm font-black text-white">{lg.val}</span>
                </div>
             ))}
          </div>
