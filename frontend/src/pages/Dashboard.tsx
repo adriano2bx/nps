@@ -389,56 +389,76 @@ export default function Dashboard() {
 
         </>
       ) : (
-        <div className="bg-white dark:bg-surface-card rounded-3xl border border-slate-200 dark:border-surface-border shadow-sm overflow-hidden animate-in slide-in-from-bottom-4 duration-500">
-          <div className="p-6 border-b border-slate-100 dark:border-surface-border flex items-center justify-between">
-            <h3 className="font-bold text-slate-800 dark:text-white">Últimos Pacientes Respondentes</h3>
-            <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-surface-subtle px-2 py-1 rounded-full">Exibindo as últimas 10 interações</span>
+        <div className="glass-panel rounded-3xl border-none shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-500">
+          <div className="p-8 border-b border-white/5 flex items-center justify-between bg-zinc-900/40">
+            <div>
+              <h3 className="font-bold text-white text-lg">Pacientes Respondentes</h3>
+              <p className="text-xs text-slate-500 mt-1 uppercase tracking-widest">Feedbacks recentes do período selecionado</p>
+            </div>
+            <div className="px-4 py-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-xl text-xs font-bold">
+               {data.recent?.length || 0} interações
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50/50 dark:bg-surface-subtle/30 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-surface-border">
-                  <th className="px-6 py-4">Data</th>
-                  <th className="px-6 py-4">Paciente</th>
-                  <th className="px-6 py-4">Campanha</th>
-                  <th className="px-6 py-4 text-center">NPS</th>
-                  <th className="px-6 py-4">Comentário</th>
+                <tr className="bg-zinc-900/60 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-white/5">
+                  <th className="px-8 py-5">Data</th>
+                  <th className="px-8 py-5">Paciente</th>
+                  <th className="px-8 py-5">Campanha</th>
+                  <th className="px-8 py-5 text-center">NPS</th>
+                  <th className="px-8 py-5">Comentário</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-surface-border">
+              <tbody className="divide-y divide-white/5">
                 {(data.recent || []).map((r: any) => (
-                  <tr key={r.id} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/30 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-500">
+                  <tr key={r.id} className="hover:bg-white/[0.02] transition-colors group">
+                    <td className="px-8 py-5 whitespace-nowrap text-xs text-slate-500 font-medium">
                       {new Date(r.createdAt).toLocaleDateString('pt-BR')}
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-slate-800 dark:text-white">{r.contactName}</span>
+                    <td className="px-8 py-5">
+                      <div className="flex items-center gap-3">
+                         <div className="w-8 h-8 rounded-full bg-indigo-500/10 flex items-center justify-center text-[10px] font-bold text-indigo-400 border border-indigo-500/20 group-hover:bg-indigo-500 group-hover:text-white transition-all">
+                            {r.contactName?.charAt(0)}
+                         </div>
+                         <span className="text-sm font-bold text-white">{r.contactName}</span>
+                      </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="px-2 py-0.5 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 text-[10px] font-bold rounded uppercase tracking-wider">{r.campaignName}</span>
+                    <td className="px-8 py-5">
+                      <span className="px-3 py-1 bg-zinc-800 text-zinc-400 text-[10px] font-bold rounded-lg uppercase tracking-wider border border-white/5">{r.campaignName}</span>
                     </td>
-                    <td className="px-6 py-4 text-center">
-                      <div className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold text-xs shadow-sm ${r.score >= 9 ? 'bg-emerald-500 text-white' : r.score >= 7 ? 'bg-amber-500 text-white' : 'bg-rose-500 text-white'}`}>
+                    <td className="px-8 py-5 text-center">
+                      <div className={`inline-flex items-center justify-center w-9 h-9 rounded-xl font-black text-sm shadow-lg ${r.score >= 9 ? 'bg-emerald-500 text-white' : r.score >= 7 ? 'bg-amber-500 text-white' : 'bg-rose-500 text-white'}`}>
                         {r.score}
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <p className="text-sm text-slate-600 dark:text-zinc-300 max-w-xs truncate" title={r.comment}>{r.comment || '—'}</p>
+                    <td className="px-8 py-5">
+                      <p className="text-sm text-slate-400 max-w-sm truncate italic group-hover:text-slate-200 transition-colors" title={r.comment}>
+                        {r.comment ? `"${r.comment}"` : '—'}
+                      </p>
                     </td>
                   </tr>
                 ))}
                 {(data.recent || []).length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-slate-500 italic">
-                      Nenhuma resposta encontrada para este período.
+                    <td colSpan={5} className="px-8 py-20 text-center text-slate-500 italic font-medium">
+                      <div className="flex flex-col items-center gap-3">
+                         <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center border border-white/5"><Users className="w-6 h-6 opacity-20" /></div>
+                         Nenhuma resposta encontrada para este período.
+                      </div>
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
-          <div className="p-4 bg-slate-50/30 dark:bg-surface-subtle/30 text-center">
-             <button onClick={() => window.location.href='/reports'} className="text-xs font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-widest">Ver Relatório Completo</button>
+          <div className="p-6 bg-zinc-900/60 border-t border-white/5 text-center">
+             <button 
+                onClick={() => window.location.href='/reports'} 
+                className="text-xs font-bold text-indigo-400 hover:text-indigo-300 uppercase tracking-[0.2em] transition-all hover:gap-2 flex items-center justify-center mx-auto"
+             >
+                Explorar Relatório Completo <ArrowUpRight className="w-4 h-4 ml-1" />
+             </button>
           </div>
         </div>
       )}
