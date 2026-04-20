@@ -79,27 +79,27 @@
 }
 
 @layer components {
-  .btn {
+  .btn, .btn-primary, .btn-secondary, .btn-danger, .btn-brand, .btn-ghost {
     @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-150 active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
   }
 
   .btn-primary {
-    @apply btn bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-100 shadow-lg shadow-black/5;
+    @apply bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-100 shadow-lg shadow-black/5;
   }
 
   .btn-secondary {
-    @apply btn bg-white dark:bg-surface-subtle text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-surface-border hover:bg-zinc-50 dark:hover:bg-surface-card;
+    @apply bg-white dark:bg-surface-subtle text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-surface-border hover:bg-zinc-50 dark:hover:bg-surface-card;
   }
 
   .btn-danger {
-    @apply btn bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 hover:bg-red-500/20;
+    @apply bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 hover:bg-red-500/20;
   }
 
   .btn-brand {
-    @apply btn bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-600/20;
+    @apply bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-600/20;
   }
 
   .btn-ghost {
-    @apply btn bg-transparent text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800;
+    @apply bg-transparent text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800;
   }
 }
