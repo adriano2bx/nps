@@ -699,7 +699,7 @@ Retorne APENAS um JSON válido e estrito com a chave:
     }
   }
 
-  private async sendQuestion(channelId: string, tenantId: string, phone: string, question: any, sessionId?: string) {
+  public async sendQuestion(channelId: string, tenantId: string, phone: string, question: any, sessionId?: string) {
     let text = question.text;
     let buttons: { id: string, title: string }[] | undefined = undefined;
 
