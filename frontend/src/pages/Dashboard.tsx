@@ -24,6 +24,7 @@ const Q_REC_TEMPO = 2; // Suposição
 export default function Dashboard() {
   const { dashboard: data, loading, isRefreshing, refreshDashboard } = useData();
   const [activeFilter, setActiveFilter] = useState('week');
+  const [activeTab, setActiveTab] = useState('executive');
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -139,10 +140,10 @@ export default function Dashboard() {
         {/* TABS & FILTERS MOCK (Visual only as requested) */}
         <div className="flex flex-wrap items-center justify-between gap-4 mt-2">
            <div className="flex gap-2">
-              <button className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-full text-sm font-semibold border border-slate-300 dark:border-slate-700">
+              <button onClick={() => setActiveTab("executive")} className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all ${activeTab === "executive" ? "bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700" : "bg-white dark:bg-surface-card text-slate-600 dark:text-slate-400 border-slate-200 dark:border-surface-border font-medium"}`}>
                  Painel executivo
               </button>
-              <button className="px-4 py-2 bg-white dark:bg-surface-card text-slate-600 dark:text-slate-400 rounded-full text-sm font-medium border border-slate-200 dark:border-surface-border">
+              <button onClick={() => setActiveTab("patients")} className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all ${activeTab === "patients" ? "bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700" : "bg-white dark:bg-surface-card text-slate-600 dark:text-slate-400 border-slate-200 dark:border-surface-border font-medium"}`}>
                  Pacientes respondentes
               </button>
            </div>
@@ -176,65 +177,68 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* TOP CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        
-        <div className="bg-white dark:bg-surface-card rounded-3xl p-6 border border-slate-200 dark:border-surface-border shadow-sm flex flex-col justify-between">
-          <div className="flex items-start justify-between">
-             <span className="text-slate-500 font-medium text-sm">NPS Geral</span>
-             <div className="w-8 h-8 rounded-full bg-violet-200 flex items-center justify-center text-violet-700"><Percent className="w-4 h-4" /></div>
-          </div>
-          <div className="mt-4">
-             <div className="text-4xl font-bold text-slate-800 dark:text-white">{stats.score || 0}</div>
-             <div className="text-slate-500 text-sm mt-1">{getScoreInterpretation(stats.score || 0)}</div>
-          </div>
-        </div>
+      {/* CONDITIONAL CONTENT BASED ON TAB */}
+      {activeTab === 'executive' ? (
+        <>
+          {/* TOP CARDS */}
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            
+            <div className="bg-white dark:bg-surface-card rounded-3xl p-6 border border-slate-200 dark:border-surface-border shadow-sm flex flex-col justify-between">
+              <div className="flex items-start justify-between">
+                 <span className="text-slate-500 font-medium text-sm">NPS Geral</span>
+                 <div className="w-8 h-8 rounded-full bg-violet-200 flex items-center justify-center text-violet-700"><Percent className="w-4 h-4" /></div>
+              </div>
+              <div className="mt-4">
+                 <div className="text-4xl font-bold text-slate-800 dark:text-white">{stats.score || 0}</div>
+                 <div className="text-slate-500 text-sm mt-1">{getScoreInterpretation(stats.score || 0)}</div>
+              </div>
+            </div>
 
-        <div className="bg-white dark:bg-surface-card rounded-3xl p-6 border border-slate-200 dark:border-surface-border shadow-sm flex flex-col justify-between">
-          <div className="flex items-start justify-between">
-             <span className="text-slate-500 font-medium text-sm">Total de<br/>respostas</span>
-             <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sky-600"><Users className="w-4 h-4" /></div>
-          </div>
-          <div className="mt-4">
-             <div className="text-4xl font-bold text-slate-800 dark:text-white">{stats.total || 0}</div>
-             <div className="text-slate-500 text-sm mt-1 leading-tight">Pacientes<br/>respondentes no<br/>período</div>
-          </div>
-        </div>
+            <div className="bg-white dark:bg-surface-card rounded-3xl p-6 border border-slate-200 dark:border-surface-border shadow-sm flex flex-col justify-between">
+              <div className="flex items-start justify-between">
+                 <span className="text-slate-500 font-medium text-sm">Total de<br/>respostas</span>
+                 <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sky-600"><Users className="w-4 h-4" /></div>
+              </div>
+              <div className="mt-4">
+                 <div className="text-4xl font-bold text-slate-800 dark:text-white">{stats.total || 0}</div>
+                 <div className="text-slate-500 text-sm mt-1 leading-tight">Pacientes<br/>respondentes no<br/>período</div>
+              </div>
+            </div>
 
-        <div className="bg-white dark:bg-surface-card rounded-3xl p-6 border border-slate-200 dark:border-surface-border shadow-sm flex flex-col justify-between">
-          <div className="flex items-start justify-between">
-             <span className="text-slate-500 font-medium text-sm">Promotores</span>
-             <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600"><Smile className="w-4 h-4" /></div>
-          </div>
-          <div className="mt-4">
-             <div className="text-4xl font-bold text-slate-800 dark:text-white">{stats.promoters || 0}</div>
-             <div className="text-slate-500 text-sm mt-1">Notas 9 e 10</div>
-          </div>
-        </div>
+            <div className="bg-white dark:bg-surface-card rounded-3xl p-6 border border-slate-200 dark:border-surface-border shadow-sm flex flex-col justify-between">
+              <div className="flex items-start justify-between">
+                 <span className="text-slate-500 font-medium text-sm">Promotores</span>
+                 <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600"><Smile className="w-4 h-4" /></div>
+              </div>
+              <div className="mt-4">
+                 <div className="text-4xl font-bold text-slate-800 dark:text-white">{stats.promoters || 0}</div>
+                 <div className="text-slate-500 text-sm mt-1">Notas 9 e 10</div>
+              </div>
+            </div>
 
-        <div className="bg-white dark:bg-surface-card rounded-3xl p-6 border border-slate-200 dark:border-surface-border shadow-sm flex flex-col justify-between">
-          <div className="flex items-start justify-between">
-             <span className="text-slate-500 font-medium text-sm">Detratores</span>
-             <div className="w-8 h-8 rounded-full bg-rose-200 flex items-center justify-center text-rose-700"><MessageSquare className="w-4 h-4" /></div>
-          </div>
-          <div className="mt-4">
-             <div className="text-4xl font-bold text-slate-800 dark:text-white">{stats.detractors || 0}</div>
-             <div className="text-slate-500 text-sm mt-1">Notas 0 a 6</div>
-          </div>
-        </div>
+            <div className="bg-white dark:bg-surface-card rounded-3xl p-6 border border-slate-200 dark:border-surface-border shadow-sm flex flex-col justify-between">
+              <div className="flex items-start justify-between">
+                 <span className="text-slate-500 font-medium text-sm">Detratores</span>
+                 <div className="w-8 h-8 rounded-full bg-rose-200 flex items-center justify-center text-rose-700"><MessageSquare className="w-4 h-4" /></div>
+              </div>
+              <div className="mt-4">
+                 <div className="text-4xl font-bold text-slate-800 dark:text-white">{stats.detractors || 0}</div>
+                 <div className="text-slate-500 text-sm mt-1">Notas 0 a 6</div>
+              </div>
+            </div>
 
-        <div className="bg-white dark:bg-surface-card rounded-3xl p-6 border border-slate-200 dark:border-surface-border shadow-sm flex flex-col justify-between">
-          <div className="flex items-start justify-between">
-             <span className="text-slate-500 font-medium text-sm">Nota média</span>
-             <div className="w-8 h-8 rounded-full bg-orange-200 flex items-center justify-center text-orange-700"><Star className="w-4 h-4" /></div>
-          </div>
-          <div className="mt-4">
-             <div className="text-4xl font-bold text-slate-800 dark:text-white">{stats.averageScore?.toFixed(1) || '0.0'}</div>
-             <div className="text-slate-500 text-sm mt-1 leading-tight">+0.5 pts vs<br/>período anterior</div>
-          </div>
-        </div>
+            <div className="bg-white dark:bg-surface-card rounded-3xl p-6 border border-slate-200 dark:border-surface-border shadow-sm flex flex-col justify-between">
+              <div className="flex items-start justify-between">
+                 <span className="text-slate-500 font-medium text-sm">Nota média</span>
+                 <div className="w-8 h-8 rounded-full bg-orange-200 flex items-center justify-center text-orange-700"><Star className="w-4 h-4" /></div>
+              </div>
+              <div className="mt-4">
+                 <div className="text-4xl font-bold text-slate-800 dark:text-white">{stats.averageScore?.toFixed(1) || '0.0'}</div>
+                 <div className="text-slate-500 text-sm mt-1 leading-tight">+0.5 pts vs<br/>período anterior</div>
+              </div>
+            </div>
 
-      </div>
+          </div>
 
       {/* NPS GLOBAL E DISTRIBUICAO */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -378,6 +382,61 @@ export default function Dashboard() {
          ]}
       />
 
+        </>
+      ) : (
+        <div className="bg-white dark:bg-surface-card rounded-3xl border border-slate-200 dark:border-surface-border shadow-sm overflow-hidden animate-in slide-in-from-bottom-4 duration-500">
+          <div className="p-6 border-b border-slate-100 dark:border-surface-border flex items-center justify-between">
+            <h3 className="font-bold text-slate-800 dark:text-white">Últimos Pacientes Respondentes</h3>
+            <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-surface-subtle px-2 py-1 rounded-full">Exibindo as últimas 10 interações</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50/50 dark:bg-surface-subtle/30 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-surface-border">
+                  <th className="px-6 py-4">Data</th>
+                  <th className="px-6 py-4">Paciente</th>
+                  <th className="px-6 py-4">Campanha</th>
+                  <th className="px-6 py-4 text-center">NPS</th>
+                  <th className="px-6 py-4">Comentário</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-surface-border">
+                {(data.recent || []).map((r: any) => (
+                  <tr key={r.id} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/30 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-500">
+                      {new Date(r.createdAt).toLocaleDateString('pt-BR')}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-bold text-slate-800 dark:text-white">{r.contactName}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="px-2 py-0.5 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 text-[10px] font-bold rounded uppercase tracking-wider">{r.campaignName}</span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold text-xs shadow-sm ${r.score >= 9 ? 'bg-emerald-500 text-white' : r.score >= 7 ? 'bg-amber-500 text-white' : 'bg-rose-500 text-white'}`}>
+                        {r.score}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-slate-600 dark:text-zinc-300 max-w-xs truncate" title={r.comment}>{r.comment || '—'}</p>
+                    </td>
+                  </tr>
+                ))}
+                {(data.recent || []).length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-12 text-center text-slate-500 italic">
+                      Nenhuma resposta encontrada para este período.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          <div className="p-4 bg-slate-50/30 dark:bg-surface-subtle/30 text-center">
+             <button onClick={() => window.location.href='/reports'} className="text-xs font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-widest">Ver Relatório Completo</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

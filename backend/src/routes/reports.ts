@@ -278,6 +278,20 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
       if (r.answerValue !== null) {
         clinicMetrics[idx].history[dateStr].totalScore++;
         clinicMetrics[idx].history[dateStr].sum += r.answerValue;
+      } else if (r.answerText) {
+        // Map text answers to scores for history trends
+        const t = r.answerText.toLowerCase().trim();
+        let score = null;
+        if (['excelente', 'sim', 'rápido', 'muito rápido', '10', '9', '8'].some(v => t.includes(v))) score = 10;
+        else if (['bom', 'satisfatório', 'razoável', '7', '6'].some(v => t.includes(v))) score = 7;
+        else if (['regular', 'talvez', '5', '4'].some(v => t.includes(v))) score = 5;
+        else if (['ruim', 'não', 'demorado', '3', '2'].some(v => t.includes(v))) score = 3;
+        else if (['péssimo', 'muito demorado', '1', '0'].some(v => t.includes(v))) score = 0;
+        
+        if (score !== null) {
+          clinicMetrics[idx].history[dateStr].totalScore++;
+          clinicMetrics[idx].history[dateStr].sum += score;
+        }
       }
     });
 
