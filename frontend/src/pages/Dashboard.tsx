@@ -24,7 +24,6 @@ const Q_REC_TEMPO = 2; // Suposição
 export default function Dashboard() {
   const { dashboard: data, loading, isRefreshing, refreshDashboard } = useData();
   const [activeFilter, setActiveFilter] = useState('week');
-  const [activeTab, setActiveTab] = useState('executive');
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -138,15 +137,7 @@ export default function Dashboard() {
         </p>
         
         {/* TABS & FILTERS MOCK (Visual only as requested) */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mt-2">
-           <div className="flex gap-2">
-              <button onClick={() => setActiveTab("executive")} className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all ${activeTab === "executive" ? "bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700" : "bg-white dark:bg-surface-card text-slate-600 dark:text-slate-400 border-slate-200 dark:border-surface-border font-medium"}`}>
-                 Painel executivo
-              </button>
-              <button onClick={() => setActiveTab("patients")} className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all ${activeTab === "patients" ? "bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700" : "bg-white dark:bg-surface-card text-slate-600 dark:text-slate-400 border-slate-200 dark:border-surface-border font-medium"}`}>
-                 Pacientes respondentes
-              </button>
-           </div>
+        <div className="flex flex-wrap items-center justify-end gap-4 mt-2">
            
             <div className="flex gap-2 text-sm">
               <button 
@@ -177,9 +168,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* CONDITIONAL CONTENT BASED ON TAB */}
-      {activeTab === 'executive' ? (
-        <>
+      <div className="space-y-8 pb-12">
           {/* TOP CARDS */}
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             
@@ -417,8 +406,7 @@ export default function Dashboard() {
          ]}
       />
 
-        </>
-      ) : (
+
         <div className="glass-panel rounded-3xl border-none shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-500">
           <div className="p-8 border-b border-white/5 flex items-center justify-between bg-zinc-900/40">
             <div>
@@ -491,7 +479,7 @@ export default function Dashboard() {
              </button>
           </div>
         </div>
-      )}
+
     </div>
   );
 }
