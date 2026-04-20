@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Loader2, Percent, Users, Smile, MessageSquare, Star, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -23,13 +23,43 @@ const Q_REC_TEMPO = 2; // Suposição
 
 export default function Dashboard() {
   const { dashboard: data, loading, isRefreshing, refreshDashboard } = useData();
+  const [activeFilter, setActiveFilter] = useState('week');
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if (!isRefreshing.dashboard) refreshDashboard();
+      if (!isRefreshing.dashboard) {
+        // Refresh with current filters if needed, or just let the default one run
+      }
     }, 60000);
     return () => clearInterval(interval);
   }, [refreshDashboard, isRefreshing.dashboard]);
+
+  const handleFilterChange = (filter: string) => {
+    setActiveFilter(filter);
+    
+    const now = new Date();
+    let startDate: string | undefined;
+    let endDate: string | undefined = now.toISOString();
+
+    if (filter === 'today') {
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      startDate = start.toISOString();
+    } else if (filter === 'week') {
+      const start = new Date();
+      start.setDate(now.getDate() - 7);
+      startDate = start.toISOString();
+    } else if (filter === 'month') {
+      const start = new Date();
+      start.setMonth(now.getMonth() - 1);
+      startDate = start.toISOString();
+    } else if (filter === 'all') {
+      startDate = undefined;
+      endDate = undefined;
+    }
+
+    refreshDashboard({ startDate, endDate });
+  };
 
   if (loading.dashboard && !data) {
     return <DashboardSkeleton />;
@@ -117,12 +147,32 @@ export default function Dashboard() {
               </button>
            </div>
            
-           <div className="flex gap-2 text-sm">
-             <button className="px-6 py-2 bg-white text-slate-600 rounded-full border border-slate-200 font-medium">Hoje</button>
-             <button className="px-6 py-2 bg-indigo-200 text-indigo-900 rounded-full font-bold shadow-sm">Semana</button>
-             <button className="px-6 py-2 bg-white text-slate-600 rounded-full border border-slate-200 font-medium">Mês</button>
-             <button className="px-6 py-2 bg-white text-slate-600 rounded-full border border-slate-200 font-medium">Escolher período</button>
-           </div>
+            <div className="flex gap-2 text-sm">
+              <button 
+                onClick={() => handleFilterChange('today')}
+                className={`px-6 py-2 rounded-full font-medium transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-surface-card text-slate-600 dark:text-zinc-400 border border-slate-200 dark:border-surface-border'}`}
+              >
+                Hoje
+              </button>
+              <button 
+                onClick={() => handleFilterChange('week')}
+                className={`px-6 py-2 rounded-full font-medium transition-all ${activeFilter === 'week' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-surface-card text-slate-600 dark:text-zinc-400 border border-slate-200 dark:border-surface-border'}`}
+              >
+                Semana
+              </button>
+              <button 
+                onClick={() => handleFilterChange('month')}
+                className={`px-6 py-2 rounded-full font-medium transition-all ${activeFilter === 'month' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-surface-card text-slate-600 dark:text-zinc-400 border border-slate-200 dark:border-surface-border'}`}
+              >
+                Mês
+              </button>
+              <button 
+                onClick={() => handleFilterChange('all')}
+                className={`px-6 py-2 rounded-full font-medium transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-surface-card text-slate-600 dark:text-zinc-400 border border-slate-200 dark:border-surface-border'}`}
+              >
+                Tudo
+              </button>
+            </div>
         </div>
       </div>
 

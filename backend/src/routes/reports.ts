@@ -141,8 +141,9 @@ router.get('/export', authMiddleware, async (req: AuthRequest, res) => {
 // GET /api/reports/dashboard
 router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
   try {
+    const { startDate, endDate } = req.query;
     const tenantId = req.tenantId as string;
-    const cacheKey = `dashboard:${tenantId}`;
+    const cacheKey = `dashboard:${tenantId}:${startDate || ''}:${endDate || ''}`;
 
     // 1. Try to get from Cache
     const cachedData = await redis.get(cacheKey);
@@ -151,7 +152,6 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
     }
     
     // Default to All Time unless specified in query
-    const { startDate, endDate } = req.query;
     const dateFilter: any = {};
     if (startDate) dateFilter.gte = new Date(startDate as string);
     if (endDate) dateFilter.lte = new Date(endDate as string);

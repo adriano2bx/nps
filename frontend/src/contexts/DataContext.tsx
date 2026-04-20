@@ -35,7 +35,7 @@ interface DataContextType {
   campaigns: Campaign[];
   channels: any[];
   topics: { id: string; name: string; color: string }[];
-  refreshDashboard: () => Promise<void>;
+  refreshDashboard: (filters?: any) => Promise<void>;
   refreshReports: (page?: number, filters?: any) => Promise<void>;
   refreshPatients: (page?: number) => Promise<void>;
   refreshCampaigns: () => Promise<void>;
@@ -79,13 +79,15 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     topics: false
   });
 
-  const fetchDashboard = useCallback(async () => {
+  const fetchDashboard = useCallback(async (filters = {}) => {
     if (!token || fetchingRefs.current.dashboard) return;
     fetchingRefs.current.dashboard = true;
     setIsRefreshing(prev => ({ ...prev, dashboard: true }));
     try {
       const apiBase = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
-      const response = await fetch(`${apiBase}/api/reports/dashboard`, {
+      const params = new URLSearchParams(filters as any);
+      const url = params.toString() ? `${apiBase}/api/reports/dashboard?${params}` : `${apiBase}/api/reports/dashboard`;
+      const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {
