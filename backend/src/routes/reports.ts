@@ -78,7 +78,7 @@ router.get('/export', authMiddleware, async (req: AuthRequest, res) => {
 
     // 1. Identify all unique questions across all sessions to build dynamic headers
     const questionMap = new Map<string, { text: string, type: string }>();
-    sessions.forEach(s => {
+    sessions.forEach((s: any) => {
       s.responses.forEach((r: any) => {
         if (r.question && !questionMap.has(r.questionId)) {
           questionMap.set(r.questionId, { 
@@ -247,17 +247,18 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
     
     (allResponses as any[]).forEach(r => {
       const qIndex = r.question?.orderIndex;
-      if (qIndex === undefined) return;
+      if (qIndex === undefined || qIndex === null) return;
+      const idx = qIndex as number;
       
-      if (!clinicMetrics[qIndex]) {
-        clinicMetrics[qIndex] = {
+      if (!clinicMetrics[idx]) {
+        clinicMetrics[idx] = {
           total: 0,
           responses: {},
           history: {}
         };
       }
       
-      clinicMetrics[qIndex].total++;
+      clinicMetrics[idx].total++;
       
       // Fallback text extraction or numeric to string
       let valStr = 'Sem resposta';
@@ -267,19 +268,18 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
          valStr = r.answerValue.toString();
       }
       
-      clinicMetrics[qIndex].responses[valStr] = (clinicMetrics[qIndex].responses[valStr] || 0) + 1;
+      clinicMetrics[idx].responses[valStr] = (clinicMetrics[idx].responses[valStr] || 0) + 1;
       
-      const dateStr = new Date(r.createdAt).toISOString().split('T')[0];
-      if (!clinicMetrics[qIndex].history[dateStr]) {
-        clinicMetrics[qIndex].history[dateStr] = { count: 0, sum: 0, totalScore: 0 };
+      const dateStr = new Date(r.createdAt).toISOString().split('T')[0] as string;
+      if (!clinicMetrics[idx].history[dateStr]) {
+        clinicMetrics[idx].history[dateStr] = { count: 0, sum: 0, totalScore: 0 };
       }
-      clinicMetrics[qIndex].history[dateStr].count++;
+      clinicMetrics[idx].history[dateStr].count++;
       if (r.answerValue !== null) {
-        clinicMetrics[qIndex].history[dateStr].totalScore++;
-        clinicMetrics[qIndex].history[dateStr].sum += r.answerValue;
+        clinicMetrics[idx].history[dateStr].totalScore++;
+        clinicMetrics[idx].history[dateStr].sum += r.answerValue;
       }
     });
-
 
     // --- TIME SERIES ---
     const timeSeriesData = await prisma.surveyResponse.findMany({
