@@ -140,8 +140,7 @@ export default function Reports() {
     <div className="p-8 space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">Central de Inteligência</h1>
-          <p className="text-zinc-500 dark:text-zinc-400 mt-1">Relatórios consolidados e gestão de conformidade LGPD.</p>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Respostas</h1>
         </div>
         <div className="flex items-center gap-3">
           <button onClick={() => refreshReports(pagination.page, filters)} className="btn-secondary p-2.5" title="Atualizar Dados">
@@ -149,7 +148,7 @@ export default function Reports() {
           </button>
           <div className="relative group">
             <button onClick={() => setIsExporting(!isExporting)} className="btn-primary">
-              <Download className="w-4 h-4 mr-2" /> Exportar Dados <ChevronDown className={`w-4 h-4 ml-2 transition-transform ${isExporting ? 'rotate-180' : ''}`} />
+              <Download className="w-4 h-4 mr-2" /> Exportar <ChevronDown className={`w-4 h-4 ml-2 transition-transform ${isExporting ? 'rotate-180' : ''}`} />
             </button>
              {isExporting && (
                <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-surface-card border border-zinc-200 dark:border-surface-border rounded-xl shadow-2xl overflow-hidden z-50">
@@ -170,28 +169,6 @@ export default function Reports() {
           </div>
         </div>
       </div>
-
-      {loading.reports && !stats ? (
-        <StatsSkeleton />
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {[
-            { label: 'Total de Respostas', value: stats?.total || 0, icon: CheckCircle2, color: 'text-zinc-900 dark:text-white' },
-            { label: 'NPS Score', value: stats?.score || 0, icon: TrendingUp, color: 'text-brand-600 dark:text-brand-400', sub: 'Zona de Qualidade' },
-            { label: 'Promotores', value: `${stats?.promoterPercentage || 0}%`, icon: ShieldCheck, color: 'text-emerald-600' },
-            { label: 'Detratores', value: `${stats?.detractorPercentage || 0}%`, icon: AlertCircle, color: 'text-rose-600' },
-          ].map((s, i) => (
-            <div key={i} className="bg-white dark:bg-surface-card border border-zinc-200 dark:border-surface-border p-6 rounded-2xl shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-2 bg-zinc-50 dark:bg-surface-subtle rounded-lg"><s.icon className="w-5 h-5 text-zinc-500" /></div>
-                {s.sub && <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-brand-50 dark:bg-brand-500/10 text-brand-600 rounded-full">{s.sub}</span>}
-              </div>
-              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{s.label}</p>
-              <h3 className={`text-2xl font-bold mt-1 ${s.color}`}>{s.value}</h3>
-            </div>
-          ))}
-        </div>
-      )}
 
       <div className="space-y-4">
         <div className="bg-white dark:bg-surface-card border border-zinc-200 dark:border-surface-border p-4 rounded-2xl flex flex-wrap items-center gap-4 shadow-sm">

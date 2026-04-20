@@ -11,7 +11,7 @@ export default function DashboardLayout() {
   const navItems = [
     { icon: LayoutDashboard, label: 'Visão Geral', path: '/dashboard' },
     { icon: MessageSquare, label: 'Pesquisas', path: '/surveys' },
-    { icon: BarChart3, label: 'Relatórios', path: '/reports' },
+    { icon: BarChart3, label: 'Respostas', path: '/reports' },
     { icon: Activity, label: 'Integrações', path: '/integrations' },
     { icon: Settings, label: 'Configurações', path: '/settings' },
   ];
@@ -23,7 +23,7 @@ export default function DashboardLayout() {
 
   // Mobile nav filter
   const mobileNavItems = navItems.filter(item => 
-    ['Visão Geral', 'Pesquisas', 'Relatórios', 'Configurações'].includes(item.label)
+    ['Visão Geral', 'Pesquisas', 'Respostas', 'Configurações'].includes(item.label)
   );
 
   return (
