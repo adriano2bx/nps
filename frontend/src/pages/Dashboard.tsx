@@ -499,15 +499,69 @@ export default function Dashboard() {
 // --- SUB-COMPONENTS ---
 
 function NpsSVG({ score, interpretation }: { score: number, interpretation: string }) {
-  const angle = ((score + 100) / 200) * 180;
+  // Map score (-100 to 100) to rotation angle (-90 to 90)
+  const rotation = (score / 100) * 90;
+  
   return (
-    <div className="relative flex justify-center mt-4">
-      <svg width="220" height="120" viewBox="0 0 240 130">
-        {/* Background */}
-        <path d="M 20 120 A 100 100 0 0 1 220 120" fill="none" stroke="#fcd34d" strokeWidth="16" strokeLinecap="round" />
-        {/* Active Needle / Arc logic can be added, here we match the static UI shown */}
-        <text x="120" y="100" textAnchor="middle" className="text-4xl font-bold fill-slate-800 dark:fill-white">{score}</text>
-        <text x="120" y="120" textAnchor="middle" className="text-xs font-medium fill-slate-500">{interpretation}</text>
+    <div className="relative flex justify-center mt-6 group">
+      <svg width="240" height="140" viewBox="0 0 240 140">
+        <defs>
+          <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#ef4444" stopOpacity="0.4" />
+            <stop offset="50%" stopColor="#eab308" stopOpacity={0.4} />
+            <stop offset="100%" stopColor="#10b981" stopOpacity={0.4} />
+          </linearGradient>
+          <filter id="needleShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="2" />
+            <feOffset dx="0" dy="1" result="offsetblur" />
+            <feComponentTransfer>
+              <feFuncA type="linear" slope="0.3" />
+            </feComponentTransfer>
+            <feMerge>
+              <feMergeNode />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        {/* Track Background */}
+        <path 
+          d="M 30 120 A 90 90 0 0 1 210 120" 
+          fill="none" 
+          stroke="rgba(255,255,255,0.05)" 
+          strokeWidth="14" 
+          strokeLinecap="round" 
+        />
+
+        {/* Color Zones Track */}
+        <path 
+          d="M 30 120 A 90 90 0 0 1 210 120" 
+          fill="none" 
+          stroke="url(#gaugeGradient)" 
+          strokeWidth="14" 
+          strokeLinecap="round" 
+        />
+
+        {/* Needle */}
+        <g transform={`rotate(${rotation}, 120, 120)`} style={{ transition: 'transform 1.5s cubic-bezier(0.34, 1.56, 0.64, 1)' }} filter="url(#needleShadow)">
+          <line 
+            x1="120" y1="120" 
+            x2="120" y2="45" 
+            stroke="#fff" 
+            strokeWidth="3" 
+            strokeLinecap="round" 
+          />
+          <circle cx="120" cy="120" r="6" fill="#fff" />
+          <circle cx="120" cy="120" r="3" fill="#18181b" />
+        </g>
+
+        {/* Center Text */}
+        <text x="120" y="105" textAnchor="middle" className="text-5xl font-black fill-white tracking-tighter">
+          {score}
+        </text>
+        <text x="120" y="125" textAnchor="middle" className="text-[10px] font-bold fill-slate-500 uppercase tracking-widest">
+          {interpretation}
+        </text>
       </svg>
     </div>
   );
