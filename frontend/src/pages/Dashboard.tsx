@@ -322,18 +322,48 @@ export default function Dashboard() {
       </div>
 
       {/* ORIGEM DOS PACIENTES */}
-      <div className="bg-white dark:bg-surface-card rounded-3xl p-8 border border-slate-200 dark:border-surface-border shadow-sm">
-         <h3 className="font-bold text-slate-800 dark:text-white text-lg">Origem dos pacientes</h3>
-         <p className="text-sm text-slate-500 mt-1">Como os pacientes conheceram a clínica, com base na pergunta 9.</p>
+      <div className="glass-panel rounded-3xl p-8 shadow-2xl border-none">
+         <div className="flex items-center justify-between mb-8">
+            <div>
+               <h3 className="font-bold text-white text-lg">Origem dos Pacientes</h3>
+               <p className="text-sm text-slate-500 mt-1 italic">Distribuição baseada na pergunta 9: "Como nos conheceu?"</p>
+            </div>
+            <div className="p-3 bg-white/5 rounded-2xl border border-white/10">
+               <Users className="w-5 h-5 text-indigo-400" />
+            </div>
+         </div>
          
-         <div className="h-[200px] mt-8">
+         <div className="h-[280px]">
            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={origemData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
-                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
-                 <Tooltip cursor={{fill: '#f1f5f9'}} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                 <Bar dataKey="value" fill="#c4b5fd" radius={[6, 6, 0, 0]} maxBarSize={60} />
+              <BarChart data={origemData} margin={{ top: 0, right: 0, left: -25, bottom: 0 }}>
+                 <defs>
+                    <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                       <stop offset="0%" stopColor="#818cf8" stopOpacity={1}/>
+                       <stop offset="100%" stopColor="#6366f1" stopOpacity={0.6}/>
+                    </linearGradient>
+                 </defs>
+                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                 <XAxis 
+                   dataKey="name" 
+                   axisLine={false} 
+                   tickLine={false} 
+                   tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 600}} 
+                   dy={15}
+                   interval={0}
+                 />
+                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 11}} />
+                 <Tooltip 
+                   cursor={{fill: 'rgba(255,255,255,0.03)'}} 
+                   contentStyle={{ backgroundColor: '#18181b', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.5)' }}
+                   itemStyle={{ color: '#fff', fontSize: '12px', fontWeight: 'bold' }}
+                 />
+                 <Bar 
+                   dataKey="value" 
+                   fill="url(#barGradient)" 
+                   radius={[10, 10, 0, 0]} 
+                   maxBarSize={50} 
+                   animationDuration={1500}
+                 />
               </BarChart>
            </ResponsiveContainer>
          </div>
