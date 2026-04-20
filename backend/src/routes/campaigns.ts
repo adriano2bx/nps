@@ -42,6 +42,7 @@ const campaignSchema = z.object({
     supportName: z.string().optional().nullable(),
     supportPhone: z.string().optional().nullable(),
     delay: z.union([z.number(), z.string()]).optional(),
+    startDelay: z.union([z.number(), z.string()]).optional(),
     timeout: z.union([z.number(), z.string()]).optional(),
     windowStart: z.string().optional().nullable(),
     windowEnd: z.string().optional().nullable(),
@@ -164,7 +165,7 @@ router.post('/', authMiddleware, validate(campaignSchema), async (req: AuthReque
     openingBody, buttonYes, buttonNo, closingMessage,
     isHsm, triggerType, keyword, waNumber, mediaPath,
     templateName, ctaLabel, ctaLink, supportName, supportPhone,
-    delay, timeout, windowStart, windowEnd, resend, scheduledAt,
+    delay, startDelay, timeout, windowStart, windowEnd, resend, scheduledAt,
     questions, topicId
   } = req.body;
 
@@ -201,6 +202,7 @@ router.post('/', authMiddleware, validate(campaignSchema), async (req: AuthReque
           supportPhone,
           scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
           delay: delay ? parseInt(delay, 10) : 60,
+          startDelay: startDelay ? parseInt(startDelay, 10) : 0,
           timeout: timeout ? parseInt(timeout, 10) : 1440,
           windowStart: windowStart || '08:00',
           windowEnd: windowEnd || '20:00',
@@ -291,7 +293,7 @@ router.patch('/:id', authMiddleware, async (req: AuthRequest, res) => {
       'buttonYes', 'buttonNo', 'closingMessage', 'isHsm',
       'triggerType', 'keyword', 'waNumber', 'mediaPath',
       'templateName', 'ctaLabel', 'ctaLink', 'supportName', 'supportPhone',
-      'delay', 'timeout', 'windowStart', 'windowEnd', 'resend', 'scheduledAt',
+      'delay', 'startDelay', 'timeout', 'windowStart', 'windowEnd', 'resend', 'scheduledAt',
       'topicId'
     ];
 
@@ -301,7 +303,7 @@ router.patch('/:id', authMiddleware, async (req: AuthRequest, res) => {
           data.whatsappChannelId = body.channelId || body.whatsappChannelId;
         } else if (key === 'isHsm') {
           data.isHsm = body.isHsm === 'true' || body.isHsm === true;
-        } else if (['delay', 'timeout', 'resend'].includes(key) && body[key] !== null) {
+        } else if (['delay', 'startDelay', 'timeout', 'resend'].includes(key) && body[key] !== null) {
           data[key] = parseInt(String(body[key]), 10);
         } else if (key === 'scheduledAt' && body[key]) {
           data.scheduledAt = new Date(body[key]);
@@ -341,7 +343,7 @@ router.put('/:id', authMiddleware, validate(campaignSchema), async (req: AuthReq
     openingBody, buttonYes, buttonNo, closingMessage,
     isHsm, triggerType, keyword, waNumber, mediaPath,
     templateName, ctaLabel, ctaLink, supportName, supportPhone,
-    delay, timeout, windowStart, windowEnd, resend, scheduledAt,
+    delay, startDelay, timeout, windowStart, windowEnd, resend, scheduledAt,
     questions, topicId
   } = req.body;
 
@@ -384,6 +386,7 @@ router.put('/:id', authMiddleware, validate(campaignSchema), async (req: AuthReq
           supportPhone,
           scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
           delay: (delay !== undefined && delay !== null) ? parseInt(String(delay), 10) : (existing.delay || 60),
+          startDelay: (startDelay !== undefined && startDelay !== null) ? parseInt(String(startDelay), 10) : (existing.startDelay || 0),
           timeout: (timeout !== undefined && timeout !== null) ? parseInt(String(timeout), 10) : (existing.timeout || 1440),
           windowStart: windowStart || existing.windowStart || '08:00',
           windowEnd: windowEnd || existing.windowEnd || '20:00',

@@ -163,6 +163,7 @@ model SurveyCampaign {
   triggerType       String           @default("active")
   scheduledAt       DateTime?
   delay             Int?             @default(60)
+  startDelay        Int?             @default(0)
   timeout           Int?             @default(1440)
   windowStart       String?          @default("08:00")
   windowEnd         String?          @default("20:00")

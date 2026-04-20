@@ -61,6 +61,7 @@ interface GeneralState {
   ctaLink: string;
   supportName: string;
   supportPhone: string;
+  startDelay: number;
 }
 
 interface WhatsAppChannel {
@@ -546,6 +547,25 @@ Você aceita participar de uma pesquisa rápida de satisfação?`}
         <p className="col-span-2 text-[10px] text-zinc-400 -mt-2 italic">
           Limite de 20 caracteres por botão (regra da API Meta).
         </p>
+        <div className="col-span-2 border-t border-zinc-100 dark:border-zinc-800/50 pt-4 mt-2">
+          <label className={labelCls}>Atraso antes da primeira pergunta (segundos)</label>
+          <div className="relative">
+            <input 
+              type="number"
+              min={0}
+              max={300}
+              className={inputCls} 
+              placeholder="Ex: 5" 
+              value={data.startDelay} 
+              onChange={e => onChange('startDelay', e.target.value)} 
+            />
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5 pointer-events-none">
+               <Clock className="w-4 h-4 text-zinc-400" />
+               <span className="text-[10px] font-bold text-zinc-400 uppercase">seg</span>
+            </div>
+          </div>
+          <p className="text-[10px] text-zinc-500 mt-1 italic">Tempo de espera após o clique no botão "Sim" para disparar a primeira pergunta.</p>
+        </div>
       </div>
 
       <div>
@@ -1559,7 +1579,8 @@ export default function SurveyBuilder() {
     ctaLabel: '',
     ctaLink: '',
     supportName: '',
-    supportPhone: ''
+    supportPhone: '',
+    startDelay: 0
   });
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1637,6 +1658,7 @@ export default function SurveyBuilder() {
         supportName: general.supportName,
         supportPhone: general.supportPhone,
         mediaPath: general.mediaPath,
+        startDelay: general.startDelay,
         ...dispatch, // include keyword, waNumber, delay, timeout, etc.
         questions: questions.map(q => ({
           id: q.id,
@@ -1708,7 +1730,8 @@ export default function SurveyBuilder() {
             supportName: campaign.supportName || '',
             supportPhone: campaign.supportPhone || '',
             channel: '', // Will be synced by the other effect below
-            mediaPath: campaign.mediaPath || ''
+            mediaPath: campaign.mediaPath || '',
+            startDelay: campaign.startDelay || 0
           });
 
           setDispatch({
@@ -1836,6 +1859,7 @@ export default function SurveyBuilder() {
         supportName: general.supportName,
         supportPhone: general.supportPhone,
         mediaPath: general.mediaPath,
+        startDelay: general.startDelay,
         ...dispatch,
         questions: questions.map(q => ({
           id: q.id,

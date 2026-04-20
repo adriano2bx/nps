@@ -4,6 +4,7 @@ import { webhookService } from './webhook-service.js';
 import OpenAI from 'openai';
 import { whatsappMeta } from './whatsapp-meta.js';
 import { logger } from '../lib/logger.js';
+import { surveyQueue } from '../lib/queue.js';
 
 // Configura OpenAI (Opcional - se houver chave no .env)
 let openai: OpenAI | null = null;
@@ -484,7 +485,21 @@ Retorne APENAS um JSON válido com exatas duas chaves booleanas:
       if (questions.length === 0) return this.closeSession(session);
 
       await prisma.surveySession.update({ where: { id: session.id }, data: { activeStep: 1 } });
-      await this.sendQuestion(session.campaign.whatsappChannelId, session.tenantId, session.contact.phoneNumber, questions[0]);
+      
+      const startDelay = session.campaign.startDelay || 0;
+      if (startDelay > 0) {
+        console.log(`[SurveyEngine] ⏱️ Delaying first question by ${startDelay}s for session ${session.id}`);
+        await surveyQueue.add('send-first-question', {
+          tenantId: session.tenantId,
+          campaignId: session.campaignId,
+          contactId: session.contactId,
+          sessionId: session.id
+        }, {
+          delay: startDelay * 1000
+        });
+      } else {
+        await this.sendQuestion(session.campaign.whatsappChannelId, session.tenantId, session.contact.phoneNumber, questions[0], session.id);
+      }
     }
   }
 

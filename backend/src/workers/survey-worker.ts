@@ -7,6 +7,7 @@ interface SurveyJobData {
   tenantId: string;
   campaignId: string;
   contactId: string;
+  sessionId?: string;
 }
 
 /**
@@ -52,9 +53,26 @@ export const setupSurveyWorker = () => {
       const provider = 'META';
 
       const { surveyEngine } = await import('../services/survey-engine.js');
-      await surveyEngine.startNewSession(tenantId, campaign.whatsappChannelId!, contact.phoneNumber, campaign);
-      
-      console.log(`[Worker] ✅ Success: Survey flow started for ${contact.name} via ${provider}`);
+
+      if (job.name === 'send-first-question' && job.data.sessionId) {
+        // Just send the first question of an already created session
+        const firstQuestion = campaign.questions[0];
+        if (firstQuestion) {
+          await surveyEngine.sendQuestion(
+            campaign.whatsappChannelId!, 
+            tenantId, 
+            contact.phoneNumber, 
+            firstQuestion, 
+            job.data.sessionId
+          );
+          console.log(`[Worker] ✅ Success: First question sent after delay for session ${job.data.sessionId}`);
+        }
+      } else {
+        // Standard flow: Start a new session
+        await surveyEngine.startNewSession(tenantId, campaign.whatsappChannelId!, contact.phoneNumber, campaign);
+        console.log(`[Worker] ✅ Success: Survey flow started for ${contact.name}`);
+      }
+
       return { success: true };
 
     } catch (error) {
