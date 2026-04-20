@@ -266,7 +266,6 @@ model SurveyMessageLog {
   @@index([questionId])
 }
 
-
 model CampaignTopic {
   id        String               @id @default(uuid())
   tenantId  String
