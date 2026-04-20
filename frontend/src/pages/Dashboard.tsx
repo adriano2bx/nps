@@ -189,7 +189,7 @@ export default function Dashboard() {
                  <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20 group-hover:bg-indigo-500 group-hover:text-white transition-all"><Percent className="w-5 h-5" /></div>
               </div>
               <div className="mt-auto pt-4">
-                 <div className="text-4xl font-black text-white tracking-tight leading-none">{stats.score || 0}</div>
+                 <div className="text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-none">{stats.score || 0}</div>
                  <div className="flex items-center gap-2 mt-2">
                    <div className={`w-2 h-2 rounded-full ${stats.score >= 75 ? 'bg-emerald-500' : stats.score >= 50 ? 'bg-blue-500' : 'bg-orange-500'}`}></div>
                    <span className="text-slate-500 text-xs font-medium">{getScoreInterpretation(stats.score || 0)}</span>
@@ -203,7 +203,7 @@ export default function Dashboard() {
                  <div className="w-10 h-10 rounded-2xl bg-sky-500/10 flex items-center justify-center text-sky-400 border border-sky-500/20 group-hover:bg-sky-500 group-hover:text-white transition-all"><Users className="w-5 h-5" /></div>
               </div>
               <div className="mt-auto pt-4">
-                 <div className="text-4xl font-black text-white tracking-tight leading-none">{stats.total || 0}</div>
+                 <div className="text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-none">{stats.total || 0}</div>
                  <div className="text-slate-500 text-[10px] mt-2 uppercase tracking-widest font-bold opacity-60">Pacientes no período</div>
               </div>
             </div>
@@ -214,7 +214,7 @@ export default function Dashboard() {
                  <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20 group-hover:bg-emerald-500 group-hover:text-white transition-all"><Smile className="w-5 h-5" /></div>
               </div>
               <div className="mt-auto pt-4">
-                 <div className="text-4xl font-black text-white tracking-tight leading-none">{stats.promoters || 0}</div>
+                 <div className="text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-none">{stats.promoters || 0}</div>
                  <div className="text-slate-500 text-[10px] mt-2 font-bold uppercase tracking-widest opacity-60">Notas 9 e 10</div>
               </div>
             </div>
@@ -225,7 +225,7 @@ export default function Dashboard() {
                  <div className="w-10 h-10 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-400 border border-rose-500/20 group-hover:bg-rose-500 group-hover:text-white transition-all"><MessageSquare className="w-5 h-5" /></div>
               </div>
               <div className="mt-auto pt-4">
-                 <div className="text-4xl font-black text-white tracking-tight leading-none">{stats.detractors || 0}</div>
+                 <div className="text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-none">{stats.detractors || 0}</div>
                  <div className="text-slate-500 text-[10px] mt-2 font-bold uppercase tracking-widest opacity-60">Notas 0 a 6</div>
               </div>
             </div>
@@ -236,7 +236,7 @@ export default function Dashboard() {
                  <div className="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-400 border border-orange-500/20 group-hover:bg-orange-500 group-hover:text-white transition-all"><Star className="w-5 h-5" /></div>
               </div>
               <div className="mt-auto pt-4">
-                 <div className="text-4xl font-black text-white tracking-tight leading-none">{stats.averageScore?.toFixed(1) || '0.0'}</div>
+                 <div className="text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-none">{stats.averageScore?.toFixed(1) || '0.0'}</div>
                  <div className="text-emerald-500 text-[10px] mt-2 flex items-center gap-1 font-bold uppercase tracking-widest">
                     <ArrowUpRight className="w-3 h-3" /> Tendência Positiva
                  </div>
@@ -248,9 +248,9 @@ export default function Dashboard() {
       {/* NPS GLOBAL E DISTRIBUICAO */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
          {/* BOX 1 */}
-         <div className="bg-white dark:bg-surface-card rounded-3xl p-8 border border-slate-200 dark:border-surface-border shadow-sm flex flex-col">
+          <div className="glass-panel rounded-3xl p-8 flex flex-col transition-all">
             <div>
-               <h3 className="font-bold text-slate-800 dark:text-white text-lg">NPS Global</h3>
+               <h3 className="font-bold text-slate-900 dark:text-white text-lg">NPS Global</h3>
                <p className="text-sm text-slate-500 mt-1">Velocímetro de leitura rápida para facilitar a tomada de decisão.</p>
             </div>
             
@@ -260,19 +260,19 @@ export default function Dashboard() {
                </div>
                
                <div className="w-full lg:w-48 xl:w-56 space-y-4">
-                  <div className="bg-slate-50 dark:bg-surface-subtle p-4 rounded-2xl">
-                     <div className="text-xs text-slate-500 mb-1">Interpretação rápida</div>
-                     <div className="text-xl font-bold text-slate-800 dark:text-white">{getScoreInterpretation(stats.score || 0)}</div>
-                     <p className="text-[11px] text-slate-500 mt-2 leading-relaxed">
-                        O velocímetro mostra a força da recomendação dos pacientes de forma intuitiva: crítico, atenção, bom, muito bom ou excelência.
+                  <div className="bg-slate-50 dark:bg-surface-subtle p-4 rounded-2xl border border-slate-100 dark:border-surface-border">
+                     <div className="text-xs text-slate-500 mb-1 font-bold uppercase tracking-widest opacity-70">Interpretação</div>
+                     <div className="text-xl font-bold text-slate-900 dark:text-white">{getScoreInterpretation(stats.score || 0)}</div>
+                     <p className="text-[10px] text-slate-500 mt-2 leading-relaxed">
+                        Força da recomendação baseada na percepção intuitiva dos pacientes.
                      </p>
                   </div>
                   
-                  <div className="bg-slate-50 dark:bg-surface-subtle p-4 rounded-2xl">
-                     <div className="text-xs text-slate-500 mb-1">Média de recomendação</div>
-                     <div className="text-xl font-bold text-slate-800 dark:text-white">{stats.averageScore?.toFixed(1) || '0.0'}</div>
-                     <p className="text-[11px] text-slate-500 mt-2 leading-relaxed">
-                        Média simples das notas dadas pelos pacientes para a pergunta de recomendação.
+                  <div className="bg-slate-50 dark:bg-surface-subtle p-4 rounded-2xl border border-slate-100 dark:border-surface-border">
+                     <div className="text-xs text-slate-500 mb-1 font-bold uppercase tracking-widest opacity-70">Média Decimal</div>
+                     <div className="text-xl font-bold text-slate-900 dark:text-white">{stats.averageScore?.toFixed(1) || '0.0'}</div>
+                     <p className="text-[10px] text-slate-500 mt-2 leading-relaxed">
+                        Média aritmética simples de todas as notas dadas.
                      </p>
                   </div>
                </div>
@@ -280,10 +280,10 @@ export default function Dashboard() {
          </div>
 
          {/* BOX 2 */}
-         <div className="bg-white dark:bg-surface-card rounded-3xl p-8 border border-slate-200 dark:border-surface-border shadow-sm flex flex-col">
+         <div className="glass-panel rounded-3xl p-8 flex flex-col transition-all">
             <div>
-               <h3 className="font-bold text-slate-800 dark:text-white text-lg">Distribuição NPS</h3>
-               <p className="text-sm text-slate-500 mt-1">Como as respostas estão distribuídas entre promotores, neutros e detratores.</p>
+               <h3 className="font-bold text-slate-900 dark:text-white text-lg">Distribuição NPS</h3>
+               <p className="text-sm text-slate-500 mt-1">Como as respostas estão distribuídas entre promotores e detratores.</p>
             </div>
             
             <div className="flex-1 flex flex-col lg:flex-row items-center mt-6">
@@ -298,21 +298,21 @@ export default function Dashboard() {
                               <Cell key={`cell-${index}`} fill={entry.color} />
                            ))}
                         </Pie>
-                        <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}/>
+                        <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', backgroundColor: '#18181b', color: '#fff', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}/>
                      </PieChart>
                   </ResponsiveContainer>
                </div>
                
-               <div className="w-full lg:w-48 xl:w-56 space-y-3 mt-6 lg:mt-0">
+               <div className="w-full lg:w-48 xl:w-56 space-y-2 mt-6 lg:mt-0">
                   {distributionData.map((item, i) => (
-                    <div key={i} className="bg-slate-50 dark:bg-surface-subtle py-2 px-4 rounded-xl flex items-center justify-between">
-                       <div className="flex items-center gap-2">
-                          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }}></div>
-                          <span className="font-bold text-slate-800 dark:text-white text-sm">{item.name}</span>
+                    <div key={i} className="bg-slate-50/50 dark:bg-surface-subtle/50 py-2.5 px-4 rounded-xl flex items-center justify-between border border-slate-100 dark:border-white/5">
+                       <div className="flex items-center gap-2.5">
+                          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color, boxShadow: `0 0 8px ${item.color}44` }}></div>
+                          <span className="font-bold text-slate-700 dark:text-slate-300 text-xs">{item.name}</span>
                        </div>
                        <div className="text-right">
-                          <div className="font-bold text-slate-800 dark:text-white text-sm">{item.value}%</div>
-                          <div className="text-[10px] text-slate-500">{item.count} respostas</div>
+                          <div className="font-bold text-slate-900 dark:text-white text-xs">{item.value}%</div>
+                          <div className="text-[10px] text-slate-500 font-medium">{item.count} respond.</div>
                        </div>
                     </div>
                   ))}
@@ -448,14 +448,14 @@ export default function Dashboard() {
                     </td>
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-3">
-                         <div className="w-8 h-8 rounded-full bg-indigo-500/10 flex items-center justify-center text-[10px] font-bold text-indigo-400 border border-indigo-500/20 group-hover:bg-indigo-500 group-hover:text-white transition-all">
+                         <div className="w-8 h-8 rounded-full bg-indigo-500/10 flex items-center justify-center text-[10px] font-bold text-indigo-500 dark:text-indigo-400 border border-indigo-500/20 group-hover:bg-indigo-500 group-hover:text-white transition-all">
                             {r.contactName?.charAt(0)}
                          </div>
-                         <span className="text-sm font-bold text-white">{r.contactName}</span>
+                         <span className="text-sm font-bold text-slate-900 dark:text-white">{r.contactName}</span>
                       </div>
                     </td>
                     <td className="px-8 py-5">
-                      <span className="px-3 py-1 bg-zinc-800 text-zinc-400 text-[10px] font-bold rounded-lg uppercase tracking-wider border border-white/5">{r.campaignName}</span>
+                      <span className="px-3 py-1 bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 text-[10px] font-bold rounded-lg uppercase tracking-wider border border-slate-200 dark:border-white/5">{r.campaignName}</span>
                     </td>
                     <td className="px-8 py-5 text-center">
                       <div className={`inline-flex items-center justify-center w-9 h-9 rounded-xl font-black text-sm shadow-lg ${r.score >= 9 ? 'bg-emerald-500 text-white' : r.score >= 7 ? 'bg-amber-500 text-white' : 'bg-rose-500 text-white'}`}>
@@ -463,7 +463,7 @@ export default function Dashboard() {
                       </div>
                     </td>
                     <td className="px-8 py-5">
-                      <p className="text-sm text-slate-400 max-w-sm truncate italic group-hover:text-slate-200 transition-colors" title={r.comment}>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm truncate italic group-hover:text-slate-800 dark:group-hover:text-slate-200 transition-colors" title={r.comment}>
                         {r.comment ? `"${r.comment}"` : '—'}
                       </p>
                     </td>
@@ -547,16 +547,17 @@ function NpsSVG({ score, interpretation }: { score: number, interpretation: stri
           <line 
             x1="120" y1="120" 
             x2="120" y2="45" 
-            stroke="#fff" 
+            stroke="currentColor" 
+            className="text-slate-800 dark:text-white"
             strokeWidth="3" 
             strokeLinecap="round" 
           />
-          <circle cx="120" cy="120" r="6" fill="#fff" />
-          <circle cx="120" cy="120" r="3" fill="#18181b" />
+          <circle cx="120" cy="120" r="6" fill="currentColor" className="text-slate-800 dark:text-white" />
+          <circle cx="120" cy="120" r="3" fill="currentColor" className="text-white dark:text-zinc-900" />
         </g>
 
         {/* Center Text */}
-        <text x="120" y="105" textAnchor="middle" className="text-5xl font-black fill-white tracking-tighter">
+        <text x="120" y="105" textAnchor="middle" className="text-5xl font-black fill-slate-900 dark:fill-white tracking-tighter">
           {score}
         </text>
         <text x="120" y="125" textAnchor="middle" className="text-[10px] font-bold fill-slate-500 uppercase tracking-widest">
@@ -595,18 +596,18 @@ function ComplexWidget({ title, desc, badgeText, visualIndex, visualIndexDesc, h
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
          {/* BOX 1: INDICE VISUAL */}
-         <div className="bg-zinc-900/40 rounded-3xl p-6 flex flex-col justify-center border border-white/5 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+         <div className="bg-slate-50/50 dark:bg-zinc-900/40 rounded-3xl p-6 flex flex-col justify-center border border-slate-200/50 dark:border-white/5 relative overflow-hidden group transition-all">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent dark:from-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div className="relative z-10">
-               <div className="text-xs text-slate-500 mb-2 uppercase tracking-[0.2em] font-bold">Índice Visual</div>
-               <div className="text-6xl font-black text-white">{visualIndex}%</div>
-               <p className="text-[11px] text-slate-400 mt-4 leading-relaxed font-medium">{visualIndexDesc}</p>
+               <div className="text-xs text-slate-500 dark:text-slate-500 mb-2 uppercase tracking-[0.2em] font-bold">Índice Visual</div>
+               <div className="text-6xl font-black text-slate-900 dark:text-white">{visualIndex}%</div>
+               <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-4 leading-relaxed font-medium">{visualIndexDesc}</p>
             </div>
          </div>
          
          {/* BOX 2: EVOLUCAO */}
-         <div className="bg-zinc-900/40 rounded-3xl p-6 flex flex-col border border-white/5">
-            <div className="text-xs text-slate-500 mb-4 uppercase tracking-widest font-bold">Evolução Temporal</div>
+         <div className="bg-slate-50/50 dark:bg-zinc-900/40 rounded-3xl p-6 flex flex-col border border-slate-200/50 dark:border-white/5 transition-all">
+            <div className="text-xs text-slate-500 dark:text-slate-500 mb-4 uppercase tracking-widest font-bold">Evolução Temporal</div>
             <div className="flex-1 min-h-[120px]">
                <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={safeHistory}>
@@ -623,7 +624,7 @@ function ComplexWidget({ title, desc, badgeText, visualIndex, visualIndexDesc, h
          </div>
          
          {/* BOX 3: ROSCA */}
-         <div className="bg-zinc-900/40 rounded-3xl flex items-center justify-center min-h-[180px] border border-white/5">
+         <div className="bg-slate-50/50 dark:bg-zinc-900/40 rounded-3xl flex items-center justify-center min-h-[180px] border border-slate-200/50 dark:border-white/5 transition-all">
              <ResponsiveContainer width="100%" height="100%">
                <PieChart>
                   <Pie data={safePie} innerRadius={50} outerRadius={75} paddingAngle={4} dataKey="value" stroke="none">
@@ -638,12 +639,12 @@ function ComplexWidget({ title, desc, badgeText, visualIndex, visualIndexDesc, h
          {/* BOX 4: LEGENDA */}
          <div className="flex flex-col justify-center gap-3">
             {pieLegend.map((lg: any, i: number) => (
-               <div key={i} className="flex items-center justify-between bg-zinc-900/60 rounded-2xl p-4 border border-white/5 hover:bg-zinc-800 transition-colors">
+               <div key={i} className="flex items-center justify-between bg-slate-50/80 dark:bg-zinc-900/60 rounded-2xl p-4 border border-slate-200/50 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">
                   <div className="flex items-center gap-3">
-                     <div className="w-3 h-3 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.5)]" style={{backgroundColor: lg.color, boxShadow: `0 0 10px ${lg.color}44`}}></div>
-                     <span className="text-xs font-bold text-slate-300">{lg.label}</span>
+                     <div className="w-3 h-3 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.1)] dark:shadow-[0_0_8px_rgba(0,0,0,0.5)]" style={{backgroundColor: lg.color, boxShadow: `0 0 10px ${lg.color}44`}}></div>
+                     <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{lg.label}</span>
                   </div>
-                  <span className="text-sm font-black text-white">{lg.val}</span>
+                  <span className="text-sm font-black text-slate-900 dark:text-white">{lg.val}</span>
                </div>
             ))}
          </div>
