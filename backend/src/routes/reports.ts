@@ -160,7 +160,7 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
     const sessionFilterObj = Object.keys(dateFilter).length > 0 ? { startedAt: dateFilter } : {};
 
     // Fetch stats, distribution and recent responses in parallel using denormalized indices
-    const [statsResult, distributionResult, campaigns, recentResponses] = await Promise.all([
+    const [statsResult, distributionResult, campaigns, recentResponses, allResponses] = await Promise.all([
       // 1. Basic Stats (NPS) using aggregations on denormalized table
       prisma.surveyResponse.aggregate({
         where: {
@@ -169,6 +169,7 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
           answerValue: { not: null }
         },
         _count: { id: true },
+        _avg: { answerValue: true },
         _min: { answerValue: true },
         _max: { answerValue: true }
       }),
@@ -219,17 +220,64 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
         },
         orderBy: { createdAt: 'desc' },
         take: 10
+      }),
+      // 5. All responses to build clinic specific specific question widgets
+      prisma.surveyResponse.findMany({
+        where: { tenantId, ...filterObj },
+        include: { question: true }
       })
     ]);
 
     // --- PROCESS NPS STATS & DISTRIBUTION ---
     const stats = calculateNpsStats(distributionResult as any);
+    
+    // Add the literal average of the scores for the 5th card
+    const averageScore = statsResult._avg?.answerValue ? Number(statsResult._avg.answerValue.toFixed(1)) : 0;
 
     const distribution = Array(11).fill(0);
     distributionResult.forEach((item: any) => {
       const val = Math.round(item.answerValue || 0);
       const count = item._count?.id || 0;
       if (val >= 0 && val <= 10) distribution[val] += count;
+    });
+
+    // --- CLINIC METRICS ---
+    const clinicMetrics: Record<number, any> = {};
+    const previousDateFilter = { ...dateFilter }; // For comparison if needed later, right now let's just group current period
+    
+    (allResponses as any[]).forEach(r => {
+      const qIndex = r.question?.orderIndex;
+      if (qIndex === undefined) return;
+      
+      if (!clinicMetrics[qIndex]) {
+        clinicMetrics[qIndex] = {
+          total: 0,
+          responses: {},
+          history: {}
+        };
+      }
+      
+      clinicMetrics[qIndex].total++;
+      
+      // Fallback text extraction or numeric to string
+      let valStr = 'Sem resposta';
+      if (r.answerText && r.answerText.trim() !== '') {
+         valStr = r.answerText.trim();
+      } else if (r.answerValue !== null) {
+         valStr = r.answerValue.toString();
+      }
+      
+      clinicMetrics[qIndex].responses[valStr] = (clinicMetrics[qIndex].responses[valStr] || 0) + 1;
+      
+      const dateStr = new Date(r.createdAt).toISOString().split('T')[0];
+      if (!clinicMetrics[qIndex].history[dateStr]) {
+        clinicMetrics[qIndex].history[dateStr] = { count: 0, sum: 0, totalScore: 0 };
+      }
+      clinicMetrics[qIndex].history[dateStr].count++;
+      if (r.answerValue !== null) {
+        clinicMetrics[qIndex].history[dateStr].totalScore++;
+        clinicMetrics[qIndex].history[dateStr].sum += r.answerValue;
+      }
     });
 
 
@@ -281,7 +329,8 @@ router.get('/dashboard', authMiddleware, async (req: AuthRequest, res) => {
     }).filter((c: any) => c.total > 0);
 
     const result = {
-      stats,
+      stats: { ...stats, averageScore },
+      clinicMetrics,
       distribution: distribution.map((count: any, index: number) => ({ score: index, count })),
       timeSeries,
       byCampaign,
