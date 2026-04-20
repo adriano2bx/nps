@@ -183,61 +183,61 @@ export default function Dashboard() {
           {/* TOP CARDS */}
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             
-            <div className="group glass-panel rounded-3xl p-6 flex flex-col justify-between transition-all hover:scale-[1.02] hover:shadow-indigo-500/10">
-              <div className="flex items-start justify-between">
+            <div className="group glass-panel rounded-3xl p-6 flex flex-col h-full transition-all hover:scale-[1.02] hover:shadow-indigo-500/10">
+              <div className="flex items-start justify-between h-12">
                  <span className="text-slate-400 font-medium text-sm">NPS Geral</span>
                  <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20 group-hover:bg-indigo-500 group-hover:text-white transition-all"><Percent className="w-5 h-5" /></div>
               </div>
-              <div className="mt-4">
-                 <div className="text-4xl font-bold text-white tracking-tight">{stats.score || 0}</div>
-                 <div className="flex items-center gap-2 mt-1">
+              <div className="mt-auto pt-4">
+                 <div className="text-4xl font-black text-white tracking-tight leading-none">{stats.score || 0}</div>
+                 <div className="flex items-center gap-2 mt-2">
                    <div className={`w-2 h-2 rounded-full ${stats.score >= 75 ? 'bg-emerald-500' : stats.score >= 50 ? 'bg-blue-500' : 'bg-orange-500'}`}></div>
-                   <span className="text-slate-500 text-sm">{getScoreInterpretation(stats.score || 0)}</span>
+                   <span className="text-slate-500 text-xs font-medium">{getScoreInterpretation(stats.score || 0)}</span>
                  </div>
               </div>
             </div>
 
-            <div className="group glass-panel rounded-3xl p-6 flex flex-col justify-between transition-all hover:scale-[1.02] hover:shadow-sky-500/10">
-              <div className="flex items-start justify-between">
+            <div className="group glass-panel rounded-3xl p-6 flex flex-col h-full transition-all hover:scale-[1.02] hover:shadow-sky-500/10">
+              <div className="flex items-start justify-between h-12">
                  <span className="text-slate-400 font-medium text-sm">Total de Respostas</span>
                  <div className="w-10 h-10 rounded-2xl bg-sky-500/10 flex items-center justify-center text-sky-400 border border-sky-500/20 group-hover:bg-sky-500 group-hover:text-white transition-all"><Users className="w-5 h-5" /></div>
               </div>
-              <div className="mt-4">
-                 <div className="text-4xl font-bold text-white tracking-tight">{stats.total || 0}</div>
-                 <div className="text-slate-500 text-xs mt-1 leading-tight uppercase tracking-widest font-bold opacity-70">Volume total no período</div>
+              <div className="mt-auto pt-4">
+                 <div className="text-4xl font-black text-white tracking-tight leading-none">{stats.total || 0}</div>
+                 <div className="text-slate-500 text-[10px] mt-2 uppercase tracking-widest font-bold opacity-60">Pacientes no período</div>
               </div>
             </div>
 
-            <div className="group glass-panel rounded-3xl p-6 flex flex-col justify-between transition-all hover:scale-[1.02] hover:shadow-emerald-500/10">
-              <div className="flex items-start justify-between">
+            <div className="group glass-panel rounded-3xl p-6 flex flex-col h-full transition-all hover:scale-[1.02] hover:shadow-emerald-500/10">
+              <div className="flex items-start justify-between h-12">
                  <span className="text-slate-400 font-medium text-sm">Promotores</span>
                  <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20 group-hover:bg-emerald-500 group-hover:text-white transition-all"><Smile className="w-5 h-5" /></div>
               </div>
-              <div className="mt-4">
-                 <div className="text-4xl font-bold text-white tracking-tight">{stats.promoters || 0}</div>
-                 <div className="text-slate-500 text-xs mt-1 font-medium italic">Satisfação máxima</div>
+              <div className="mt-auto pt-4">
+                 <div className="text-4xl font-black text-white tracking-tight leading-none">{stats.promoters || 0}</div>
+                 <div className="text-slate-500 text-[10px] mt-2 font-bold uppercase tracking-widest opacity-60">Notas 9 e 10</div>
               </div>
             </div>
 
-            <div className="group glass-panel rounded-3xl p-6 flex flex-col justify-between transition-all hover:scale-[1.02] hover:shadow-rose-500/10">
-              <div className="flex items-start justify-between">
+            <div className="group glass-panel rounded-3xl p-6 flex flex-col h-full transition-all hover:scale-[1.02] hover:shadow-rose-500/10">
+              <div className="flex items-start justify-between h-12">
                  <span className="text-slate-400 font-medium text-sm">Detratores</span>
                  <div className="w-10 h-10 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-400 border border-rose-500/20 group-hover:bg-rose-500 group-hover:text-white transition-all"><MessageSquare className="w-5 h-5" /></div>
               </div>
-              <div className="mt-4">
-                 <div className="text-4xl font-bold text-white tracking-tight">{stats.detractors || 0}</div>
-                 <div className="text-slate-500 text-xs mt-1 font-medium">Pontos de atenção</div>
+              <div className="mt-auto pt-4">
+                 <div className="text-4xl font-black text-white tracking-tight leading-none">{stats.detractors || 0}</div>
+                 <div className="text-slate-500 text-[10px] mt-2 font-bold uppercase tracking-widest opacity-60">Notas 0 a 6</div>
               </div>
             </div>
 
-            <div className="group glass-panel rounded-3xl p-6 flex flex-col justify-between transition-all hover:scale-[1.02] hover:shadow-orange-500/10">
-              <div className="flex items-start justify-between">
+            <div className="group glass-panel rounded-3xl p-6 flex flex-col h-full transition-all hover:scale-[1.02] hover:shadow-orange-500/10">
+              <div className="flex items-start justify-between h-12">
                  <span className="text-slate-400 font-medium text-sm">Nota Média</span>
                  <div className="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-400 border border-orange-500/20 group-hover:bg-orange-500 group-hover:text-white transition-all"><Star className="w-5 h-5" /></div>
               </div>
-              <div className="mt-4">
-                 <div className="text-4xl font-bold text-white tracking-tight">{stats.averageScore?.toFixed(1) || '0.0'}</div>
-                 <div className="text-slate-500 text-xs mt-1 flex items-center gap-1 font-bold text-emerald-500">
+              <div className="mt-auto pt-4">
+                 <div className="text-4xl font-black text-white tracking-tight leading-none">{stats.averageScore?.toFixed(1) || '0.0'}</div>
+                 <div className="text-emerald-500 text-[10px] mt-2 flex items-center gap-1 font-bold uppercase tracking-widest">
                     <ArrowUpRight className="w-3 h-3" /> Tendência Positiva
                  </div>
               </div>
